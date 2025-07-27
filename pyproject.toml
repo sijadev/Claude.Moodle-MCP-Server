@@ -1,12 +1,20 @@
 [project]
-name = "repl-nix-workspace"
+name = "moodle-claude"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server for creating Moodle courses from Claude chat conversations"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.12.14",
-    "asyncio>=3.4.3",
     "markdown>=3.8.2",
     "mcp>=1.12.2",
     "pygments>=2.19.2",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
 ]

@@ -6,25 +6,27 @@ Handles formatting of code and topic content for Moodle activities
 import html
 import re
 from typing import Optional
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name, guess_lexer
-from pygments.formatters import HtmlFormatter
-from pygments.util import ClassNotFound
+
 import markdown
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name, guess_lexer
+from pygments.util import ClassNotFound
+
 
 class ContentFormatter:
     """Formatter for creating Moodle-compatible content"""
-    
+
     def __init__(self):
         # Initialize Pygments HTML formatter with Moodle-friendly styling
         self.code_formatter = HtmlFormatter(
-            style='default',
-            cssclass='code-highlight',
+            style="default",
+            cssclass="code-highlight",
             linenos=True,
             linenostart=1,
-            noclasses=False
+            noclasses=False,
         )
-        
+
         # CSS styles for code highlighting
         self.code_css = """
         <style>
@@ -89,37 +91,42 @@ class ContentFormatter:
         }
         </style>
         """
-        
+
         # Markdown extensions for better formatting
         self.markdown_extensions = [
-            'codehilite',
-            'fenced_code',
-            'tables',
-            'toc',
-            'nl2br'
+            "codehilite",
+            "fenced_code",
+            "tables",
+            "toc",
+            "nl2br",
         ]
-    
-    def format_code_for_moodle(self, code: str, language: Optional[str] = None, 
-                              title: str = "Code Example", description: str = "") -> str:
+
+    def format_code_for_moodle(
+        self,
+        code: str,
+        language: Optional[str] = None,
+        title: str = "Code Example",
+        description: str = "",
+    ) -> str:
         """
         Format code content for Moodle page activity
-        
+
         Args:
             code: Source code content
             language: Programming language
             title: Code title
             description: Code description
-            
+
         Returns:
             HTML formatted content for Moodle
         """
         # Get syntax highlighted HTML
         highlighted_code = self._highlight_code(code, language)
-        
+
         # Create file extension for download suggestion
         file_extension = self._get_file_extension(language)
         filename = f"{title.lower().replace(' ', '_')}.{file_extension}"
-        
+
         # Format the complete HTML
         html_content = f"""
         {self.code_css}
@@ -161,25 +168,26 @@ class ContentFormatter:
             </details>
         </div>
         """
-        
+
         return html_content
-    
-    def format_topic_for_moodle(self, content: str, title: str = "Topic", 
-                               description: str = "") -> str:
+
+    def format_topic_for_moodle(
+        self, content: str, title: str = "Topic", description: str = ""
+    ) -> str:
         """
         Format topic content for Moodle page activity
-        
+
         Args:
             content: Topic content (can be markdown)
             title: Topic title
             description: Topic description
-            
+
         Returns:
             HTML formatted content for Moodle
         """
         # Convert markdown to HTML if content contains markdown
         formatted_content = self._format_markdown_content(content)
-        
+
         # Create HTML layout
         html_content = f"""
         {self.code_css}
@@ -200,18 +208,20 @@ class ContentFormatter:
             </div>
         </div>
         """
-        
+
         return html_content
-    
-    def format_mixed_content(self, title: str, items: list, description: str = "") -> str:
+
+    def format_mixed_content(
+        self, title: str, items: list, description: str = ""
+    ) -> str:
         """
         Format mixed content (code + topics) for a single Moodle page
-        
+
         Args:
             title: Page title
             items: List of ContentItem objects
             description: Page description
-            
+
         Returns:
             HTML formatted content
         """
@@ -226,23 +236,25 @@ class ContentFormatter:
                 <h3>Content Overview</h3>
                 <ul>
         """
-        
+
         # Add content summary
         code_count = sum(1 for item in items if item.type == "code")
         topic_count = sum(1 for item in items if item.type == "topic")
-        
+
         if code_count > 0:
-            html_content += f"<li>💻 {code_count} Code Example{'s' if code_count != 1 else ''}</li>"
+            html_content += (
+                f"<li>💻 {code_count} Code Example{'s' if code_count != 1 else ''}</li>"
+            )
         if topic_count > 0:
             html_content += f"<li>📝 {topic_count} Topic Description{'s' if topic_count != 1 else ''}</li>"
-        
+
         html_content += """
                 </ul>
             </div>
             
             <hr style="margin: 25px 0;">
         """
-        
+
         # Add individual items
         for i, item in enumerate(items, 1):
             if item.type == "code":
@@ -263,10 +275,10 @@ class ContentFormatter:
                 </div>
                 <hr style="margin: 25px 0;">
                 """
-        
+
         html_content += "</div>"
         return html_content
-    
+
     def _highlight_code(self, code: str, language: Optional[str] = None) -> str:
         """Apply syntax highlighting to code"""
         try:
@@ -276,11 +288,11 @@ class ContentFormatter:
             else:
                 # Try to guess lexer from content
                 lexer = guess_lexer(code)
-            
+
             # Generate highlighted HTML
             highlighted = highlight(code, lexer, self.code_formatter)
             return highlighted
-            
+
         except ClassNotFound:
             # Fallback to plain text if language not supported
             escaped_code = html.escape(code)
@@ -289,13 +301,14 @@ class ContentFormatter:
             # Fallback for any other errors
             escaped_code = html.escape(code)
             return f'<pre class="code-highlight"><code>{escaped_code}</code></pre>'
-    
-    def _get_embedded_code_html(self, code: str, language: Optional[str] = None, 
-                               description: str = "") -> str:
+
+    def _get_embedded_code_html(
+        self, code: str, language: Optional[str] = None, description: str = ""
+    ) -> str:
         """Get HTML for embedded code (without full page structure)"""
         highlighted_code = self._highlight_code(code, language)
         file_extension = self._get_file_extension(language)
-        
+
         return f"""
         <div class="code-container">
             <div class="code-header">
@@ -312,7 +325,7 @@ class ContentFormatter:
             {f'<div class="code-description" style="padding: 10px 15px; background-color: #f8f9fa; border-top: 1px solid #e9ecef;"><small>{html.escape(description)}</small></div>' if description else ''}
         </div>
         """
-    
+
     def _format_markdown_content(self, content: str) -> str:
         """Convert markdown content to HTML"""
         try:
@@ -321,69 +334,70 @@ class ContentFormatter:
                 content,
                 extensions=self.markdown_extensions,
                 extension_configs={
-                    'codehilite': {
-                        'css_class': 'highlight',
-                        'use_pygments': True
-                    }
-                }
+                    "codehilite": {"css_class": "highlight", "use_pygments": True}
+                },
             )
             return html_content
         except Exception:
             # Fallback: treat as plain text with basic formatting
             return self._format_plain_text(content)
-    
+
     def _format_plain_text(self, content: str) -> str:
         """Format plain text with basic HTML formatting"""
         # Escape HTML and convert newlines
         formatted = html.escape(content)
-        
+
         # Convert double newlines to paragraphs
-        paragraphs = formatted.split('\n\n')
-        formatted = ''.join(f'<p>{para.replace(chr(10), "<br>")}</p>' for para in paragraphs if para.strip())
-        
+        paragraphs = formatted.split("\n\n")
+        formatted = "".join(
+            f'<p>{para.replace(chr(10), "<br>")}</p>'
+            for para in paragraphs
+            if para.strip()
+        )
+
         # Basic markdown-like formatting
-        formatted = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', formatted)  # Bold
-        formatted = re.sub(r'\*(.*?)\*', r'<em>\1</em>', formatted)  # Italic
-        formatted = re.sub(r'`(.*?)`', r'<code>\1</code>', formatted)  # Inline code
-        
+        formatted = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", formatted)  # Bold
+        formatted = re.sub(r"\*(.*?)\*", r"<em>\1</em>", formatted)  # Italic
+        formatted = re.sub(r"`(.*?)`", r"<code>\1</code>", formatted)  # Inline code
+
         return formatted
-    
+
     def _get_file_extension(self, language: Optional[str]) -> str:
         """Get appropriate file extension for language"""
         extensions = {
-            'python': 'py',
-            'javascript': 'js',
-            'typescript': 'ts',
-            'java': 'java',
-            'cpp': 'cpp',
-            'c': 'c',
-            'html': 'html',
-            'css': 'css',
-            'sql': 'sql',
-            'bash': 'sh',
-            'shell': 'sh',
-            'json': 'json',
-            'yaml': 'yml',
-            'xml': 'xml',
-            'go': 'go',
-            'rust': 'rs',
-            'php': 'php',
-            'ruby': 'rb',
-            'swift': 'swift',
-            'kotlin': 'kt',
-            'r': 'r',
-            'matlab': 'm',
-            'scala': 'scala',
+            "python": "py",
+            "javascript": "js",
+            "typescript": "ts",
+            "java": "java",
+            "cpp": "cpp",
+            "c": "c",
+            "html": "html",
+            "css": "css",
+            "sql": "sql",
+            "bash": "sh",
+            "shell": "sh",
+            "json": "json",
+            "yaml": "yml",
+            "xml": "xml",
+            "go": "go",
+            "rust": "rs",
+            "php": "php",
+            "ruby": "rb",
+            "swift": "swift",
+            "kotlin": "kt",
+            "r": "r",
+            "matlab": "m",
+            "scala": "scala",
         }
-        
-        return extensions.get(language.lower() if language else '', 'txt')
-    
+
+        return extensions.get(language.lower() if language else "", "txt")
+
     def _estimate_reading_time(self, content: str) -> int:
         """Estimate reading time in minutes (assuming 200 words per minute)"""
         word_count = len(content.split())
         reading_time = max(1, round(word_count / 200))
         return reading_time
-    
+
     def create_course_summary_page(self, course_name: str, sections: list) -> str:
         """Create a summary page for the course"""
         html_content = f"""
@@ -401,10 +415,16 @@ class ContentFormatter:
                 <ul>
                     <li><strong>Total Sections:</strong> {len(sections)}</li>
         """
-        
-        total_code = sum(len([item for item in section.get('items', []) if item.type == 'code']) for section in sections)
-        total_topics = sum(len([item for item in section.get('items', []) if item.type == 'topic']) for section in sections)
-        
+
+        total_code = sum(
+            len([item for item in section.get("items", []) if item.type == "code"])
+            for section in sections
+        )
+        total_topics = sum(
+            len([item for item in section.get("items", []) if item.type == "topic"])
+            for section in sections
+        )
+
         html_content += f"""
                     <li><strong>Code Examples:</strong> {total_code}</li>
                     <li><strong>Topic Descriptions:</strong> {total_topics}</li>
@@ -413,12 +433,12 @@ class ContentFormatter:
                 <h3>🗂️ Section Overview</h3>
                 <ol>
         """
-        
+
         for section in sections:
-            items = section.get('items', [])
-            code_count = len([item for item in items if item.type == 'code'])
-            topic_count = len([item for item in items if item.type == 'topic'])
-            
+            items = section.get("items", [])
+            code_count = len([item for item in items if item.type == "code"])
+            topic_count = len([item for item in items if item.type == "topic"])
+
             html_content += f"""
                     <li>
                         <strong>{html.escape(section.get('name', 'Unnamed Section'))}</strong>
@@ -428,7 +448,7 @@ class ContentFormatter:
                         </ul>
                     </li>
             """
-        
+
         html_content += """
                 </ol>
                 
@@ -444,5 +464,5 @@ class ContentFormatter:
             </div>
         </div>
         """
-        
+
         return html_content
