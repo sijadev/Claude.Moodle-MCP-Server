@@ -8,22 +8,21 @@ dependencies = [
     "markdown>=3.8.2",
     "mcp>=1.12.2",
     "pygments>=2.19.2",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
-    "pytest-mock>=3.14.1",
     "python-dotenv>=1.0.0",
     "requests>=2.32.4",
-    "responses>=0.25.7",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
+test = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.1", 
+    "pytest-mock>=3.14.1",
+    "responses>=0.25.7",
+]
 dev = [
     "black>=25.1.0",
     "flake8>=7.3.0",
     "isort>=6.0.1",
     "mypy>=1.17.0",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
-    "pytest-cov>=6.2.1",
-    "pytest-mock>=3.14.1",
 ]

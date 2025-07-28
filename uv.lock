@@ -550,51 +550,44 @@ dependencies = [
     { name = "markdown" },
     { name = "mcp" },
     { name = "pygments" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-mock" },
     { name = "python-dotenv" },
     { name = "requests" },
-    { name = "responses" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "black" },
     { name = "flake8" },
     { name = "isort" },
     { name = "mypy" },
+]
+test = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
+    { name = "responses" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.12.14" },
+    { name = "black", marker = "extra == 'dev'", specifier = ">=25.1.0" },
+    { name = "flake8", marker = "extra == 'dev'", specifier = ">=7.3.0" },
+    { name = "isort", marker = "extra == 'dev'", specifier = ">=6.0.1" },
     { name = "markdown", specifier = ">=3.8.2" },
     { name = "mcp", specifier = ">=1.12.2" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.17.0" },
     { name = "pygments", specifier = ">=2.19.2" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "pytest-mock", specifier = ">=3.14.1" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.1.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=6.2.1" },
+    { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.14.1" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "requests", specifier = ">=2.32.4" },
-    { name = "responses", specifier = ">=0.25.7" },
+    { name = "responses", marker = "extra == 'test'", specifier = ">=0.25.7" },
 ]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black", specifier = ">=25.1.0" },
-    { name = "flake8", specifier = ">=7.3.0" },
-    { name = "isort", specifier = ">=6.0.1" },
-    { name = "mypy", specifier = ">=1.17.0" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "pytest-cov", specifier = ">=6.2.1" },
-    { name = "pytest-mock", specifier = ">=3.14.1" },
-]
+provides-extras = ["test", "dev"]
 
 [[package]]
 name = "multidict"
