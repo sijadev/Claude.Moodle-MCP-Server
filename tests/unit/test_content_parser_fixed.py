@@ -323,9 +323,7 @@ class TestChatContentParserIntegration:
 
     def test_error_handling(self, parser):
         """Test error handling with malformed content"""
-        malformed_content = (
-            "```python\ndef broken_function(\nprint('missing closing parenthesis'"
-        )
+        malformed_content = "```python\ndef broken_function(\nprint('missing closing parenthesis'"
 
         try:
             result = parser.parse_chat(malformed_content)

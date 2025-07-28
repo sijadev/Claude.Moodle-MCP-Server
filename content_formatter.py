@@ -211,9 +211,7 @@ class ContentFormatter:
 
         return html_content
 
-    def format_mixed_content(
-        self, title: str, items: list, description: str = ""
-    ) -> str:
+    def format_mixed_content(self, title: str, items: list, description: str = "") -> str:
         """
         Format mixed content (code + topics) for a single Moodle page
 
@@ -242,11 +240,11 @@ class ContentFormatter:
         topic_count = sum(1 for item in items if item.type == "topic")
 
         if code_count > 0:
-            html_content += (
-                f"<li>💻 {code_count} Code Example{'s' if code_count != 1 else ''}</li>"
-            )
+            html_content += f"<li>💻 {code_count} Code Example{'s' if code_count != 1 else ''}</li>"
         if topic_count > 0:
-            html_content += f"<li>📝 {topic_count} Topic Description{'s' if topic_count != 1 else ''}</li>"
+            html_content += (
+                f"<li>📝 {topic_count} Topic Description{'s' if topic_count != 1 else ''}</li>"
+            )
 
         html_content += """
                 </ul>
@@ -333,9 +331,7 @@ class ContentFormatter:
             html_content = markdown.markdown(
                 content,
                 extensions=self.markdown_extensions,
-                extension_configs={
-                    "codehilite": {"css_class": "highlight", "use_pygments": True}
-                },
+                extension_configs={"codehilite": {"css_class": "highlight", "use_pygments": True}},
             )
             return html_content
         except Exception:
@@ -350,9 +346,7 @@ class ContentFormatter:
         # Convert double newlines to paragraphs
         paragraphs = formatted.split("\n\n")
         formatted = "".join(
-            f'<p>{para.replace(chr(10), "<br>")}</p>'
-            for para in paragraphs
-            if para.strip()
+            f'<p>{para.replace(chr(10), "<br>")}</p>' for para in paragraphs if para.strip()
         )
 
         # Basic markdown-like formatting

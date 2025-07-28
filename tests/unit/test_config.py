@@ -100,9 +100,7 @@ class TestConfig:
 
             # Ensure sensitive data is not exposed
             assert "moodle_token" not in config_dict
-            assert config_dict["moodle_token_length"] == len(
-                mock_env_vars["MOODLE_TOKEN"]
-            )
+            assert config_dict["moodle_token_length"] == len(mock_env_vars["MOODLE_TOKEN"])
 
     def test_custom_content_limits(self):
         """Test custom content processing limits"""

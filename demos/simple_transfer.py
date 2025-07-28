@@ -5,14 +5,19 @@ Simplified Moodle transfer - just create course with basic content
 
 import asyncio
 import os
-from moodle_client import MoodleClient, MoodleAPIError
+import sys
+
+# Add parent directory to path to import modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from moodle_client import MoodleAPIError, MoodleClient
 
 
 async def create_simple_course():
     """Create a simple course with the generated content"""
     moodle_url = os.getenv("MOODLE_URL")
     moodle_token = os.getenv("MOODLE_TOKEN")
-    
+
     course_name = "Python Programmierung - Einführung"
     course_description = """
     <h2>Python Programmierung - Einführungskurs</h2>
@@ -45,24 +50,22 @@ print(nachricht)</code></pre>
     
     <p><em>Viel Erfolg beim Lernen!</em></p>
     """
-    
+
     try:
         async with MoodleClient(moodle_url, moodle_token) as client:
             print(f"🎓 Creating course: '{course_name}'")
-            
+
             # Create course with embedded content
             course_id = await client.create_course(
-                name=course_name,
-                description=course_description,
-                category_id=1
+                name=course_name, description=course_description, category_id=1
             )
-            
+
             print(f"✅ Course created successfully!")
             print(f"📍 Course ID: {course_id}")
             print(f"🌐 Course URL: {moodle_url}/course/view.php?id={course_id}")
-            
+
             return course_id
-            
+
     except MoodleAPIError as e:
         print(f"❌ Moodle API Error: {e}")
         return None
@@ -74,19 +77,19 @@ print(nachricht)</code></pre>
 async def main():
     print("🚀 MoodleClaude - Simplified Transfer")
     print("=" * 40)
-    
+
     # Set environment variables
     moodle_url = "http://localhost"
     moodle_token = "b2021a7a41309b8c58ad026a751d0cd0"
-    
+
     os.environ["MOODLE_URL"] = moodle_url
     os.environ["MOODLE_TOKEN"] = moodle_token
-    
+
     print(f"Connecting to: {moodle_url}")
     print(f"Using token: {moodle_token[:10]}...")
-    
+
     course_id = await create_simple_course()
-    
+
     if course_id:
         print(f"\n🎉 SUCCESS!")
         print(f"Der generierte Python-Text wurde erfolgreich nach Moodle übertragen!")

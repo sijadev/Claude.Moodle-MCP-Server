@@ -1,0 +1,35 @@
+# E2E Testing Requirements for MoodleClaude
+# Install with: pip install -r requirements-e2e.txt
+
+# Core testing framework
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# Browser automation
+playwright>=1.40.0
+pytest-playwright>=0.4.0
+
+# Additional testing utilities
+pytest-html>=3.1.0
+pytest-xdist>=3.0.0  # For parallel test execution
+pytest-timeout>=2.1.0
+pytest-rerunfailures>=11.0  # Retry flaky tests
+
+# Data handling and utilities
+requests>=2.28.0
+pathlib2>=2.3.7  # For better path handling
+Pillow>=9.0.0  # For image processing in tests
+
+# Reporting and logging
+pytest-json-report>=1.5.0
+pytest-benchmark>=4.0.0  # For performance testing
+
+# Optional: For more advanced testing features
+selenium>=4.0.0  # Alternative to Playwright if needed
+beautifulsoup4>=4.11.0  # For HTML parsing in tests
+fake-useragent>=1.4.0  # For user agent rotation
+
+# Development utilities
+black>=22.0.0  # Code formatting
+flake8>=5.0.0  # Code linting
+mypy>=1.0.0   # Type checking

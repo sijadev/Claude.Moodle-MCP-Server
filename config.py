@@ -8,17 +8,19 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
+
 # Load environment variables from .env file
 def load_env_file():
     """Load environment variables from .env file if it exists"""
-    env_file = os.path.join(os.path.dirname(__file__), '.env')
+    env_file = os.path.join(os.path.dirname(__file__), ".env")
     if os.path.exists(env_file):
-        with open(env_file, 'r') as f:
+        with open(env_file, "r") as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
                     os.environ.setdefault(key.strip(), value.strip())
+
 
 # Load .env file
 load_env_file()
@@ -28,7 +30,29 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Config:
-    """Configuration settings for the MCP server"""
+    """Configuration settings for the MCP Moodle server.
+    
+    This class manages all configuration parameters for the MoodleClaude
+    integration, including Moodle connection settings, server parameters,
+    and content processing limits.
+    
+    Attributes:
+        moodle_url: Base URL of the Moodle installation (required)
+        moodle_token: Web service authentication token (required)
+        moodle_username: Optional username for display purposes
+        server_name: Name identifier for the MCP server
+        server_version: Version string for the server
+        log_level: Logging level (DEBUG, INFO, WARNING, ERROR)
+        max_code_length: Maximum character length for code blocks
+        max_topic_length: Maximum character length for topic content
+        min_code_lines: Minimum lines required to classify as code
+        min_topic_words: Minimum words required for topic content
+        
+    Example:
+        >>> config = Config()
+        >>> print(f"Server: {config.server_name} v{config.server_version}")
+        >>> print(f"Moodle URL: {config.moodle_url}")
+    """
 
     # Moodle configuration
     moodle_url: str
@@ -66,19 +90,13 @@ class Config:
 
         # Content processing settings
         self.max_code_length = int(os.getenv("MAX_CODE_LENGTH", self.max_code_length))
-        self.max_topic_length = int(
-            os.getenv("MAX_TOPIC_LENGTH", self.max_topic_length)
-        )
+        self.max_topic_length = int(os.getenv("MAX_TOPIC_LENGTH", self.max_topic_length))
         self.min_code_lines = int(os.getenv("MIN_CODE_LINES", self.min_code_lines))
         self.min_topic_words = int(os.getenv("MIN_TOPIC_WORDS", self.min_topic_words))
 
         # Course defaults
-        self.default_category_id = int(
-            os.getenv("DEFAULT_CATEGORY_ID", self.default_category_id)
-        )
-        self.default_course_format = os.getenv(
-            "DEFAULT_COURSE_FORMAT", self.default_course_format
-        )
+        self.default_category_id = int(os.getenv("DEFAULT_CATEGORY_ID", self.default_category_id))
+        self.default_course_format = os.getenv("DEFAULT_COURSE_FORMAT", self.default_course_format)
 
         # Configure logging
         self._configure_logging()
@@ -164,9 +182,7 @@ class Config:
             "server_version": self.server_version,
             "log_level": self.log_level,
             "moodle_url": self.moodle_url,  # URL is okay to show
-            "moodle_token_length": len(
-                self.moodle_token
-            ),  # Show length, not actual token
+            "moodle_token_length": len(self.moodle_token),  # Show length, not actual token
             "content_limits": self.get_content_limits(),
             "course_defaults": {
                 "category_id": self.default_category_id,

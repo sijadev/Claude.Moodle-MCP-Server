@@ -53,9 +53,7 @@ class MoodleClient:
         if not self.session:
             self.session = aiohttp.ClientSession()
 
-    async def _call_api(
-        self, function: str, params: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+    async def _call_api(self, function: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Make API call to Moodle
 
@@ -84,9 +82,7 @@ class MoodleClient:
             if self.session:
                 async with self.session.post(self.api_url, data=data) as response:
                     if response.status != 200:
-                        raise MoodleAPIError(
-                            f"HTTP {response.status}: {await response.text()}"
-                        )
+                        raise MoodleAPIError(f"HTTP {response.status}: {await response.text()}")
 
                     result = await response.json()
 
@@ -105,9 +101,7 @@ class MoodleClient:
         except json.JSONDecodeError as e:
             raise MoodleAPIError(f"Invalid JSON response: {str(e)}")
 
-    async def create_course(
-        self, name: str, description: str = "", category_id: int = 1
-    ) -> int:
+    async def create_course(self, name: str, description: str = "", category_id: int = 1) -> int:
         """
         Create a new course in Moodle
 
@@ -148,12 +142,10 @@ class MoodleClient:
         logger.info(f"Created course '{name}' with ID: {course_id}")
         return course_id
 
-    async def create_section(
-        self, course_id: int, name: str, description: str = ""
-    ) -> int:
+    async def create_section(self, course_id: int, name: str, description: str = "") -> int:
         """
         Create a new section in a course
-        
+
         Since core_course_create_sections is not available, we'll return
         the general section (section 0) without creating additional content
 
@@ -187,7 +179,9 @@ class MoodleClient:
         Returns:
             Dummy activity ID
         """
-        logger.info(f"Skipping page activity creation for '{name}' in course {course_id} (API limitations)")
+        logger.info(
+            f"Skipping page activity creation for '{name}' in course {course_id} (API limitations)"
+        )
         return 999  # Return dummy ID
 
     async def create_label_activity(
@@ -207,7 +201,9 @@ class MoodleClient:
         Returns:
             Dummy activity ID
         """
-        logger.info(f"Skipping label activity creation for '{name}' in course {course_id} (API limitations)")
+        logger.info(
+            f"Skipping label activity creation for '{name}' in course {course_id} (API limitations)"
+        )
         return 997  # Return dummy ID
 
     async def create_file_activity(
@@ -228,7 +224,9 @@ class MoodleClient:
         Returns:
             Dummy activity ID
         """
-        logger.info(f"Skipping file activity creation for '{name}' ({filename}) in course {course_id} (API limitations)")
+        logger.info(
+            f"Skipping file activity creation for '{name}' ({filename}) in course {course_id} (API limitations)"
+        )
         return 998  # Return dummy ID
 
     async def _upload_file(self, file_path: str, filename: str) -> str:
@@ -256,17 +254,11 @@ class MoodleClient:
             if self.session:
                 async with self.session.post(upload_url, data=data) as response:
                     if response.status != 200:
-                        raise MoodleAPIError(
-                            f"File upload failed: HTTP {response.status}"
-                        )
+                        raise MoodleAPIError(f"File upload failed: HTTP {response.status}")
 
                     result = await response.json()
 
-                    if (
-                        isinstance(result, list)
-                        and len(result) > 0
-                        and isinstance(result[0], dict)
-                    ):
+                    if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict):
                         return result[0].get("url", "")
 
                     raise MoodleAPIError("File upload failed: Invalid response")
@@ -288,9 +280,7 @@ class MoodleClient:
         <p><em>Note: Content displayed above. Right-click and save to download.</em></p>
         """
 
-        return await self.create_page_activity(
-            course_id, section_id, name, formatted_content
-        )
+        return await self.create_page_activity(course_id, section_id, name, formatted_content)
 
     async def get_categories(self) -> List[Dict[str, Any]]:
         """

@@ -26,30 +26,42 @@ install:
 install-dev: install
 	uv pip install -r requirements-test.txt
 
-# Testing
+# Testing - using new comprehensive test runner
 test:
-	python test_runner.py
+	./run_tests.sh all
 
 test-unit:
-	python test_runner.py --unit
+	./run_tests.sh unit -v
 
 test-integration:
-	python test_runner.py --integration
+	./run_tests.sh integration -v
 
 test-e2e:
-	python test_runner.py --e2e
+	./run_tests.sh e2e
 
 test-coverage:
-	python test_runner.py --coverage
+	./run_tests.sh all -c
 
 test-html:
-	python test_runner.py --html --coverage
+	./run_tests.sh all --html -c
 
 test-fast:
-	python test_runner.py --fast
+	./run_tests.sh unit -v && ./run_tests.sh integration -v
 
 test-parallel:
-	python test_runner.py --parallel
+	./run_tests.sh all -p
+
+# E2E specific targets
+e2e-setup:
+	pip install -r requirements-e2e.txt
+	playwright install chromium
+
+e2e-headed:
+	./run_e2e_tests.sh --headed
+
+# Alternative: use old test runner
+test-legacy:
+	python tests/test_runner.py
 
 # Code quality
 lint:

@@ -25,7 +25,30 @@ logger = logging.getLogger(__name__)
 
 
 class MoodleMCPServer:
+    """MCP Server for Moodle Course Creation from Claude Chat Content.
+    
+    This server provides MCP (Model Context Protocol) tools for converting Claude
+    chat conversations into structured Moodle courses. It handles content parsing,
+    formatting, and integration with Moodle web services.
+    
+    Attributes:
+        server: MCP Server instance for handling tool requests
+        content_parser: Parser for extracting educational content from chats
+        moodle_client: Client for Moodle API operations (None if no credentials)
+        content_formatter: Formatter for creating Moodle-compatible content
+        config: Configuration object with environment settings
+        
+    Example:
+        The server is typically started from command line:
+        $ python mcp_server.py
+        
+        Or used programmatically:
+        >>> server = MoodleMCPServer()
+        >>> await server.run()
+    """
+    
     def __init__(self):
+        """Initialize the Moodle MCP Server with all required components."""
         self.server = Server("moodle-course-creator")
         self.content_parser = ChatContentParser()
         self.moodle_client = None
@@ -289,9 +312,7 @@ class MoodleMCPServer:
                 raise ValueError(f"Unknown prompt: {name}")
 
         @self.server.call_tool()
-        async def handle_call_tool(
-            name: str, arguments: Dict[str, Any]
-        ) -> List[types.TextContent]:
+        async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextContent]:
             """Handle tool calls"""
             try:
                 if name == "create_course_from_chat":
@@ -305,14 +326,10 @@ class MoodleMCPServer:
             except Exception as e:
                 logger.error(f"Tool execution failed: {e}")
                 return [
-                    types.TextContent(
-                        type="text", text=f"Error executing tool '{name}': {str(e)}"
-                    )
+                    types.TextContent(type="text", text=f"Error executing tool '{name}': {str(e)}")
                 ]
 
-    async def _create_course_from_chat(
-        self, arguments: Dict[str, Any]
-    ) -> List[types.TextContent]:
+    async def _create_course_from_chat(self, arguments: Dict[str, Any]) -> List[types.TextContent]:
         """Create a new Moodle course from chat content"""
         if not self.moodle_client:
             return [
@@ -369,13 +386,11 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
                         created_activities.append(file_activity)
 
                         # Create page with syntax highlighted code
-                        formatted_content = (
-                            self.content_formatter.format_code_for_moodle(
-                                code=item.content,
-                                language=item.language,
-                                title=item.title,
-                                description=item.description or "",
-                            )
+                        formatted_content = self.content_formatter.format_code_for_moodle(
+                            code=item.content,
+                            language=item.language,
+                            title=item.title,
+                            description=item.description or "",
                         )
                         page_activity = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -387,12 +402,10 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
 
                     elif item.type == "topic":
                         # Create page for topic description
-                        formatted_content = (
-                            self.content_formatter.format_topic_for_moodle(
-                                content=item.content,
-                                title=item.title,
-                                description=item.description or "",
-                            )
+                        formatted_content = self.content_formatter.format_topic_for_moodle(
+                            content=item.content,
+                            title=item.title,
+                            description=item.description or "",
                         )
                         page_activity = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -422,11 +435,7 @@ Course Structure:
 
         except Exception as e:
             logger.error(f"Failed to create course: {e}")
-            return [
-                types.TextContent(
-                    type="text", text=f"Failed to create course: {str(e)}"
-                )
-            ]
+            return [types.TextContent(type="text", text=f"Failed to create course: {str(e)}")]
 
     async def _extract_and_preview_content(
         self, arguments: Dict[str, Any]
@@ -457,22 +466,14 @@ Detailed Structure:
 
         except Exception as e:
             logger.error(f"Failed to preview content: {e}")
-            return [
-                types.TextContent(
-                    type="text", text=f"Failed to preview content: {str(e)}"
-                )
-            ]
+            return [types.TextContent(type="text", text=f"Failed to preview content: {str(e)}")]
 
     async def _add_content_to_existing_course(
         self, arguments: Dict[str, Any]
     ) -> List[types.TextContent]:
         """Add content to existing Moodle course"""
         if not self.moodle_client:
-            return [
-                types.TextContent(
-                    type="text", text="Error: Moodle client not initialized."
-                )
-            ]
+            return [types.TextContent(type="text", text="Error: Moodle client not initialized.")]
 
         course_id = arguments["course_id"]
         chat_content = arguments["chat_content"]
@@ -503,13 +504,11 @@ Detailed Structure:
                         )
                         added_activities.append(file_activity)
 
-                        formatted_content = (
-                            self.content_formatter.format_code_for_moodle(
-                                code=item.content,
-                                language=item.language,
-                                title=item.title,
-                                description=item.description or "",
-                            )
+                        formatted_content = self.content_formatter.format_code_for_moodle(
+                            code=item.content,
+                            language=item.language,
+                            title=item.title,
+                            description=item.description or "",
                         )
                         page_activity = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -520,12 +519,10 @@ Detailed Structure:
                         added_activities.append(page_activity)
 
                     elif item.type == "topic":
-                        formatted_content = (
-                            self.content_formatter.format_topic_for_moodle(
-                                content=item.content,
-                                title=item.title,
-                                description=item.description or "",
-                            )
+                        formatted_content = self.content_formatter.format_topic_for_moodle(
+                            content=item.content,
+                            title=item.title,
+                            description=item.description or "",
                         )
                         page_activity = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -552,9 +549,7 @@ Added Content Summary:
         except Exception as e:
             logger.error(f"Failed to add content to course: {e}")
             return [
-                types.TextContent(
-                    type="text", text=f"Failed to add content to course: {str(e)}"
-                )
+                types.TextContent(type="text", text=f"Failed to add content to course: {str(e)}")
             ]
 
     def _organize_content(self, parsed_content: ChatContent) -> CourseStructure:
@@ -606,22 +601,14 @@ Added Content Summary:
             for item in section.items:
                 if item.type == "code":
                     preview_lines.append(f"   💻 Code: {item.title}")
-                    preview_lines.append(
-                        f"      Language: {item.language or 'Unknown'}"
-                    )
-                    preview_lines.append(
-                        f"      Lines: {len(item.content.splitlines())}"
-                    )
+                    preview_lines.append(f"      Language: {item.language or 'Unknown'}")
+                    preview_lines.append(f"      Lines: {len(item.content.splitlines())}")
                 elif item.type == "topic":
                     preview_lines.append(f"   📝 Topic: {item.title}")
-                    preview_lines.append(
-                        f"      Content length: {len(item.content)} characters"
-                    )
+                    preview_lines.append(f"      Content length: {len(item.content)} characters")
 
                 if item.description:
-                    preview_lines.append(
-                        f"      Description: {item.description[:100]}..."
-                    )
+                    preview_lines.append(f"      Description: {item.description[:100]}...")
 
         return "\n".join(preview_lines)
 

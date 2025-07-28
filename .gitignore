@@ -196,6 +196,11 @@ tmp/
 # Test artifacts
 test-results/
 coverage/
+reports/
+htmlcov/
+junit.xml
+.coverage
+*.cover
 
 # Docker
 .dockerignore
@@ -203,7 +208,25 @@ docker-compose.override.yml
 
 # Moodle-specific
 moodle_data/
+moodledata_data/
+mariadb_data/
 uploads/
+moodle_token.txt
+.env.testing
+.env.production
+.env.development
+
+# MoodleClaude testing environment
+venv_e2e/
+test_connectivity.py
+setup_moodle.sh
+docker/
+
+# E2E test artifacts
+screenshots/
+videos/
+playwright-report/
+test-results/
 
 # Backup files
 *.bak
@@ -212,3 +235,11 @@ uploads/
 # Local development files
 local/
 local_config.py
+
+# Temporary scripts and files
+/tmp/
+*.tmp
+create_*.php
+simple_*.php
+admin_*.php
+fix_*.php

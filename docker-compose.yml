@@ -1,9 +1,10 @@
-# Copyright Broadcom, Inc. All Rights Reserved.
-# SPDX-License-Identifier: APACHE-2.0
+# MoodleClaude Docker Environment
+# Enhanced Moodle setup for E2E testing with web services enabled
 
 services:
   mariadb:
-    image: docker.io/bitnami/mariadb:latest
+    image: docker.io/bitnami/mariadb:11.2
+    container_name: moodleclaude_db
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
       - ALLOW_EMPTY_PASSWORD=yes
@@ -11,30 +12,82 @@ services:
       - MARIADB_DATABASE=bitnami_moodle
       - MARIADB_CHARACTER_SET=utf8mb4
       - MARIADB_COLLATE=utf8mb4_unicode_ci
+      - MARIADB_EXTRA_FLAGS=--max_allowed_packet=256M --innodb_log_file_size=256M
     volumes:
-      - mariadb_data:/bitnami/mariadb
+      - /Users/simonjanke/Docker/Shared/data/moodleclaude_mariadb:/bitnami/mariadb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - moodle_network
+
   moodle:
-    image: docker.io/bitnami/moodle:latest
+    image: docker.io/bitnami/moodle:4.3
+    container_name: moodleclaude_app
     ports:
-      - '8080:8080'
-      - '8443:8443'
+      - '8080:8080'    # HTTP access on localhost:8080
+      - '8443:8443'    # HTTPS access on localhost:8443
     environment:
+      # Database configuration
       - MOODLE_DATABASE_HOST=mariadb
       - MOODLE_DATABASE_PORT_NUMBER=3306
       - MOODLE_DATABASE_USER=bn_moodle
       - MOODLE_DATABASE_NAME=bitnami_moodle
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - MOODLE_USERNAME=simon
-      - MOODLE_PASSWORD=2311Sjge72!
       - ALLOW_EMPTY_PASSWORD=yes
+      
+      # Admin user configuration
+      - MOODLE_USERNAME=simon
+      - MOODLE_PASSWORD=Pwd1234!
+      - MOODLE_EMAIL=simon@moodleclaude.local
+      - MOODLE_SITE_NAME=MoodleClaude Test Environment
+      
+      # Web services and API configuration
+      - MOODLE_SKIP_BOOTSTRAP=no
+      - MOODLE_SKIP_INSTALL=no
+      
+      # PHP configuration for better performance
+      - PHP_POST_MAX_SIZE=100M
+      - PHP_UPLOAD_MAX_FILESIZE=100M
+      - PHP_MAX_EXECUTION_TIME=300
+      - PHP_MEMORY_LIMIT=512M
+      
     volumes:
-      - moodledata_data:/bitnami/moodledata
+      - /Users/simonjanke/Docker/Shared/data/moodleclaude_moodle:/bitnami/moodle
+      - /Users/simonjanke/Docker/Shared/data/moodleclaude_moodledata:/bitnami/moodledata
     depends_on:
-      - mariadb
-volumes:
-  mariadb_data:
-    driver: local
-  moodle_data:
-    driver: local
-  moodledata_data:
-    driver: local
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/admin/tool/task/cli/adhoc_task.php", "--user-agent", "health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - moodle_network
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: docker.io/bitnami/phpmyadmin:latest
+    container_name: moodleclaude_phpmyadmin
+    ports:
+      - '8081:8080'
+    environment:
+      - DATABASE_HOST=mariadb
+      - DATABASE_PORT_NUMBER=3306
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=
+      - ALLOW_EMPTY_PASSWORD=yes
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - moodle_network
+
+networks:
+  moodle_network:
+    driver: bridge
+

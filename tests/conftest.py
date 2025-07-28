@@ -113,9 +113,7 @@ def mock_moodle_responses():
             {"id": 1, "fullname": "Test Course 1", "shortname": "test1"},
             {"id": 2, "fullname": "Test Course 2", "shortname": "test2"},
         ],
-        "get_categories": [
-            {"id": 1, "name": "General", "description": "General category"}
-        ],
+        "get_categories": [{"id": 1, "name": "General", "description": "General category"}],
     }
 
 
@@ -125,12 +123,8 @@ def mock_moodle_client(mock_moodle_responses):
     client = AsyncMock()
     client.create_course.return_value = mock_moodle_responses["create_course"]["id"]
     client.create_section.return_value = mock_moodle_responses["create_section"]["id"]
-    client.create_page_activity.return_value = mock_moodle_responses[
-        "create_page_activity"
-    ]
-    client.create_file_activity.return_value = mock_moodle_responses[
-        "create_file_activity"
-    ]
+    client.create_page_activity.return_value = mock_moodle_responses["create_page_activity"]
+    client.create_file_activity.return_value = mock_moodle_responses["create_file_activity"]
     client.get_courses.return_value = mock_moodle_responses["get_courses"]
     client.get_categories.return_value = mock_moodle_responses["get_categories"]
     return client
