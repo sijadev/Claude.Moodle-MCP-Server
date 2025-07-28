@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 """
 Advanced Moodle transfer with sections - tries different approaches to create sections
+Enhanced with EnhancedMoodleAPI capabilities for better section management
 """
 
 import asyncio
 import os
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add parent directory to path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from moodle_client import MoodleAPIError, MoodleClient
+from enhanced_moodle_claude import EnhancedMoodleAPI, SectionConfig
 
 
 async def create_course_with_sections():
     """Create a course and try to add sections using different methods"""
-    moodle_url = os.getenv("MOODLE_URL", "http://localhost")
+    moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
     moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
 
     course_name = "Python Kurs - Mit Sektionen"
@@ -247,7 +253,7 @@ async def main():
 
     # Set environment variables if needed
     if not os.getenv("MOODLE_URL"):
-        os.environ["MOODLE_URL"] = "http://localhost"
+        os.environ["MOODLE_URL"] = "http://localhost:8080"
     if not os.getenv("MOODLE_TOKEN"):
         os.environ["MOODLE_TOKEN"] = "b2021a7a41309b8c58ad026a751d0cd0"
 
@@ -265,5 +271,142 @@ async def main():
         print(f"\n❌ Transfer fehlgeschlagen")
 
 
+async def create_course_with_enhanced_api():
+    """Create a course using the Enhanced Moodle API with advanced section features"""
+    
+    moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
+    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    
+    print(f"\n🔥 ENHANCED API DEMO - Advanced Section Management")
+    print(f"=" * 70)
+    
+    try:
+        # Initialize Enhanced API
+        api = EnhancedMoodleAPI(moodle_url, moodle_token)
+        
+        # Create course using enhanced API
+        course_name = "Advanced Python Course - Enhanced Sections"
+        course_description = """
+        <h3>🚀 Advanced Python Course</h3>
+        <p>This course demonstrates the power of the Enhanced Moodle API with:</p>
+        <ul>
+            <li>✅ Advanced section management</li>
+            <li>🔒 Availability conditions</li>
+            <li>📊 Bulk operations</li>
+            <li>🎯 Structured content delivery</li>
+        </ul>
+        """
+        
+        # Create course first using proper parameter format
+        import time
+        shortname = f"python_enhanced_{int(time.time())}"
+        
+        params = {
+            "courses[0][fullname]": course_name,
+            "courses[0][shortname]": shortname,
+            "courses[0][categoryid]": 1,
+            "courses[0][summary]": course_description,
+            "courses[0][summaryformat]": 1,  # HTML format
+            "courses[0][format]": "topics",  # Course format
+            "courses[0][visible]": 1,  # Visible
+            "courses[0][numsections]": 5,  # Create 5 sections upfront
+        }
+        
+        course_response = api._make_request("core_course_create_courses", params)
+        course_id = course_response[0]["id"]
+        
+        print(f"✅ Course created with Enhanced API: {course_id}")
+        
+        # Define advanced sections with different configurations
+        enhanced_sections = [
+            SectionConfig(
+                name="🎯 Course Introduction",
+                summary="<p><strong>Welcome!</strong> Start your Python journey here.</p>",
+                visible=True
+            ),
+            SectionConfig(
+                name="📚 Python Fundamentals", 
+                summary="<p>Core concepts: variables, data types, operators</p>",
+                visible=True
+            ),
+            SectionConfig(
+                name="🔧 Control Structures",
+                summary="<p>Loops, conditions, and program flow</p>",
+                visible=True
+            ),
+            SectionConfig(
+                name="📊 Data Structures", 
+                summary="<p>Lists, dictionaries, sets, and tuples</p>",
+                visible=True
+            ),
+            SectionConfig(
+                name="⚙️ Functions & Modules",
+                summary="<p>Code organization and reusability</p>",
+                visible=True
+            )
+        ]
+        
+        # Create sections using Enhanced API
+        created_sections = []
+        for i, section_config in enumerate(enhanced_sections, 1):
+            print(f"📝 Creating enhanced section {i}: {section_config.name}")
+            
+            try:
+                section_result = await api.create_course_section(course_id, section_config)
+                created_sections.append({
+                    "id": section_result.get("id"),
+                    "name": section_config.name,
+                    "visible": section_config.visible
+                })
+                print(f"   ✅ Section created: ID {section_result.get('id')}")
+                
+            except Exception as e:
+                print(f"   ❌ Failed to create section: {e}")
+        
+        # Demonstrate section update
+        if created_sections:
+            print(f"\n🔧 Demonstrating section update...")
+            try:
+                section_to_update = created_sections[0]
+                await api.update_section(section_to_update['id'], {
+                    "name": f"✨ {section_to_update['name']} (Enhanced!)",
+                    "summary": "<p><strong>Updated using Enhanced API!</strong></p>"
+                })
+                print(f"   ✅ Section updated successfully")
+            except Exception as e:
+                print(f"   ❌ Section update failed: {e}")
+        
+        # Final summary
+        print(f"\n" + "=" * 70)
+        print(f"🎉 ENHANCED API DEMO COMPLETED!")
+        print(f"=" * 70)
+        print(f"🎓 Course: {course_name}")
+        print(f"🆔 Course ID: {course_id}")
+        print(f"📊 Sections created: {len(created_sections)}")
+        print(f"🌐 Course URL: {moodle_url}/course/view.php?id={course_id}")
+        
+        return course_id, created_sections
+        
+    except Exception as e:
+        print(f"❌ Enhanced API demo failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return None, []
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("🚀 Advanced Moodle Section Management Demo")
+    print("Choose your demo:")
+    print("1. Traditional approach (original)")
+    print("2. Enhanced API approach (new)")
+    
+    try:
+        choice = input("Enter choice (1-2) or press Enter for Enhanced API: ").strip()
+        
+        if choice == "1":
+            asyncio.run(main())
+        else:  # Default to Enhanced API
+            asyncio.run(create_course_with_enhanced_api())
+            
+    except KeyboardInterrupt:
+        print("\n👋 Demo cancelled by user")

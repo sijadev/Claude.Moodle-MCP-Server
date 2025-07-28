@@ -6,6 +6,10 @@ Check available Moodle web service functions
 import asyncio
 import os
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add parent directory to path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,7 +19,7 @@ from moodle_client import MoodleAPIError, MoodleClient
 
 async def check_available_functions():
     """Check what web service functions are available"""
-    moodle_url = os.getenv("MOODLE_URL", "http://localhost")
+    moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
     moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
 
     print("🔍 Checking available Moodle Web Service functions...")
@@ -113,7 +117,7 @@ async def check_available_functions():
 
 async def test_manual_section_creation():
     """Test if we can create sections using direct API calls"""
-    moodle_url = os.getenv("MOODLE_URL", "http://localhost")
+    moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
     moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
 
     print(f"\n🧪 Testing manual section creation...")
@@ -169,7 +173,7 @@ async def main():
 
     # Set environment variables
     if not os.getenv("MOODLE_URL"):
-        os.environ["MOODLE_URL"] = "http://localhost"
+        os.environ["MOODLE_URL"] = "http://localhost:8080"
     if not os.getenv("MOODLE_TOKEN"):
         os.environ["MOODLE_TOKEN"] = "b2021a7a41309b8c58ad026a751d0cd0"
 

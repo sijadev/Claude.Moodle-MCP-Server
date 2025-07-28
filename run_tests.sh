@@ -155,8 +155,8 @@ setup_test_environment() {
     mkdir -p "$REPORTS_DIR"
     
     # Check if pytest is installed
-    if ! command -v pytest &> /dev/null; then
-        print_error "pytest is not installed. Please install with: pip install pytest"
+    if ! python3 -c "import pytest" &> /dev/null; then
+        print_error "pytest is not installed. Please install with: pip3 install pytest"
         exit 1
     fi
     
@@ -165,19 +165,19 @@ setup_test_environment() {
     print_status "Python version: $PYTHON_VERSION"
     
     # Install basic test dependencies if not present
-    if ! python -c "import pytest_cov" &> /dev/null && [ "$COVERAGE" = true ]; then
+    if ! python3 -c "import pytest_cov" &> /dev/null && [ "$COVERAGE" = true ]; then
         print_warning "pytest-cov not found, installing..."
-        pip install pytest-cov
+        pip3 install pytest-cov
     fi
     
-    if ! python -c "import pytest_html" &> /dev/null && [ "$HTML_REPORT" = true ]; then
+    if ! python3 -c "import pytest_html" &> /dev/null && [ "$HTML_REPORT" = true ]; then
         print_warning "pytest-html not found, installing..."
-        pip install pytest-html
+        pip3 install pytest-html
     fi
     
-    if ! python -c "import pytest_xdist" &> /dev/null && [ "$PARALLEL" = true ]; then
+    if ! python3 -c "import pytest_xdist" &> /dev/null && [ "$PARALLEL" = true ]; then
         print_warning "pytest-xdist not found, installing..."
-        pip install pytest-xdist
+        pip3 install pytest-xdist
     fi
     
     print_success "Test environment ready"
@@ -233,7 +233,7 @@ run_unit_tests() {
     local pytest_args=($(build_pytest_args "tests/unit/"))
     
     cd "$PROJECT_ROOT"
-    if python -m pytest "${pytest_args[@]}"; then
+    if python3 -m pytest "${pytest_args[@]}"; then
         print_success "Unit tests passed!"
         return 0
     else
@@ -250,7 +250,7 @@ run_integration_tests() {
     local pytest_args=($(build_pytest_args "tests/integration/"))
     
     cd "$PROJECT_ROOT"
-    if python -m pytest "${pytest_args[@]}"; then
+    if python3 -m pytest "${pytest_args[@]}"; then
         print_success "Integration tests passed!"
         return 0
     else
@@ -267,7 +267,7 @@ run_e2e_tests() {
     # Check if playwright is available
     if ! command -v playwright &> /dev/null; then
         print_warning "Playwright not found. Installing..."
-        pip install playwright
+        pip3 install playwright
         playwright install chromium
     fi
     
@@ -285,7 +285,7 @@ run_e2e_tests() {
         local pytest_args=($(build_pytest_args "tests/e2e/"))
         
         cd "$PROJECT_ROOT" 
-        if python -m pytest "${pytest_args[@]}"; then
+        if python3 -m pytest "${pytest_args[@]}"; then
             print_success "E2E tests passed!" 
             return 0
         else

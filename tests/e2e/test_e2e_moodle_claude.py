@@ -63,25 +63,75 @@ class MoodleE2ETestBase:
         if self.browser:
             await self.browser.close()
 
+    async def logout_if_needed(self) -> bool:
+        """Logout if already logged in"""
+        try:
+            await self.page.goto(f"{self.config.moodle_url}")
+            
+            # Check if already logged in (look for logout link or user menu)
+            logout_link = self.page.locator('a[href*="logout"], .usermenu a:has-text("Logout")')
+            if await logout_link.count() > 0:
+                print("User already logged in, logging out...")
+                await logout_link.first.click()
+                await self.page.wait_for_timeout(2000)
+                return True
+            return False
+            
+        except Exception as e:
+            print(f"Logout check failed: {e}")
+            return False
+
     async def login_as_admin(self) -> bool:
         """Login as administrator"""
         try:
+            # First, logout if already logged in
+            await self.logout_if_needed()
+            
             await self.page.goto(f"{self.config.moodle_url}/login/index.php")
 
+            # Check if we're already logged in (redirected away from login page)
+            current_url = self.page.url
+            if "login" not in current_url:
+                print("Already logged in, checking dashboard...")
+                # Navigate to dashboard to verify
+                await self.page.goto(f"{self.config.moodle_url}/my/")
+                return True
+
+            # Wait for login form to be visible
+            await self.page.wait_for_selector('input[name="username"]', timeout=5000)
+            
             # Fill login form
             await self.page.fill('input[name="username"]', self.config.admin_username)
             await self.page.fill('input[name="password"]', self.config.admin_password)
 
-            # Submit form
-            await self.page.click('button[type="submit"], input[type="submit"]')
+            # Submit form (click specific login button, not guest button)
+            login_button = self.page.locator('button[type="submit"]:has-text("Log in"), #loginbtn')
+            await login_button.click()
 
-            # Wait for successful login (dashboard or profile)
-            await self.page.wait_for_url("**/my/**", timeout=10000)
+            # Wait for navigation away from login page (more flexible than specific URL)
+            try:
+                await self.page.wait_for_url(lambda url: "login" not in url, timeout=15000)
+            except:
+                # Fallback: check if we can access the dashboard
+                await self.page.goto(f"{self.config.moodle_url}/my/")
+            
+            # Verify login by checking for user menu or dashboard elements
+            user_indicators = self.page.locator('.usermenu, .userbutton, #page-my-index, body:has-text("Dashboard")')
+            await user_indicators.first.wait_for(timeout=5000)
 
+            print("Login successful")
             return True
 
         except Exception as e:
             print(f"Login failed: {e}")
+            # Try alternative verification
+            try:
+                await self.page.goto(f"{self.config.moodle_url}/my/")
+                if "login" not in self.page.url:
+                    print("Login appears successful despite error")
+                    return True
+            except:
+                pass
             return False
 
     async def enable_edit_mode(self):

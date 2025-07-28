@@ -19,13 +19,15 @@ VENV_DIR="$PROJECT_ROOT/venv_e2e"
 REPORTS_DIR="$PROJECT_ROOT/reports"
 
 # Default values
-MOODLE_URL="http://localhost"
+MOODLE_URL="http://localhost:8080"
 ADMIN_USERNAME="simon"
 ADMIN_PASSWORD="Pwd1234!"
 HEADLESS="true"
 CATEGORY_ID="1"
 TIMEOUT="30000"
 BROWSER="chromium"
+DOCKER_COMPOSE_FILE="docker-compose.yml"
+AUTO_START_DOCKER="true"
 
 # Function to print colored output
 print_status() {
@@ -60,6 +62,8 @@ Options:
     --headed                Run with browser UI visible
     --setup-only            Only setup environment, don't run tests
     --clean                 Clean up previous test artifacts
+    --no-docker             Don't auto-start Docker containers
+    --docker-cleanup        Stop Docker containers after tests
     --help                  Show this help message
 
 Examples:
@@ -112,6 +116,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --clean)
             CLEAN_ONLY="true"
+            shift
+            ;;
+        --no-docker)
+            AUTO_START_DOCKER="false"
+            shift
+            ;;
+        --docker-cleanup)
+            DOCKER_CLEANUP="true"
             shift
             ;;
         --help)
@@ -201,13 +213,142 @@ install_dependencies() {
     print_success "Dependencies installed"
 }
 
+# Function to check if Docker is available
+check_docker_availability() {
+    if ! command -v docker &> /dev/null; then
+        print_error "Docker is not installed or not in PATH"
+        return 1
+    fi
+    
+    if ! docker info &> /dev/null; then
+        print_error "Docker daemon is not running"
+        return 1
+    fi
+    
+    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+        print_error "Docker Compose is not available"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Function to check if Docker containers are running
+check_docker_containers() {
+    local containers_running=true
+    
+    # Check if moodle container is running
+    if ! docker ps --format "table {{.Names}}" | grep -q "moodleclaude_app"; then
+        containers_running=false
+    fi
+    
+    # Check if database container is running  
+    if ! docker ps --format "table {{.Names}}" | grep -q "moodleclaude_db"; then
+        containers_running=false
+    fi
+    
+    if [ "$containers_running" = true ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to start Docker containers
+start_docker_containers() {
+    print_status "Starting Docker containers..."
+    
+    if ! check_docker_availability; then
+        print_error "Docker is not available"
+        return 1
+    fi
+    
+    # Check if docker-compose.yml exists
+    if [ ! -f "$PROJECT_ROOT/$DOCKER_COMPOSE_FILE" ]; then
+        print_error "Docker compose file not found: $DOCKER_COMPOSE_FILE"
+        return 1
+    fi
+    
+    # Start containers
+    cd "$PROJECT_ROOT"
+    
+    # Use docker compose or docker-compose based on availability
+    local compose_cmd="docker-compose"
+    if docker compose version &> /dev/null; then
+        compose_cmd="docker compose"
+    fi
+    
+    print_status "Starting containers with: $compose_cmd up -d"
+    if $compose_cmd up -d; then
+        print_success "Docker containers started"
+        return 0
+    else
+        print_error "Failed to start Docker containers"
+        return 1
+    fi
+}
+
+# Function to wait for Moodle to be ready
+wait_for_moodle_ready() {
+    print_status "Waiting for Moodle to be ready..."
+    
+    local max_attempts=60  # 5 minutes maximum
+    local attempt=1
+    local wait_time=5
+    
+    while [ $attempt -le $max_attempts ]; do
+        print_status "Attempt $attempt/$max_attempts: Checking Moodle availability..."
+        
+        # Check if Moodle responds
+        if command -v curl &> /dev/null; then
+            if curl -s --max-time 10 "$MOODLE_URL" | grep -q "moodle\|Moodle\|login"; then
+                print_success "Moodle is ready at $MOODLE_URL"
+                return 0
+            fi
+        fi
+        
+        # Check container health
+        if docker ps --filter "name=moodleclaude_app" --filter "status=running" | grep -q "healthy\|Up"; then
+            print_status "Container is running, checking web interface..."
+        else
+            print_warning "Container may not be healthy yet..."
+        fi
+        
+        print_status "Waiting ${wait_time}s before next attempt..."
+        sleep $wait_time
+        attempt=$((attempt + 1))
+    done
+    
+    print_error "Moodle did not become ready within the timeout period"
+    return 1
+}
+
+# Function to stop Docker containers
+stop_docker_containers() {
+    print_status "Stopping Docker containers..."
+    
+    cd "$PROJECT_ROOT"
+    
+    # Use docker compose or docker-compose based on availability
+    local compose_cmd="docker-compose"
+    if docker compose version &> /dev/null; then
+        compose_cmd="docker compose"
+    fi
+    
+    if $compose_cmd down; then
+        print_success "Docker containers stopped"
+    else
+        print_warning "Failed to stop some Docker containers"
+    fi
+}
+
 # Function to verify Moodle connectivity
 verify_moodle_connectivity() {
     print_status "Verifying Moodle connectivity..."
     
     # Simple connectivity check
     if command -v curl &> /dev/null; then
-        if curl -s --head "$MOODLE_URL" | head -n 1 | grep -q "200 OK"; then
+        if curl -s --max-time 10 --head "$MOODLE_URL" | head -n 1 | grep -q "200 OK"; then
             print_success "Moodle is accessible at $MOODLE_URL"
         else
             print_warning "Could not verify Moodle connectivity (this may be normal)"
@@ -246,11 +387,12 @@ run_e2e_tests() {
         "--self-contained-html"
         "--json-report"
         "--json-report-file=$REPORTS_DIR/e2e_report.json"
+        "--browser=$BROWSER"
     )
     
     # Add browser-specific arguments
-    if [ "$HEADLESS" = "true" ]; then
-        PYTEST_ARGS+=("--browser-arg=--headless")
+    if [ "$HEADLESS" = "false" ]; then
+        PYTEST_ARGS+=("--headed")
     fi
     
     # Run tests
@@ -265,7 +407,7 @@ run_e2e_tests() {
     
     echo "========================================================================================"
     
-    if python -m pytest "${PYTEST_ARGS[@]}"; then
+    if python3 -m pytest "${PYTEST_ARGS[@]}"; then
         print_success "All E2E tests passed!"
         TEST_SUCCESS=true
     else
@@ -278,7 +420,7 @@ run_e2e_tests() {
     # Generate additional reports if the Python script has that functionality
     if [ -f "tests/e2e/test_e2e_moodle_claude.py" ]; then
         print_status "Generating additional reports..."
-        python tests/e2e/test_e2e_moodle_claude.py \
+        python3 tests/e2e/test_e2e_moodle_claude.py \
             --url "$MOODLE_URL" \
             --username "$ADMIN_USERNAME" \
             --password "$ADMIN_PASSWORD" \
@@ -316,6 +458,31 @@ main() {
     setup_virtual_environment
     install_dependencies
     setup_reports_directory
+    
+    # Docker management
+    if [ "$AUTO_START_DOCKER" = "true" ]; then
+        print_status "Docker auto-start enabled"
+        
+        if check_docker_containers; then
+            print_success "Docker containers are already running"
+        else
+            print_status "Starting Docker containers..."
+            if start_docker_containers; then
+                if wait_for_moodle_ready; then
+                    print_success "Moodle is ready for testing"
+                else
+                    print_error "Moodle failed to start properly"
+                    exit 1
+                fi
+            else
+                print_error "Failed to start Docker containers"
+                exit 1
+            fi
+        fi
+    else
+        print_status "Docker auto-start disabled, verifying existing connectivity..."
+    fi
+    
     verify_moodle_connectivity
     
     # Exit if setup-only requested
@@ -328,17 +495,42 @@ main() {
     fi
     
     # Run tests
+    local test_result=0
     if run_e2e_tests; then
         print_success "E2E test execution completed successfully"
-        exit 0
+        test_result=0
     else
         print_error "E2E test execution failed"
-        exit 1
+        test_result=1
     fi
+    
+    # Docker cleanup
+    if [ "$DOCKER_CLEANUP" = "true" ] && [ "$AUTO_START_DOCKER" = "true" ]; then
+        print_status "Docker cleanup requested"
+        stop_docker_containers
+    fi
+    
+    exit $test_result
+}
+
+# Function for cleanup on exit
+cleanup_on_exit() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        print_error "Script failed at line $1"
+    fi
+    
+    # Docker cleanup on error if enabled
+    if [ "$DOCKER_CLEANUP" = "true" ] && [ "$AUTO_START_DOCKER" = "true" ]; then
+        print_status "Performing Docker cleanup due to error..."
+        stop_docker_containers
+    fi
+    
+    exit $exit_code
 }
 
 # Trap errors and cleanup
-trap 'print_error "Script failed at line $LINENO"' ERR
+trap 'cleanup_on_exit $LINENO' ERR INT TERM
 
 # Run main function
 main "$@"
