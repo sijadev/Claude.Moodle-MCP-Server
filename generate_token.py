@@ -23,7 +23,7 @@ def generate_moodle_token():
     token_data = {
         'username': admin_user,
         'password': admin_password,
-        'service': 'moodle_mobile_app'  # Try mobile app service first
+        'service': 'moodleclaude_api'  # Use our external web service
     }
     
     print(f"📡 Requesting token from: {token_url}")

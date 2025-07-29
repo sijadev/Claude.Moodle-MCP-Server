@@ -4,6 +4,11 @@ Enhanced demo with manual content creation to show Moodle transfer capabilities
 """
 
 import asyncio
+import sys
+import os
+
+# Add parent directory to path to import modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from content_formatter import ContentFormatter
 from models import ContentItem, CourseStructure

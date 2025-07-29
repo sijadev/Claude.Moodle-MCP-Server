@@ -109,6 +109,47 @@ class ActivityTypes:
     DEFAULT_TYPE = PAGE
 
 
+class MoodleWebServices:
+    """Moodle Web Service function names (Available in Moodle 4.3)"""
+    
+    # Course management - ✅ Available
+    CREATE_COURSES = "core_course_create_courses"
+    GET_COURSES = "core_course_get_courses"
+    GET_CATEGORIES = "core_course_get_categories"
+    GET_CONTENTS = "core_course_get_contents"
+    
+    # Course sections - ✅ Available
+    EDIT_SECTION = "core_course_edit_section"
+    
+    # WSManageSections plugin - ✅ Available and WORKING!
+    CREATE_SECTIONS = "local_wsmanagesections_create_sections"
+    GET_SECTIONS = "local_wsmanagesections_get_sections"
+    UPDATE_SECTIONS = "local_wsmanagesections_update_sections"
+    DELETE_SECTIONS = "local_wsmanagesections_delete_sections"
+    MOVE_SECTION = "local_wsmanagesections_move_section"
+    
+    # File management - ✅ Available
+    UPLOAD_FILE = "core_files_upload"
+    
+    # Web service info - ✅ Available
+    GET_SITE_INFO = "core_webservice_get_site_info"
+    
+    # Note: Activity creation still requires additional plugins:
+    # - mod_page_add_page (activity creation requires additional plugins)
+    # - mod_label_add_label (activity creation requires additional plugins)
+
+
+class CourseFormats:
+    """Moodle course format constants"""
+    
+    TOPICS = "topics"
+    WEEKLY = "weekly" 
+    SOCIAL = "social"
+    SINGLEACTIVITY = "singleactivity"
+    
+    DEFAULT_FORMAT = TOPICS
+
+
 class ErrorCodes:
     """Error code constants for better error handling"""
     

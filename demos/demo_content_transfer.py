@@ -4,6 +4,11 @@ Demo script to show how content would be transferred to Moodle
 """
 
 import asyncio
+import sys
+import os
+
+# Add parent directory to path to import modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from content_formatter import ContentFormatter
 from content_parser import ChatContentParser
