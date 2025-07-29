@@ -7,13 +7,15 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from constants import ContentTypes, Messages
+
 
 class ContentType(Enum):
     """Types of content that can be extracted"""
 
-    CODE = "code"
-    TOPIC = "topic"
-    MIXED = "mixed"
+    CODE = ContentTypes.CODE
+    TOPIC = ContentTypes.TOPIC
+    MIXED = ContentTypes.MIXED
 
 
 @dataclass
@@ -30,8 +32,8 @@ class ContentItem:
 
     def __post_init__(self):
         """Validate and normalize data after initialization"""
-        if self.type not in ["code", "topic"]:
-            raise ValueError(f"Invalid content type: {self.type}")
+        if self.type not in ContentTypes.VALID_TYPES:
+            raise ValueError(Messages.INVALID_CONTENT_TYPE.format(type=self.type))
 
         # Normalize language name
         if self.language:
@@ -39,7 +41,7 @@ class ContentItem:
 
         # Ensure content is not empty
         if not self.content or not self.content.strip():
-            raise ValueError("Content cannot be empty")
+            raise ValueError(Messages.EMPTY_CONTENT)
 
         # Generate default title if not provided
         if not self.title or not self.title.strip():

@@ -13,13 +13,17 @@ from urllib.parse import urljoin
 
 import aiohttp
 
+from constants import Defaults, Messages, ErrorCodes, ActivityTypes
+
 logger = logging.getLogger(__name__)
 
 
 class MoodleAPIError(Exception):
     """Custom exception for Moodle API errors"""
 
-    pass
+    def __init__(self, message: str, error_code: str = ErrorCodes.API_ERROR):
+        super().__init__(message)
+        self.error_code = error_code
 
 
 class MoodleClient:
@@ -35,7 +39,7 @@ class MoodleClient:
         """
         self.base_url = base_url.rstrip("/")
         self.token = token
-        self.api_url = f"{self.base_url}/webservice/rest/server.php"
+        self.api_url = f"{self.base_url}{Defaults.WEBSERVICE_PATH}"
         self.session = None
 
     async def __aenter__(self):
@@ -139,7 +143,7 @@ class MoodleClient:
         if not course_id:
             raise MoodleAPIError("Failed to create course: Invalid response format")
 
-        logger.info(f"Created course '{name}' with ID: {course_id}")
+        logger.info(Messages.COURSE_CREATED.format(name=name, course_id=course_id))
         return course_id
 
     async def create_section(self, course_id: int, name: str, description: str = "") -> int:

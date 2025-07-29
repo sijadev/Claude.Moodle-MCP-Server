@@ -14,6 +14,7 @@ from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 
 from config import Config
+from constants import Defaults, Messages, ToolDescriptions, ContentTypes
 from content_formatter import ContentFormatter
 from content_parser import ChatContentParser
 from models import ChatContent, CourseStructure
@@ -49,7 +50,7 @@ class MoodleMCPServer:
     
     def __init__(self):
         """Initialize the Moodle MCP Server with all required components."""
-        self.server = Server("moodle-course-creator")
+        self.server = Server(Defaults.SERVER_NAME)
         self.content_parser = ChatContentParser()
         self.moodle_client = None
         self.content_formatter = ContentFormatter()
@@ -61,11 +62,11 @@ class MoodleMCPServer:
                 self.moodle_client = MoodleClient(
                     base_url=self.config.moodle_url, token=self.config.moodle_token
                 )
-                logger.info("Moodle client initialized successfully")
+                logger.info(Messages.MOODLE_CLIENT_SUCCESS)
             except Exception as e:
-                logger.warning(f"Moodle client initialization failed: {e}")
+                logger.warning(Messages.MOODLE_CLIENT_FAILED.format(error=e))
         else:
-            logger.info("Running in preview mode - no Moodle credentials provided")
+            logger.info(Messages.PREVIEW_MODE)
 
         self._setup_handlers()
 
@@ -77,27 +78,27 @@ class MoodleMCPServer:
             """List available tools"""
             return [
                 types.Tool(
-                    name="create_course_from_chat",
-                    description="Extract content from Claude chat and create a Moodle course",
+                    name=ToolDescriptions.CREATE_COURSE_NAME,
+                    description=ToolDescriptions.CREATE_COURSE_DESC,
                     inputSchema={
                         "type": "object",
                         "properties": {
                             "chat_content": {
                                 "type": "string",
-                                "description": "The full chat conversation content",
+                                "description": ToolDescriptions.CHAT_CONTENT_DESC,
                             },
                             "course_name": {
                                 "type": "string",
-                                "description": "Name for the Moodle course",
+                                "description": ToolDescriptions.COURSE_NAME_DESC,
                             },
                             "course_description": {
                                 "type": "string",
-                                "description": "Description for the Moodle course",
+                                "description": ToolDescriptions.COURSE_DESC_DESC,
                                 "default": "",
                             },
                             "category_id": {
                                 "type": "integer",
-                                "description": "Moodle category ID (optional)",
+                                "description": ToolDescriptions.CATEGORY_ID_DESC,
                                 "default": 1,
                             },
                         },

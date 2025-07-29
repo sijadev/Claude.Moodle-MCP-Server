@@ -9,6 +9,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
+from constants import Messages, ContentTypes
 from models import ChatContent, ContentItem
 
 logger = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ class ChatContentParser:
         Returns:
             ChatContent object with extracted items
         """
-        logger.info("Starting chat content parsing")
+        logger.info(Messages.PARSING_STARTED)
 
         # Split content into messages (assuming messages are separated by patterns)
         messages = self._split_into_messages(chat_content)
@@ -159,7 +160,7 @@ class ChatContentParser:
         # Post-process to remove duplicates and organize
         items = self._deduplicate_and_organize(items)
 
-        logger.info(f"Parsed {len(items)} content items from chat")
+        logger.info(Messages.PARSING_COMPLETED.format(count=len(items)))
         return ChatContent(items=items)
 
     def _split_into_messages(self, content: str) -> List[str]:

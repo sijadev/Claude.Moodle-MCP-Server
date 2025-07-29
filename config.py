@@ -8,6 +8,8 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
+from constants import Defaults, Environment
+
 
 # Load environment variables from .env file
 def load_env_file():
@@ -60,15 +62,15 @@ class Config:
     moodle_username: Optional[str] = None
 
     # Server configuration
-    server_name: str = "moodle-course-creator"
-    server_version: str = "1.0.0"
-    log_level: str = "INFO"
+    server_name: str = Defaults.SERVER_NAME
+    server_version: str = Defaults.SERVER_VERSION
+    log_level: str = Defaults.LOG_LEVEL
 
     # Content processing configuration
-    max_code_length: int = 10000  # Maximum code length to process
-    max_topic_length: int = 5000  # Maximum topic content length
-    min_code_lines: int = 2  # Minimum lines for code to be considered
-    min_topic_words: int = 10  # Minimum words for topic content
+    max_code_length: int = Defaults.MAX_CODE_LENGTH  # Maximum code length to process
+    max_topic_length: int = Defaults.MAX_TOPIC_LENGTH  # Maximum topic content length
+    min_code_lines: int = Defaults.MIN_CODE_LINES  # Minimum lines for code to be considered
+    min_topic_words: int = Defaults.MIN_TOPIC_WORDS  # Minimum words for topic content
 
     # Course creation defaults
     default_category_id: int = 1
@@ -77,16 +79,16 @@ class Config:
     def __init__(self):
         """Initialize configuration from environment variables"""
         # Moodle settings (optional for preview mode)
-        self.moodle_url = os.getenv("MOODLE_URL", "")
-        self.moodle_token = os.getenv("MOODLE_TOKEN", "")
+        self.moodle_url = os.getenv(Environment.MOODLE_URL, "")
+        self.moodle_token = os.getenv(Environment.MOODLE_TOKEN, "")
 
         # Optional Moodle settings
-        self.moodle_username = os.getenv("MOODLE_USERNAME")
+        self.moodle_username = os.getenv(Environment.MOODLE_USERNAME)
 
         # Server settings
-        self.server_name = os.getenv("SERVER_NAME", self.server_name)
-        self.server_version = os.getenv("SERVER_VERSION", self.server_version)
-        self.log_level = os.getenv("LOG_LEVEL", self.log_level)
+        self.server_name = os.getenv(Environment.SERVER_NAME, self.server_name)
+        self.server_version = os.getenv(Environment.SERVER_VERSION, self.server_version)
+        self.log_level = os.getenv(Environment.LOG_LEVEL, self.log_level)
 
         # Content processing settings
         self.max_code_length = int(os.getenv("MAX_CODE_LENGTH", self.max_code_length))
