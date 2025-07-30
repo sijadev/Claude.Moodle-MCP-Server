@@ -4,8 +4,8 @@ Fixed unit tests for content parser based on actual implementation
 
 import pytest
 
-from content_parser import ChatContentParser
-from models import ChatContent, ContentItem
+from src.core.content_parser import ChatContentParser
+from src.models.models import ChatContent, ContentItem
 
 
 class TestChatContentParserFixed:

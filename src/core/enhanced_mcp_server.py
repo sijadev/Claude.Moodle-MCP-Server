@@ -24,6 +24,7 @@ from src.core.content_formatter import ContentFormatter
 from src.core.content_parser import ChatContentParser
 from src.core.content_chunker import ContentChunker
 from src.core.chunk_processor_queue import ChunkProcessorQueue
+from src.core.content_preprocessor import ContentPreprocessor
 from src.models.models import ChatContent, CourseStructure
 from src.clients.moodle_client import MoodleClient
 from src.clients.moodle_client_enhanced import EnhancedMoodleClient
@@ -47,6 +48,7 @@ class EnhancedMoodleMCPServer:
         self.content_parser = ChatContentParser()
         self.content_formatter = ContentFormatter()
         self.content_chunker = ContentChunker()
+        self.content_preprocessor = ContentPreprocessor()
         self.chunk_processor = ChunkProcessorQueue(max_concurrent=2, rate_limit_delay=0.5)
         
         # Load dual-token configuration
@@ -220,9 +222,11 @@ class EnhancedMoodleMCPServer:
                 if plugin_available:
                     logger.info("[OK] Plugin available - using enhanced functionality with queue processing")
                     
-                    # Prepare sections data for all chunks
+                    # Prepare sections data for all chunks with preprocessing
                     chunks_sections_data = []
-                    for chunk_structure in course_chunks:
+                    preprocessing_stats = []
+                    
+                    for chunk_index, chunk_structure in enumerate(course_chunks):
                         sections_data = []
                         for section in chunk_structure.sections:
                             section_data = {
@@ -264,7 +268,19 @@ class EnhancedMoodleMCPServer:
                                     })
                             
                             sections_data.append(section_data)
-                        chunks_sections_data.append(sections_data)
+                        
+                        # Apply preprocessing to each chunk
+                        original_sections = sections_data.copy()
+                        sanitized_sections = self.content_preprocessor.sanitize_sections_data(sections_data)
+                        
+                        # Get preprocessing statistics
+                        chunk_stats = self.content_preprocessor.get_preprocessing_stats(original_sections, sanitized_sections)
+                        chunk_stats['chunk_index'] = chunk_index
+                        preprocessing_stats.append(chunk_stats)
+                        
+                        logger.info(f"Chunk {chunk_index + 1} preprocessing: {chunk_stats['size_reduction_percent']:.1f}% size reduction, {chunk_stats['estimated_success_probability']:.1f}% success probability")
+                        
+                        chunks_sections_data.append(sanitized_sections)
                     
                     # Add chunks to queue and process
                     chunk_ids = await self.chunk_processor.add_chunks(course_id, chunks_sections_data)
@@ -337,6 +353,12 @@ class EnhancedMoodleMCPServer:
 [INFO] **Queue Processing Stats:**
 - Average processing time per chunk: {processing_summary['average_processing_time']:.2f}s
 - Activity success rate: {processing_summary['activity_success_rate']*100:.1f}%
+
+[TECH] **Content Preprocessing Results:**
+- Original total size: {sum(s['original_size_bytes'] for s in preprocessing_stats)} bytes
+- Optimized total size: {sum(s['sanitized_size_bytes'] for s in preprocessing_stats)} bytes
+- Average size reduction: {sum(s['size_reduction_percent'] for s in preprocessing_stats)/len(preprocessing_stats):.1f}%
+- Estimated success probability: {sum(s['estimated_success_probability'] for s in preprocessing_stats)/len(preprocessing_stats):.1f}%
 """
                     else:
                         # No successful activities - show failure details
