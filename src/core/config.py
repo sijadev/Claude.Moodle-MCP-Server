@@ -8,7 +8,7 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from constants import Defaults, Environment
+from src.core.constants import Defaults, Environment
 
 
 # Load environment variables from .env file

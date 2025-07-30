@@ -243,3 +243,6 @@ create_*.php
 simple_*.php
 admin_*.php
 fix_*.php
+# Organized structure
+logs/
+verify_structure.py

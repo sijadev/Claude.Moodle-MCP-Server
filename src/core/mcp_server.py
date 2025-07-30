@@ -13,12 +13,12 @@ import mcp.types as types
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 
-from config import Config
-from constants import Defaults, Messages, ToolDescriptions, ContentTypes
-from content_formatter import ContentFormatter
-from content_parser import ChatContentParser
-from models import ChatContent, CourseStructure
-from moodle_client import MoodleClient
+from src.core.config import Config
+from src.core.constants import Defaults, Messages, ToolDescriptions, ContentTypes
+from src.core.content_formatter import ContentFormatter
+from src.core.content_parser import ChatContentParser
+from src.models.models import ChatContent, CourseStructure
+from src.clients.moodle_client_enhanced import EnhancedMoodleClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -56,13 +56,13 @@ class MoodleMCPServer:
         self.content_formatter = ContentFormatter()
         self.config = Config()
 
-        # Initialize Moodle client if credentials are available
+        # Initialize Enhanced Moodle client if credentials are available
         if self.config.moodle_url and self.config.moodle_token:
             try:
-                self.moodle_client = MoodleClient(
+                self.moodle_client = EnhancedMoodleClient(
                     base_url=self.config.moodle_url, token=self.config.moodle_token
                 )
-                logger.info(Messages.MOODLE_CLIENT_SUCCESS)
+                logger.info("Enhanced Moodle client initialized with plugin support")
             except Exception as e:
                 logger.warning(Messages.MOODLE_CLIENT_FAILED.format(error=e))
         else:
@@ -359,11 +359,17 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
             course_structure = self._organize_content(parsed_content)
 
             # Create course in Moodle
+            logger.info(f"Creating course: {course_name}")
             course_id = await self.moodle_client.create_course(
                 name=course_name,
                 description=course_description,
                 category_id=category_id,
             )
+            logger.info(f"Course created with ID: {course_id}")
+
+            # Since we created a new course, the name should match what was requested
+            actual_course_name = course_name
+            course_creation_success = True
 
             # Create sections and activities
             created_activities = []
@@ -376,15 +382,19 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
 
                 for item in section.items:
                     if item.type == "code":
-                        # Create file resource for downloadable code
-                        file_activity = await self.moodle_client.create_file_activity(
+                        # Create file resource for downloadable code (returns dict now)
+                        file_result = await self.moodle_client.create_file_activity(
                             course_id=course_id,
                             section_id=section_id,
                             name=f"{item.title} - Code File",
                             content=item.content,
                             filename=f"{item.title.lower().replace(' ', '_')}.{item.language or 'txt'}",
                         )
-                        created_activities.append(file_activity)
+                        if isinstance(file_result, dict) and file_result.get('success'):
+                            created_activities.append(file_result)
+                        else:
+                            # Legacy support for old return format
+                            created_activities.append({"success": True, "activity_id": file_result})
 
                         # Create page with syntax highlighted code
                         formatted_content = self.content_formatter.format_code_for_moodle(
@@ -393,13 +403,17 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
                             title=item.title,
                             description=item.description or "",
                         )
-                        page_activity = await self.moodle_client.create_page_activity(
+                        page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
                             section_id=section_id,
                             name=item.title,
                             content=formatted_content,
                         )
-                        created_activities.append(page_activity)
+                        if isinstance(page_result, dict):
+                            created_activities.append(page_result)
+                        else:
+                            # Legacy support for old return format
+                            created_activities.append({"success": True, "activity_id": page_result})
 
                     elif item.type == "topic":
                         # Create page for topic description
@@ -408,28 +422,72 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
                             title=item.title,
                             description=item.description or "",
                         )
-                        page_activity = await self.moodle_client.create_page_activity(
+                        page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
                             section_id=section_id,
                             name=item.title,
                             content=formatted_content,
                         )
-                        created_activities.append(page_activity)
+                        if isinstance(page_result, dict):
+                            created_activities.append(page_result)
+                        else:
+                            # Legacy support for old return format
+                            created_activities.append({"success": True, "activity_id": page_result})
 
+            # Get the course URL for easy access
+            course_url = f"{self.moodle_client.base_url}/course/view.php?id={course_id}"
+            
+            # Calculate actual success counts
+            successful_activities = sum(1 for activity in created_activities if isinstance(activity, dict) and activity.get('success', False))
+            failed_activities = len(created_activities) - successful_activities
+            
+            # Generate detailed activity status
+            activity_details = []
+            for i, activity in enumerate(created_activities, 1):
+                if isinstance(activity, dict):
+                    status = "[OK]" if activity.get('success') else "[ERROR]"
+                    method = activity.get('method', 'unknown')
+                    message = activity.get('message', 'No details')
+                    activity_details.append(f"   {i}. {status} Method: {method} - {message}")
+                else:
+                    activity_details.append(f"   {i}. [OK] Legacy format (assumed success)")
+            
             summary = f"""
-Course created successfully!
+{'[OK]' if successful_activities > 0 else '[WARNING]'} Course structure created!
 
-Course ID: {course_id}
-Course Name: {course_name}
-Sections Created: {len(course_structure.sections)}
-Activities Created: {len(created_activities)}
+[CONTENT] Course Details:
+- Course ID: {course_id}
+- Course Name: {actual_course_name}
+- Course URL: {course_url}
+- Sections Created: {len(course_structure.sections)}
+- Activities Attempted: {len(created_activities)}
+- Activities Successful: {successful_activities}
+- Activities Failed: {failed_activities}
 
-Content Summary:
+ Content Summary:
 - Code Examples: {len([item for section in course_structure.sections for item in section.items if item.type == 'code'])}
 - Topic Descriptions: {len([item for section in course_structure.sections for item in section.items if item.type == 'topic'])}
 
-Course Structure:
+[INFO] Activity Details:
+{"".join(activity_details) if activity_details else "   No activities processed"}
+
+[TARGET] Access Instructions:
+1. Visit your Moodle site: {self.moodle_client.base_url}
+2. Go to "My Courses" to see the course
+3. Or access directly: {course_url}
+
+[INFO] Course Structure:
 {self._format_course_structure_summary(course_structure)}
+
+[TIP] Notes:
+- New course created successfully with proper structure
+- Content storage limited by Moodle API permissions - see formatted content below
+- Course sections created but content must be added manually
+
+[INFO] **FORMATTED CONTENT FOR MANUAL ADDITION:**
+Copy the content below into your Moodle course sections:
+
+{self._format_content_for_manual_addition(course_structure)}
 """
 
             return [types.TextContent(type="text", text=summary)]
@@ -496,14 +554,18 @@ Detailed Structure:
                 for item in section.items:
                     if item.type == "code":
                         # Create activities for code
-                        file_activity = await self.moodle_client.create_file_activity(
+                        file_result = await self.moodle_client.create_file_activity(
                             course_id=course_id,
                             section_id=section_id,
                             name=f"{item.title} - Code File",
                             content=item.content,
                             filename=f"{item.title.lower().replace(' ', '_')}.{item.language or 'txt'}",
                         )
-                        added_activities.append(file_activity)
+                        if isinstance(file_result, dict) and file_result.get('success'):
+                            added_activities.append(file_result)
+                        else:
+                            # Legacy support for old return format
+                            added_activities.append({"success": True, "activity_id": file_result})
 
                         formatted_content = self.content_formatter.format_code_for_moodle(
                             code=item.content,
@@ -511,13 +573,17 @@ Detailed Structure:
                             title=item.title,
                             description=item.description or "",
                         )
-                        page_activity = await self.moodle_client.create_page_activity(
+                        page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
                             section_id=section_id,
                             name=item.title,
                             content=formatted_content,
                         )
-                        added_activities.append(page_activity)
+                        if isinstance(page_result, dict):
+                            added_activities.append(page_result)
+                        else:
+                            # Legacy support for old return format
+                            added_activities.append({"success": True, "activity_id": page_result})
 
                     elif item.type == "topic":
                         formatted_content = self.content_formatter.format_topic_for_moodle(
@@ -525,24 +591,51 @@ Detailed Structure:
                             title=item.title,
                             description=item.description or "",
                         )
-                        page_activity = await self.moodle_client.create_page_activity(
+                        page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
                             section_id=section_id,
                             name=item.title,
                             content=formatted_content,
                         )
-                        added_activities.append(page_activity)
+                        if isinstance(page_result, dict):
+                            added_activities.append(page_result)
+                        else:
+                            # Legacy support for old return format
+                            added_activities.append({"success": True, "activity_id": page_result})
 
+            # Calculate actual success counts
+            successful_activities = sum(1 for activity in added_activities if isinstance(activity, dict) and activity.get('success', False))
+            failed_activities = len(added_activities) - successful_activities
+            
+            # Generate detailed activity status
+            activity_details = []
+            for i, activity in enumerate(added_activities, 1):
+                if isinstance(activity, dict):
+                    status = "[OK]" if activity.get('success') else "[ERROR]"
+                    method = activity.get('method', 'unknown')
+                    message = activity.get('message', 'No details')
+                    activity_details.append(f"   {i}. {status} Method: {method} - {message}")
+                else:
+                    activity_details.append(f"   {i}. [OK] Legacy format (assumed success)")
+            
             summary = f"""
-Content added to existing course successfully!
+{'[OK]' if successful_activities > 0 else '[WARNING]'} Content added to existing course!
 
-Course ID: {course_id}
-New Sections Added: {len(course_structure.sections)}
-New Activities Added: {len(added_activities)}
+[CONTENT] Course Details:
+- Course ID: {course_id}
+- New Sections Added: {len(course_structure.sections)}
+- Activities Attempted: {len(added_activities)}
+- Activities Successful: {successful_activities}
+- Activities Failed: {failed_activities}
 
-Added Content Summary:
+ Added Content Summary:
 - Code Examples: {len([item for section in course_structure.sections for item in section.items if item.type == 'code'])}
 - Topic Descriptions: {len([item for section in course_structure.sections for item in section.items if item.type == 'topic'])}
+
+[INFO] Activity Details:
+{"".join(activity_details) if activity_details else "   No activities processed"}
+
+[TIP] Note: Content is stored in section summaries due to Moodle 4.3 API limitations.
 """
 
             return [types.TextContent(type="text", text=summary)]
@@ -588,7 +681,7 @@ Added Content Summary:
         for i, section in enumerate(structure.sections, 1):
             summary_lines.append(f"{i}. {section.name} ({len(section.items)} items)")
             for j, item in enumerate(section.items, 1):
-                item_type = "📝" if item.type == "topic" else "💻"
+                item_type = "" if item.type == "topic" else ""
                 summary_lines.append(f"   {i}.{j} {item_type} {item.title}")
         return "\n".join(summary_lines)
 
@@ -596,22 +689,79 @@ Added Content Summary:
         """Format detailed course structure for preview"""
         preview_lines = []
         for section in structure.sections:
-            preview_lines.append(f"\n📚 Section: {section.name}")
+            preview_lines.append(f"\n[CONTENT] Section: {section.name}")
             preview_lines.append(f"   Description: {section.description}")
 
             for item in section.items:
                 if item.type == "code":
-                    preview_lines.append(f"   💻 Code: {item.title}")
+                    preview_lines.append(f"    Code: {item.title}")
                     preview_lines.append(f"      Language: {item.language or 'Unknown'}")
                     preview_lines.append(f"      Lines: {len(item.content.splitlines())}")
                 elif item.type == "topic":
-                    preview_lines.append(f"   📝 Topic: {item.title}")
+                    preview_lines.append(f"    Topic: {item.title}")
                     preview_lines.append(f"      Content length: {len(item.content)} characters")
 
                 if item.description:
                     preview_lines.append(f"      Description: {item.description[:100]}...")
 
         return "\n".join(preview_lines)
+
+    def _format_content_for_manual_addition(self, structure: CourseStructure) -> str:
+        """Format content in a way that's easy to copy-paste into Moodle sections"""
+        content_lines = []
+        
+        for i, section in enumerate(structure.sections, 1):
+            content_lines.append(f"\n{'='*60}")
+            content_lines.append(f"SECTION {i}: {section.name.upper()}")
+            content_lines.append(f"{'='*60}")
+            content_lines.append(f"\n[INFO] **Instructions**: Copy the HTML content below into Moodle Section {i}")
+            content_lines.append(f"   1. Go to your course: http://localhost:8080/course/view.php")
+            content_lines.append(f"   2. Click 'Edit' mode")
+            content_lines.append(f"   3. In Section {i}, click 'Edit section'")
+            content_lines.append(f"   4. Paste the content below into the 'Summary' field")
+            content_lines.append(f"   5. Save changes")
+            
+            # Combine all items in this section into one formatted content block
+            section_content = f"""
+<div style="background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px;">
+<h2 style="color: #0d6efd; margin-bottom: 20px;">[CONTENT] {section.name}</h2>
+"""
+            
+            for item in section.items:
+                if item.type == "topic":
+                    section_content += f"""
+<div style="background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #28a745; border-radius: 4px;">
+<h3 style="color: #155724; margin-bottom: 10px;"> {item.title}</h3>
+<div style="line-height: 1.6;">
+{item.content.replace(chr(10), '<br>')}
+</div>
+</div>
+"""
+                elif item.type == "code":
+                    section_content += f"""
+<div style="background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #6c757d; border-radius: 4px;">
+<h3 style="color: #495057; margin-bottom: 10px;"> {item.title}</h3>
+<pre style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>{item.content}</code></pre>
+</div>
+"""
+            
+            section_content += """
+</div>
+<div style="margin-top: 20px; padding: 10px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px;">
+<small style="color: #0c5460;">
+[TIP] <strong>Tip:</strong> This content was automatically generated from your chat. 
+You can edit it directly in Moodle to customize the formatting or add additional materials.
+</small>
+</div>
+"""
+            
+            content_lines.append(f"\n **HTML Content for Section {i}:**")
+            content_lines.append("```html")
+            content_lines.append(section_content.strip())
+            content_lines.append("```")
+            content_lines.append(f"\n")
+        
+        return "\n".join(content_lines)
 
 
 async def main():

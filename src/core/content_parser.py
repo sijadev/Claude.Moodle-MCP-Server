@@ -9,8 +9,8 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
-from constants import Messages, ContentTypes
-from models import ChatContent, ContentItem
+from src.core.constants import Messages, ContentTypes
+from src.models.models import ChatContent, ContentItem
 
 logger = logging.getLogger(__name__)
 
@@ -112,8 +112,8 @@ class ChatContentParser:
             "note that",
         ]
 
-        # Code block patterns
-        self.code_block_pattern = re.compile(r"```(\w+)?\n(.*?)\n```", re.DOTALL | re.MULTILINE)
+        # Code block patterns - more flexible with whitespace
+        self.code_block_pattern = re.compile(r"```(\w+)?\s*(.*?)\s*```", re.DOTALL | re.MULTILINE)
 
         # Inline code pattern
         self.inline_code_pattern = re.compile(r"`([^`\n]+)`")
