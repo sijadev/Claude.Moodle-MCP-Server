@@ -2,10 +2,32 @@
 Fixed unit tests for content parser based on actual implementation
 """
 
+import os
+import sys
 import pytest
 
-from src.core.content_parser import ChatContentParser
-from src.models.models import ChatContent, ContentItem
+# Add the project root and src directory to the Python path for imports to work
+current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+src_dir = os.path.join(current_dir, 'src')
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+try:
+    from src.core.content_parser import ChatContentParser
+    from src.models.models import ChatContent, ContentItem
+except ImportError:
+    try:
+        # Fallback for different environment setups
+        from core.content_parser import ChatContentParser
+        from models.models import ChatContent, ContentItem
+    except ImportError:
+        # Another fallback
+        sys.path.insert(0, os.path.join(current_dir, 'src', 'core'))
+        sys.path.insert(0, os.path.join(current_dir, 'src', 'models'))
+        from content_parser import ChatContentParser
+        from models import ChatContent, ContentItem
 
 
 class TestChatContentParserFixed:

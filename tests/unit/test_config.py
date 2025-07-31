@@ -3,11 +3,22 @@ Unit tests for configuration management
 """
 
 import os
+import sys
 from unittest.mock import Mock, patch
 
 import pytest
 
-from config.dual_token_config import DualTokenConfig
+# Add the project root directory to the Python path for imports to work
+current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+try:
+    from config.dual_token_config import DualTokenConfig
+except ImportError:
+    # Fallback for CI environment
+    sys.path.insert(0, os.path.join(current_dir, 'config'))
+    from dual_token_config import DualTokenConfig
 
 
 class TestDualTokenConfig:
