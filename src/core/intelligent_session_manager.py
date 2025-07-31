@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SessionDatabase:
     """Database configuration for session persistence"""
-    db_path: str = "sessions.db"
+    db_path: str = "data/sessions.db"
     backup_interval: int = 3600  # 1 hour
     max_sessions: int = 1000
     
@@ -42,7 +42,16 @@ class IntelligentSessionManager:
             db_config: Database configuration for session persistence
         """
         self.moodle_client = moodle_client
-        self.db_config = db_config or SessionDatabase()
+        
+        # Setup database configuration with environment variable support
+        if db_config is None:
+            db_path = os.getenv('MOODLE_CLAUDE_DB_PATH', 'data/sessions.db')
+            backup_interval = int(os.getenv('MOODLE_CLAUDE_BACKUP_INTERVAL', '3600'))
+            db_config = SessionDatabase(
+                db_path=db_path,
+                backup_interval=backup_interval
+            )
+        self.db_config = db_config
         self.content_processor = AdaptiveContentProcessor()
         
         # Initialize database
@@ -60,7 +69,10 @@ class IntelligentSessionManager:
     def _init_database(self):
         """Initialize SQLite database for session persistence"""
         try:
-            os.makedirs(os.path.dirname(self.db_config.db_path), exist_ok=True)
+            # Ensure database directory exists
+            db_dir = os.path.dirname(self.db_config.db_path)
+            if db_dir:  # Only create directory if path has a directory component
+                os.makedirs(db_dir, exist_ok=True)
             
             with sqlite3.connect(self.db_config.db_path) as conn:
                 conn.execute("""

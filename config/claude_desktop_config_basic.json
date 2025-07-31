@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "moodle-course-creator": {
+      "command": "python",
+      "args": ["-m", "tools.setup.start_mcp_server"],
+      "cwd": "/path/to/your/MoodleClaude",
+      "env": {
+        "MOODLE_URL": "http://localhost:8080",
+        "MOODLE_BASIC_TOKEN": "your_basic_token_here",
+        "MOODLE_PLUGIN_TOKEN": "your_plugin_token_here",
+        "MOODLE_USERNAME": "simon",
+        "SERVER_NAME": "moodle-course-creator",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

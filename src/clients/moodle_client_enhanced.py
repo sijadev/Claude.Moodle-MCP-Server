@@ -28,16 +28,32 @@ class MoodleAPIError(Exception):
 class EnhancedMoodleClient:
     """Enhanced client for interacting with Moodle using custom MoodleClaude plugin"""
 
-    def __init__(self, base_url: str, token: str):
+    def __init__(self, base_url: str, token: str = None, basic_token: str = None, plugin_token: str = None):
         """
         Initialize Enhanced Moodle client
 
         Args:
             base_url: Moodle site URL (e.g., https://moodle.example.com)
-            token: Moodle web service token
+            token: Single Moodle web service token (legacy support)
+            basic_token: Basic Moodle web service token (dual-token mode)
+            plugin_token: Plugin-specific web service token (dual-token mode)
         """
         self.base_url = base_url.rstrip("/")
-        self.token = token
+        
+        # Support both single-token and dual-token modes
+        if basic_token and plugin_token:
+            # Dual-token mode
+            self.basic_token = basic_token
+            self.plugin_token = plugin_token
+            self.token = basic_token  # Default to basic token
+            self.dual_token_mode = True
+        else:
+            # Single-token mode (legacy support)
+            self.token = token or basic_token
+            self.basic_token = self.token
+            self.plugin_token = self.token
+            self.dual_token_mode = False
+            
         self.api_url = f"{self.base_url}{Defaults.WEBSERVICE_PATH}"
         self.session = None
         self.plugin_available = None  # Will be determined on first use
