@@ -18,7 +18,7 @@ import requests
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from enhanced_moodle_claude import (
+from src.clients.enhanced_moodle_claude import (
     EnhancedMoodleAPI,
     FileUploadConfig,
     MoodleClaudeIntegration,
