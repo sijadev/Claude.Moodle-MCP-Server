@@ -69,7 +69,19 @@ def sample_chat_content():
 @pytest.fixture
 def sample_course_structure():
     """Sample course structure for testing"""
-    from models import ContentItem, CourseStructure
+    import sys
+    import os
+    
+    # Add the src directory to the Python path for imports to work  
+    current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src_dir = os.path.join(current_dir, 'src')
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+    
+    try:
+        from src.models.models import ContentItem, CourseStructure
+    except ImportError:
+        from models.models import ContentItem, CourseStructure
 
     items = [
         ContentItem(
