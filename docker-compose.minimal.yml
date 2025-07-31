@@ -1,0 +1,50 @@
+# MoodleClaude v3.0 - Minimal Optimized Setup
+# Schnell, schlank, nur notwendige Services
+
+services:
+  # All-in-One Moodle with embedded PostgreSQL support
+  moodle-minimal:
+    image: bitnami/moodle:4.3
+    container_name: moodleclaude_minimal
+    restart: unless-stopped
+    environment:
+      # Use SQLite for maximum simplicity (embedded database)
+      MOODLE_DATABASE_TYPE: sqlite3
+      MOODLE_DATABASE_NAME: /bitnami/moodledata/moodle.db
+      
+      # Admin Configuration
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: MoodleClaude2025Admin!
+      MOODLE_EMAIL: admin@moodleclaude.local
+      MOODLE_SITE_NAME: "MoodleClaude v3.0 Minimal"
+      
+      # Performance Settings
+      PHP_MEMORY_LIMIT: 256M
+      PHP_POST_MAX_SIZE: 50M
+      PHP_UPLOAD_MAX_FILESIZE: 50M
+      PHP_MAX_EXECUTION_TIME: 180
+      
+      # Skip complex setup
+      MOODLE_SKIP_BOOTSTRAP: "no"
+      MOODLE_SKIP_INSTALL: "no"
+      
+    volumes:
+      - moodle_minimal_data:/bitnami/moodle
+      - moodle_minimal_config:/bitnami/moodledata
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login/index.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  moodle_minimal_data:
+    driver: local
+    name: moodleclaude_minimal_data
+  moodle_minimal_config:
+    driver: local
+    name: moodleclaude_minimal_config

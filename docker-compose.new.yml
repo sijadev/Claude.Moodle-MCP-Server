@@ -1,0 +1,167 @@
+version: '3.8'
+
+# MoodleClaude v3.0 - Modern Docker Environment
+# Optimized for the new refactored architecture with comprehensive setup
+
+services:
+  # PostgreSQL Database - More robust than MariaDB for production
+  postgres:
+    image: postgres:16-alpine
+    container_name: moodleclaude_postgres_v3
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: moodle
+      POSTGRES_USER: moodle
+      POSTGRES_PASSWORD: MoodleClaude2025SecurePassword!
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data_v3:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - moodleclaude_v3
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moodle -d moodle"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: moodleclaude_redis_v3
+    restart: unless-stopped
+    command: redis-server --requirepass MoodleClaudeRedis2025!
+    volumes:
+      - redis_data_v3:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - moodleclaude_v3
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Moodle 4.3 Application
+  moodle:
+    image: bitnami/moodle:4.3
+    container_name: moodleclaude_app_v3
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database Configuration
+      MOODLE_DATABASE_TYPE: pgsql
+      MOODLE_DATABASE_HOST: postgres
+      MOODLE_DATABASE_PORT_NUMBER: 5432
+      MOODLE_DATABASE_USER: moodle
+      MOODLE_DATABASE_PASSWORD: MoodleClaude2025SecurePassword!
+      MOODLE_DATABASE_NAME: moodle
+      
+      # Admin Configuration
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: MoodleClaude2025Admin!
+      MOODLE_EMAIL: admin@moodleclaude.local
+      MOODLE_SITE_NAME: "MoodleClaude v3.0 Fresh Environment"
+      
+      # Performance and PHP Settings
+      PHP_MEMORY_LIMIT: 512M
+      PHP_POST_MAX_SIZE: 100M
+      PHP_UPLOAD_MAX_FILESIZE: 100M
+      PHP_MAX_EXECUTION_TIME: 300
+      PHP_MAX_INPUT_VARS: 5000
+      
+      # Moodle Configuration
+      MOODLE_SKIP_BOOTSTRAP: "no"
+      MOODLE_SKIP_INSTALL: "no"
+      
+      # Web Services (crucial for MCP integration)
+      MOODLE_WEB_SERVICES_ENABLED: "1"
+      MOODLE_MOBILE_SERVICES_ENABLED: "1"
+      
+    volumes:
+      - moodle_data_v3:/bitnami/moodle
+      - moodle_config_v3:/bitnami/moodledata
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    networks:
+      - moodleclaude_v3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login/index.php"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 180s
+
+  # Database Administration Interface
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: moodleclaude_pgadmin_v3
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: MoodleClaude2025Admin!
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data_v3:/var/lib/pgadmin
+    ports:
+      - "8082:80"
+    networks:
+      - moodleclaude_v3
+    depends_on:
+      - postgres
+
+  # Mail Testing (for Moodle notifications)
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: moodleclaude_mailhog_v3
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - moodleclaude_v3
+
+  # Redis Commander (Redis GUI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: moodleclaude_redis_commander_v3
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:0:MoodleClaudeRedis2025!
+    ports:
+      - "8083:8081"
+    networks:
+      - moodleclaude_v3
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data_v3:
+    driver: local
+    name: moodleclaude_postgres_v3
+  redis_data_v3:
+    driver: local
+    name: moodleclaude_redis_v3
+  moodle_data_v3:
+    driver: local
+    name: moodleclaude_moodle_v3
+  moodle_config_v3:
+    driver: local
+    name: moodleclaude_config_v3
+  pgadmin_data_v3:
+    driver: local
+    name: moodleclaude_pgadmin_v3
+
+networks:
+  moodleclaude_v3:
+    driver: bridge
+    name: moodleclaude_v3_network

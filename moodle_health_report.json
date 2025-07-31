@@ -1,0 +1,10 @@
+{
+  "overall_status": "healthy",
+  "tests": {
+    "http_connectivity": "\u2705 Pass",
+    "api_basic": "\u2705 Pass",
+    "course_permissions": "\u2705 Pass",
+    "plugin_token": "\u2705 Pass",
+    "service_config": "\u2705 Pass"
+  }
+}

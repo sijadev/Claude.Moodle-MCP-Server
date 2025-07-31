@@ -1,0 +1,13 @@
+{
+    "backup_timestamp": "20250731_214516",
+    "setup_type": "fresh",
+    "containers": {
+        "moodle": "moodleclaude_app_fresh",
+        "postgres": "moodleclaude_postgres_fresh",
+        "pgadmin": "moodleclaude_pgadmin_fresh"
+    },
+    "database": {
+        "name": "moodle_fresh",
+        "user": "moodle"
+    }
+}

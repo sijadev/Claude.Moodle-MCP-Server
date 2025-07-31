@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "moodle-simple-test": {
+      "command": "/Users/simonjanke/Projects/MoodleClaude/.venv/bin/python",
+      "args": ["-m", "src.core.simple_mcp_server"],
+      "cwd": "/Users/simonjanke/Projects/MoodleClaude",
+      "env": {
+        "MOODLE_URL": "http://localhost:8080",
+        "MOODLE_BASIC_TOKEN": "8545ed4837f1faf6cd246e470815f67b",
+        "MOODLE_PLUGIN_TOKEN": "a72c43335a0974fc34c53a55c7231681",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

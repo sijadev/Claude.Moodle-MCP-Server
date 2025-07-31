@@ -1,0 +1,88 @@
+# MoodleClaude v3.0 - Optimized 2-Container Setup
+# PostgreSQL + Moodle - Best Balance zwischen Einfachheit und Funktionalität
+
+services:
+  # Lightweight PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: moodleclaude_db_opt
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: moodle
+      POSTGRES_USER: moodle
+      POSTGRES_PASSWORD: moodle123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moodle -d moodle"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    # No external port - only internal communication
+
+  # Optimized Moodle
+  moodle:
+    image: bitnami/moodle:4.3
+    container_name: moodleclaude_app_opt
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Database Configuration
+      MOODLE_DATABASE_TYPE: pgsql
+      MOODLE_DATABASE_HOST: db
+      MOODLE_DATABASE_PORT_NUMBER: 5432
+      MOODLE_DATABASE_USER: moodle
+      MOODLE_DATABASE_PASSWORD: moodle123
+      MOODLE_DATABASE_NAME: moodle
+      
+      # Admin Configuration
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: MoodleClaude2025Admin!
+      MOODLE_EMAIL: admin@moodleclaude.local
+      MOODLE_SITE_NAME: "MoodleClaude v3.0 Optimized"
+      
+      # Optimized PHP Settings
+      PHP_MEMORY_LIMIT: 384M
+      PHP_POST_MAX_SIZE: 64M
+      PHP_UPLOAD_MAX_FILESIZE: 64M
+      PHP_MAX_EXECUTION_TIME: 240
+      PHP_MAX_INPUT_VARS: 3000
+      
+      # Skip unnecessary features
+      MOODLE_SKIP_BOOTSTRAP: "no"
+      MOODLE_SKIP_INSTALL: "no"
+      
+    volumes:
+      - moodle_data:/bitnami/moodle
+      - moodle_config:/bitnami/moodledata
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      # Database Admin über Moodle Web Interface verfügbar
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login/index.php"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - moodle_net
+
+networks:
+  moodle_net:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+    name: moodleclaude_db_opt
+  moodle_data:
+    driver: local
+    name: moodleclaude_app_opt
+  moodle_config:
+    driver: local
+    name: moodleclaude_config_opt

@@ -1,0 +1,28 @@
+{
+  "timestamp": "1753982451.4938",
+  "overall_status": "healthy",
+  "services": {
+    "configuration": {
+      "status": "healthy",
+      "moodle_url": "http://localhost:8080",
+      "dual_token_mode": true
+    },
+    "repository": {
+      "status": "healthy"
+    },
+    "event_system": {
+      "status": "healthy",
+      "total_observers": 2,
+      "type_specific_observers": {}
+    },
+    "ICourseCreationService": {
+      "status": "healthy"
+    },
+    "IAnalyticsService": {
+      "status": "healthy"
+    }
+  },
+  "course_service_available": true,
+  "analytics_service_available": true,
+  "recommendation": "Ready for use"
+}
