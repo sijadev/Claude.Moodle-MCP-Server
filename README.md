@@ -7,65 +7,29 @@ Transform Claude Desktop conversations into complete Moodle courses with activit
 ## 🚀 Quick Start
 
 ```bash
-# 1. Start fresh Moodle environment
-python tools/setup/setup_fresh_moodle.py
+# Fresh installation with complete setup
+./setup_fresh.sh
 
-# 2. Configure web services (follow the guide)
-# See docs/FRESH_SETUP_GUIDE.md for detailed instructions
+# Start MCP server for Claude Desktop
+python start_server.py
 
-# 3. Test the dual-token system
-python tools/testing/verify_dual_tokens.py
+# Create backup
+./backup.sh
+
+# Restore to fresh state
+./restore_default.sh
 ```
 
 ## 📁 Project Structure
 
-```
-MoodleClaude/
-├── src/                          # Core source code
-│   ├── core/                     # Core functionality
-│   │   ├── config.py            # Configuration management
-│   │   ├── constants.py         # System constants
-│   │   ├── content_parser.py    # Chat content parsing
-│   │   ├── content_formatter.py # Content formatting
-│   │   ├── mcp_server.py        # MCP server implementation
-│   │   └── enhanced_mcp_server.py # Enhanced MCP with plugin support
-│   ├── clients/                  # Moodle API clients
-│   │   ├── moodle_client.py     # Basic Moodle client
-│   │   ├── moodle_client_enhanced.py # Enhanced client with plugin support
-│   │   └── enhanced_moodle_claude.py # Full MoodleClaude integration
-│   └── models/                   # Data models
-│       └── models.py            # Pydantic models
-├── config/                       # Configuration files
-│   └── dual_token_config.py     # Dual-token system configuration
-├── tools/                        # Utilities and tools
-│   ├── setup/                   # Setup and installation tools
-│   │   ├── setup_fresh_moodle.py # Complete fresh setup script
-│   │   ├── setup_plugin_service.py # Plugin service setup
-│   │   ├── generate_token.py    # Token generation utility
-│   │   └── enable_webservices.py # Web services enabler
-│   ├── debug/                   # Debug and diagnostic tools
-│   │   ├── debug_*.py          # Various debug scripts
-│   │   ├── diagnose_service_access.py # Service access diagnostics
-│   │   └── explore_*.py        # API exploration tools
-│   └── testing/                 # Testing utilities
-│       ├── verify_dual_tokens.py # Dual-token system verification
-│       ├── test_*.py           # Individual test scripts
-│       └── run_all_tests.py    # Test runner
-├── moodle_plugin/               # Custom Moodle plugin
-│   └── local_moodleclaude/     # Plugin source code
-├── tests/                       # Test suites
-│   ├── unit/                   # Unit tests
-│   ├── integration/            # Integration tests
-│   ├── manual/                 # Manual test scripts
-│   └── e2e/                    # End-to-end tests
-├── docs/                        # 📚 All Documentation
-│   ├── INDEX.md                # Documentation index
-│   ├── FRESH_SETUP_GUIDE.md    # Complete setup guide
-│   ├── PLUGIN_INSTALLATION.md  # Plugin installation guide
-│   ├── TESTING_GUIDE.md        # Testing instructions
-│   └── ... (20+ documentation files)
-└── docker-compose.yml          # Docker environment
-```
+The project is now organized into logical directories:
+- **`operations/`** - Backup, setup, and Docker configurations  
+- **`server/`** - MCP server implementations
+- **`src/`** - Core source code with v3.0 architecture
+- **`documentation/`** - User guides and documentation
+- **`tests/`** - Comprehensive test suite
+
+See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete organization details.
 
 ## ✨ Features
 
