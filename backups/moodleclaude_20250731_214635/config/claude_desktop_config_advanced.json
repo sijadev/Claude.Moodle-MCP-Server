@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "moodle-robust": {
+      "command": "/Users/simonjanke/Projects/MoodleClaude/.venv/bin/python",
+      "args": ["-m", "src.core.robust_mcp_server"],
+      "cwd": "/Users/simonjanke/Projects/MoodleClaude",
+      "env": {
+        "MOODLE_URL": "http://localhost:8080",
+        "MOODLE_BASIC_TOKEN": "8545ed4837f1faf6cd246e470815f67b",
+        "MOODLE_PLUGIN_TOKEN": "a72c43335a0974fc34c53a55c7231681",
+        "MOODLE_USERNAME": "simon",
+        "SERVER_NAME": "advanced-moodle-course-creator",
+        "LOG_LEVEL": "INFO",
+        "MOODLE_CLAUDE_DB_PATH": "data/sessions.db",
+        "MOODLE_CLAUDE_BACKUP_INTERVAL": "3600",
+        "MOODLE_CLAUDE_MAX_CHARS": "8000",
+        "MOODLE_CLAUDE_MAX_SECTIONS": "15",
+        "MOODLE_CLAUDE_USE_EMOJIS": "true",
+        "MOODLE_CLAUDE_DETAILED_PROGRESS": "true"
+      }
+    }
+  }
+}

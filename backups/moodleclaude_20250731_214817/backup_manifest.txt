@@ -1,0 +1,35 @@
+# MoodleClaude Backup Manifest
+# Backup Name: moodleclaude_20250731_214817
+# Created: Thu Jul 31 21:48:35 CEST 2025
+# Setup Type: fresh
+
+## Files and Sizes:
+-rw-r--r--@  1 simonjanke  staff     0B Jul 31 21:48 backup_manifest.txt
+drwxr-xr-x@ 13 simonjanke  staff   416B Jul 31 21:48 config
+-rw-r--r--@  1 simonjanke  staff   325B Jul 31 21:48 container_info.json
+-rw-r--r--@  1 simonjanke  staff   2.0M Jul 31 21:48 database_dump.sql
+-rw-r--r--@  1 simonjanke  staff   2.5K Jul 31 21:48 docker-compose.yml
+-rw-r--r--@  1 simonjanke  staff   1.1K Jul 31 21:48 environment_snapshot.txt
+-rw-r--r--@  1 simonjanke  staff   2.9M Jul 31 21:48 moodle_data.tar.gz
+-rw-r--r--@  1 simonjanke  staff    65M Jul 31 21:48 moodle_files.tar.gz
+-rw-r--r--@  1 simonjanke  staff   196M Jul 31 21:48 moodle_image.tar.gz
+-rw-r--r--@  1 simonjanke  staff   168M Jul 31 21:48 pgadmin_image.tar.gz
+-rw-r--r--@  1 simonjanke  staff   9.5K Jul 31 21:48 plugin_files.tar.gz
+-rw-r--r--@  1 simonjanke  staff   100M Jul 31 21:48 postgres_image.tar.gz
+
+## Total Backup Size:
+568M
+
+## Checksums:
+ffc1f94513ecf9bf9f1f4169d30f8e592334b6cdbc1b0e7c28a1029c48fe7794  ./moodle_image.tar.gz
+0c2f8999f6c944de42545817d4a0272536e1fca34136c8491bb3b49728e49aaf  ./config/claude_desktop_config_simple_test.json
+802f49661d07c1f0b74e74cbc0aadef523fd6e0a796fb74e87c8ce28ce1d9075  ./config/claude_desktop_config_basic.json
+7ac96fa82d7200faaa599504b684f7e4bccb56abc9254aa210b75426b4b0c526  ./config/claude_desktop_config_advanced.json
+935bf94c1da40c72bf268bd40b78523a62a8f8f417d5442210b6df6d809d4b8e  ./config/adaptive_settings.json
+8a50c5cd220a7ea3da0e176372608db6885e354b52e1468c41f8d2c278089d0a  ./database_dump.sql
+66c03134bdbd537682d3eb11fbe804acec1288fc11f412ad23228fa02d36c6b7  ./moodle_data.tar.gz
+1971340a74518a2fafe71f9c4db6075548cadfd9cf86ecd9f9228b518a85d0a4  ./container_info.json
+3180c589bbd7c1cc8b85ac1fe00174ef4cce61f6c6e7bbc4e083f483271e07b2  ./plugin_files.tar.gz
+029c1c62f00d9974f39852afe7ed5846f22a1f54cab30be68c2661467f80b724  ./pgadmin_image.tar.gz
+36dc4b62e4706160a1ee658c92bec74fdb33ef5f701ec6d47873137b641d127f  ./moodle_files.tar.gz
+1b7b82b143ff6411a74ae953572ec09300209ff2d7a0e0271fcfddd8d2218528  ./postgres_image.tar.gz
