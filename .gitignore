@@ -231,6 +231,7 @@ test-results/
 # Backup files
 *.bak
 *.backup
+*.tar.gz
 
 # Local development files
 local/
