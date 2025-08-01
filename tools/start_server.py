@@ -1,1 +1,1 @@
-server/mcp_server_launcher.py
+../deployment/server/mcp_server_launcher.py

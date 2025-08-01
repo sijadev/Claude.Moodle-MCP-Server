@@ -56,3 +56,15 @@ exclude = '''
   | \.pytest_cache
 )/
 '''
+
+[tool.flake8]
+exclude = [
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".git",
+    "archive",
+    ".pytest_cache"
+]
+extend-ignore = ["E203", "W503"]
+max-line-length = 88

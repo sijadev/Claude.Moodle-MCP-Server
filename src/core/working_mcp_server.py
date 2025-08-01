@@ -440,8 +440,6 @@ async def handle_create_course(arguments: Dict[str, Any]) -> List[types.TextCont
 
 async def cleanup():
     """Cleanup function to close connections."""
-    global moodle_basic, moodle_enhanced
-
     if moodle_basic:
         await moodle_basic.close()
     if moodle_enhanced:
