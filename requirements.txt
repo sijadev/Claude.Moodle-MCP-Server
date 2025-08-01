@@ -59,8 +59,9 @@ tabulate>=0.9.0
 # Image processing (for screenshot analysis)
 pillow>=9.0.0
 
-# PDF processing
-pypdf2>=2.12.0
+# PDF processing - Migrated from PyPDF2 to pypdf due to CVE-2023-36464
+# PyPDF2 is vulnerable and no longer maintained. pypdf is the secure replacement.
+pypdf>=3.9.0
 
 # Excel/CSV processing
 pandas>=1.5.0

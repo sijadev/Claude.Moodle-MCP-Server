@@ -229,6 +229,65 @@ validate_bug_fixes() {
     return 0
 }
 
+# Function to validate GitHub CI/CD workflow checks
+validate_workflow_checks() {
+    print_subheader "GitHub Workflow Validation"
+    
+    # Check Black formatting
+    print_status "Running Black format check..."
+    if python3 -m black --check --diff . >/dev/null 2>&1; then
+        record_test_result "Black Format Check" "PASS"
+    else
+        record_test_result "Black Format Check" "FAIL"
+        print_error "Black formatting issues found. Run: python3 -m black ."
+        python3 -m black --check --diff . | head -20
+    fi
+    
+    # Check isort import sorting
+    print_status "Running isort import check..."
+    if python3 -m isort --check-only --diff . >/dev/null 2>&1; then
+        record_test_result "isort Import Check" "PASS"
+    else
+        record_test_result "isort Import Check" "FAIL"
+        print_error "Import sorting issues found. Run: python3 -m isort ."
+        python3 -m isort --check-only --diff . | head -20
+    fi
+    
+    # Check Bandit security scan with same parameters as GitHub CI
+    print_status "Running Bandit security scan..."
+    if command -v bandit >/dev/null 2>&1; then
+        local bandit_cmd="bandit -r . -x tests/,venv/,.venv/,archive/,tools/ --skip B101,B105,B107,B108,B110,B112,B311,B403,B404,B601,B602,B603,B607,B608"
+        if $bandit_cmd >/dev/null 2>&1; then
+            record_test_result "Bandit Security Scan" "PASS"
+        else
+            record_test_result "Bandit Security Scan" "FAIL"
+            print_error "Security issues found. Check output:"
+            $bandit_cmd | head -30
+        fi
+    else
+        print_warning "Bandit not installed, skipping security scan"
+        record_test_result "Bandit Security Scan" "SKIP"
+    fi
+    
+    # Check flake8 linting with GitHub CI parameters
+    print_status "Running flake8 lint check..."
+    if command -v flake8 >/dev/null 2>&1; then
+        local flake8_cmd="flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv,venv,__pycache__,.git,archive,.pytest_cache"
+        if $flake8_cmd >/dev/null 2>&1; then
+            record_test_result "flake8 Lint Check" "PASS"
+        else
+            record_test_result "flake8 Lint Check" "FAIL"
+            print_error "Linting issues found:"
+            $flake8_cmd | head -20
+        fi
+    else
+        print_warning "flake8 not installed, skipping lint check"
+        record_test_result "flake8 Lint Check" "SKIP"
+    fi
+    
+    return 0
+}
+
 # Function to validate Python path fix
 validate_python_path_fix() {
     print_subheader "Python Path Fix Validation"
@@ -529,6 +588,36 @@ run_quick_tests() {
         fi
     fi
     
+    # 3a. GitHub Workflow validation (quick checks)
+    print_status "Running quick workflow checks..."
+    
+    # Quick Black check
+    if command -v black >/dev/null 2>&1; then
+        if python3 -m black --check . >/dev/null 2>&1; then
+            record_test_result "Quick Black Check" "PASS"
+        else
+            record_test_result "Quick Black Check" "FAIL"
+        fi
+    fi
+    
+    # Quick isort check
+    if command -v isort >/dev/null 2>&1; then
+        if python3 -m isort --check-only . >/dev/null 2>&1; then
+            record_test_result "Quick isort Check" "PASS"
+        else
+            record_test_result "Quick isort Check" "FAIL"
+        fi
+    fi
+    
+    # Quick Bandit check
+    if command -v bandit >/dev/null 2>&1; then
+        if bandit -r . -x tests/,venv/,.venv/,archive/,tools/ --skip B101,B105,B107,B108,B110,B112,B311,B403,B404,B601,B602,B603,B607,B608 >/dev/null 2>&1; then
+            record_test_result "Quick Bandit Check" "PASS"
+        else
+            record_test_result "Quick Bandit Check" "FAIL"
+        fi
+    fi
+    
     # 4. Claude Desktop config
     print_status "Checking Claude Desktop config at: $CLAUDE_CONFIG_PATH"
     if [ -f "$CLAUDE_CONFIG_PATH" ]; then
@@ -741,6 +830,7 @@ main() {
         # Full test sequence
         setup_test_environment || overall_result=1
         validate_bug_fixes || overall_result=1 
+        validate_workflow_checks || overall_result=1
         validate_python_path_fix || overall_result=1
         validate_claude_desktop_config || overall_result=1
         check_docker_environment || overall_result=1
