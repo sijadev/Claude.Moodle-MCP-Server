@@ -216,7 +216,7 @@ class DockerTestSuiteRunnerFixed:
         # Check for bug fix files
         fix_files = [
             "src/core/working_mcp_server.py",
-            "setup_moodleclaude_v3_fixed.py",
+            "setup/setup_moodleclaude_v3_fixed.py",
             "tools/fix_token_permissions.py",
             "BUGFIX_DOCUMENTATION.md",
         ]
