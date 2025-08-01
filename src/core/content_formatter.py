@@ -130,11 +130,11 @@ class ContentFormatter:
         # Format the complete HTML
         html_content = f"""
         {self.code_css}
-        
+
         <div class="content-section">
             <h2>{html.escape(title)}</h2>
             {f'<p class="topic-meta">{html.escape(description)}</p>' if description else ''}
-            
+
             <div class="code-container">
                 <div class="code-header">
                     <span>📄 {html.escape(filename)}</span>
@@ -142,16 +142,16 @@ class ContentFormatter:
                         <small>{language.title() if language else 'Text'} • {len(code.splitlines())} lines</small>
                     </span>
                 </div>
-                
+
                 <div class="code-content">
                     {highlighted_code}
                 </div>
-                
+
                 <div class="code-download">
                     <small>💡 Tip: Right-click the code area and select "Save As" to download this file</small>
                 </div>
             </div>
-            
+
             <div class="code-metadata">
                 <h4>Code Information</h4>
                 <ul>
@@ -161,7 +161,7 @@ class ContentFormatter:
                     {f'<li><strong>Description:</strong> {html.escape(description)}</li>' if description else ''}
                 </ul>
             </div>
-            
+
             <details>
                 <summary><strong>Raw Code (for copying)</strong></summary>
                 <pre style="background-color: #f8f9fa; padding: 15px; border: 1px solid #e9ecef; margin-top: 10px;"><code>{html.escape(code)}</code></pre>
@@ -191,18 +191,18 @@ class ContentFormatter:
         # Create HTML layout
         html_content = f"""
         {self.code_css}
-        
+
         <div class="topic-content">
             <h2>📚 {html.escape(title)}</h2>
             {f'<p class="topic-meta"><em>{html.escape(description)}</em></p>' if description else ''}
-            
+
             <div class="content-body">
                 {formatted_content}
             </div>
-            
+
             <div class="topic-footer" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e9ecef;">
                 <small class="text-muted">
-                    📖 Content length: {len(content)} characters • 
+                    📖 Content length: {len(content)} characters •
                     ⏱️ Estimated reading time: {self._estimate_reading_time(content)} min
                 </small>
             </div>
@@ -211,7 +211,9 @@ class ContentFormatter:
 
         return html_content
 
-    def format_mixed_content(self, title: str, items: list, description: str = "") -> str:
+    def format_mixed_content(
+        self, title: str, items: list, description: str = ""
+    ) -> str:
         """
         Format mixed content (code + topics) for a single Moodle page
 
@@ -225,11 +227,11 @@ class ContentFormatter:
         """
         html_content = f"""
         {self.code_css}
-        
+
         <div class="content-section">
             <h1>📋 {html.escape(title)}</h1>
             {f'<p class="topic-meta">{html.escape(description)}</p>' if description else ''}
-            
+
             <div class="content-summary">
                 <h3>Content Overview</h3>
                 <ul>
@@ -240,16 +242,16 @@ class ContentFormatter:
         topic_count = sum(1 for item in items if item.type == "topic")
 
         if code_count > 0:
-            html_content += f"<li>💻 {code_count} Code Example{'s' if code_count != 1 else ''}</li>"
-        if topic_count > 0:
             html_content += (
-                f"<li>📝 {topic_count} Topic Description{'s' if topic_count != 1 else ''}</li>"
+                f"<li>💻 {code_count} Code Example{'s' if code_count != 1 else ''}</li>"
             )
+        if topic_count > 0:
+            html_content += f"<li>📝 {topic_count} Topic Description{'s' if topic_count != 1 else ''}</li>"
 
         html_content += """
                 </ul>
             </div>
-            
+
             <hr style="margin: 25px 0;">
         """
 
@@ -315,11 +317,11 @@ class ContentFormatter:
                     <small>{language.title() if language else 'Text'} • {len(code.splitlines())} lines</small>
                 </span>
             </div>
-            
+
             <div class="code-content">
                 {highlighted_code}
             </div>
-            
+
             {f'<div class="code-description" style="padding: 10px 15px; background-color: #f8f9fa; border-top: 1px solid #e9ecef;"><small>{html.escape(description)}</small></div>' if description else ''}
         </div>
         """
@@ -331,7 +333,9 @@ class ContentFormatter:
             html_content = markdown.markdown(
                 content,
                 extensions=self.markdown_extensions,
-                extension_configs={"codehilite": {"css_class": "highlight", "use_pygments": True}},
+                extension_configs={
+                    "codehilite": {"css_class": "highlight", "use_pygments": True}
+                },
             )
             return html_content
         except Exception:
@@ -346,7 +350,9 @@ class ContentFormatter:
         # Convert double newlines to paragraphs
         paragraphs = formatted.split("\n\n")
         formatted = "".join(
-            f'<p>{para.replace(chr(10), "<br>")}</p>' for para in paragraphs if para.strip()
+            f'<p>{para.replace(chr(10), "<br>")}</p>'
+            for para in paragraphs
+            if para.strip()
         )
 
         # Basic markdown-like formatting
@@ -396,15 +402,15 @@ class ContentFormatter:
         """Create a summary page for the course"""
         html_content = f"""
         {self.code_css}
-        
+
         <div class="content-section">
             <h1>📚 {html.escape(course_name)} - Course Overview</h1>
-            
+
             <div class="course-summary">
                 <h2>Course Structure</h2>
-                <p>This course was automatically generated from Claude chat conversations. 
+                <p>This course was automatically generated from Claude chat conversations.
                    It contains organized code examples and topic descriptions extracted from the discussion.</p>
-                
+
                 <h3>📋 Content Summary</h3>
                 <ul>
                     <li><strong>Total Sections:</strong> {len(sections)}</li>
@@ -423,7 +429,7 @@ class ContentFormatter:
                     <li><strong>Code Examples:</strong> {total_code}</li>
                     <li><strong>Topic Descriptions:</strong> {total_topics}</li>
                 </ul>
-                
+
                 <h3>🗂️ Section Overview</h3>
                 <ol>
         """
@@ -445,7 +451,7 @@ class ContentFormatter:
 
         html_content += """
                 </ol>
-                
+
                 <div style="margin-top: 30px; padding: 15px; background-color: #e7f3ff; border-left: 4px solid #007bff;">
                     <h4>🎯 How to Use This Course</h4>
                     <ul>

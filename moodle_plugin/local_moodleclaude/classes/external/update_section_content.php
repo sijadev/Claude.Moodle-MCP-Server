@@ -80,11 +80,11 @@ class update_section_content extends external_api {
             // Update section data
             $updatedata = new stdClass();
             $updatedata->id = $sectionrecord->id;
-            
+
             if (!empty($params['name'])) {
                 $updatedata->name = $params['name'];
             }
-            
+
             if (!empty($params['summary'])) {
                 $updatedata->summary = $params['summary'];
                 $updatedata->summaryformat = FORMAT_HTML;

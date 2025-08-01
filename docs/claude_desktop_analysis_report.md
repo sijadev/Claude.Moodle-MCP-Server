@@ -31,7 +31,7 @@ Claude Desktop **reused existing courses** and **added new sections** to them, w
 
 ### **What Actually Happened:**
 
-1. **Course Selection Logic Working**: 
+1. **Course Selection Logic Working**:
    - Claude Desktop correctly identified existing courses (5 & 6)
    - Reused them instead of creating duplicates (as designed)
 
@@ -55,7 +55,7 @@ Claude Desktop **reused existing courses** and **added new sections** to them, w
 ### **Course Statistics:**
 - **Total Courses**: 10 (unchanged - no new courses needed)
 - **Course 5 (Wrapper Test)**: Now has 5 sections (was 3)
-- **Course 6 (WSManageSections)**: Now has 5 sections (was 3) 
+- **Course 6 (WSManageSections)**: Now has 5 sections (was 3)
 - **New Sections Added**: 5 sections total
 
 ### **User Enrollment Status:**
@@ -67,7 +67,7 @@ Claude Desktop **reused existing courses** and **added new sections** to them, w
 
 ### **This is CORRECT Behavior:**
 
-1. **Course Reuse by Design**: 
+1. **Course Reuse by Design**:
    - System is designed to reuse existing courses with few sections
    - Prevents course proliferation
    - Maintains clean course catalog

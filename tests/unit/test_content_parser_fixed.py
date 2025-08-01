@@ -4,11 +4,14 @@ Fixed unit tests for content parser based on actual implementation
 
 import os
 import sys
+
 import pytest
 
 # Add the project root and src directory to the Python path for imports to work
-current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-src_dir = os.path.join(current_dir, 'src')
+current_dir = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+src_dir = os.path.join(current_dir, "src")
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 if src_dir not in sys.path:
@@ -24,9 +27,10 @@ except ImportError:
         from models.models import ChatContent, ContentItem
     except ImportError:
         # Another fallback
-        sys.path.insert(0, os.path.join(current_dir, 'src', 'core'))
-        sys.path.insert(0, os.path.join(current_dir, 'src', 'models'))
+        sys.path.insert(0, os.path.join(current_dir, "src", "core"))
+        sys.path.insert(0, os.path.join(current_dir, "src", "models"))
         from content_parser import ChatContentParser
+
         from models import ChatContent, ContentItem
 
 
@@ -219,19 +223,19 @@ class TestChatContentParserFixed:
         """Test parsing with realistic chat content structure"""
         content = """
         User: Can you explain Python functions?
-        
+
         Assistant: Sure! Functions in Python are defined using the def keyword.
         Here's a simple example:
-        
+
         ```python
         def greet(name):
             return f"Hello, {name}!"
-        
+
         # Call the function
         message = greet("World")
         print(message)
         ```
-        
+
         Functions are reusable blocks of code that help organize your program.
         They can accept parameters and return values.
         """
@@ -310,19 +314,19 @@ class TestChatContentParserIntegration:
         """Test complete parsing workflow"""
         content = """
         User: How do I create a class in Python?
-        
+
         Assistant: Here's how to create a basic class:
-        
+
         ```python
         class Person:
             def __init__(self, name, age):
                 self.name = name
                 self.age = age
-            
+
             def greet(self):
                 return f"Hi, I'm {self.name}"
         ```
-        
+
         Classes are blueprints for creating objects. The __init__ method
         is the constructor that initializes new instances.
         """
@@ -345,7 +349,9 @@ class TestChatContentParserIntegration:
 
     def test_error_handling(self, parser):
         """Test error handling with malformed content"""
-        malformed_content = "```python\ndef broken_function(\nprint('missing closing parenthesis'"
+        malformed_content = (
+            "```python\ndef broken_function(\nprint('missing closing parenthesis'"
+        )
 
         try:
             result = parser.parse_chat(malformed_content)
@@ -358,20 +364,20 @@ class TestChatContentParserIntegration:
         """Test parsing content with multiple programming languages"""
         content = """
         Here are examples in different languages:
-        
+
         Python:
         ```python
         def hello():
             print("Hello from Python")
         ```
-        
+
         JavaScript:
         ```javascript
         function hello() {
             console.log("Hello from JavaScript");
         }
         ```
-        
+
         Java:
         ```java
         public class Hello {

@@ -1,0 +1,170 @@
+name: 🐛 Bug Report
+description: Report a bug in MoodleClaude
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please provide as much detail as possible.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following
+      options:
+        - label: I have searched for existing issues that describe my problem
+          required: true
+        - label: I have read the bug fix documentation (BUGFIX_DOCUMENTATION.md)
+          required: true
+        - label: I am using the latest version of MoodleClaude
+          required: true
+
+  - type: dropdown
+    id: bug_type
+    attributes:
+      label: Bug Type
+      description: What type of bug are you experiencing?
+      options:
+        - MCP Server Connection Issues ("Server disconnected")
+        - Course Creation Failures ("Access control exception")
+        - Token/Authentication Problems
+        - Setup/Installation Issues
+        - Docker/Environment Issues
+        - Performance Issues
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Run command '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened, including error messages
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you using?
+      options:
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - Windows 10/11
+        - Linux (Ubuntu/Debian)
+        - Linux (CentOS/RHEL)
+        - Docker Container
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: MoodleClaude Version
+      description: What version of MoodleClaude are you using?
+      placeholder: e.g., v3.0.0, latest, commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python Version
+      description: What version of Python are you using?
+      placeholder: e.g., 3.11.5
+    validations:
+      required: true
+
+  - type: input
+    id: moodle_version
+    attributes:
+      label: Moodle Version
+      description: What version of Moodle are you using?
+      placeholder: e.g., 4.1, 4.2, 4.3
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_logs
+    attributes:
+      label: Error Logs
+      description: Please provide relevant error logs
+      placeholder: |
+        Paste error logs here, including:
+        - Claude Desktop logs (~/Library/Logs/Claude/)
+        - MoodleClaude logs
+        - Console output
+        - Docker logs (if applicable)
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Please provide your configuration (remove sensitive data)
+      placeholder: |
+        Relevant configuration files:
+        - Claude Desktop config
+        - MoodleClaude config
+        - Environment variables (without secrets)
+      render: json
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: bug_fixes
+    attributes:
+      label: Bug Fix Status
+      description: Have you tried the known bug fixes?
+      options:
+        - label: I have run the bug fix setup script (setup_moodleclaude_v3_fixed.py)
+        - label: I have updated my Claude Desktop configuration
+        - label: I have verified Python path configuration
+        - label: I have checked token permissions
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: Screenshots, additional logs, workarounds you've tried, etc.

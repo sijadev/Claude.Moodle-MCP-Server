@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
-from src.core.constants import Messages, ContentTypes
+from src.core.constants import ContentTypes, Messages
 from src.models.models import ChatContent, ContentItem
 
 logger = logging.getLogger(__name__)
@@ -113,7 +113,9 @@ class ChatContentParser:
         ]
 
         # Code block patterns - more flexible with whitespace
-        self.code_block_pattern = re.compile(r"```(\w+)?\s*(.*?)\s*```", re.DOTALL | re.MULTILINE)
+        self.code_block_pattern = re.compile(
+            r"```(\w+)?\s*(.*?)\s*```", re.DOTALL | re.MULTILINE
+        )
 
         # Inline code pattern
         self.inline_code_pattern = re.compile(r"`([^`\n]+)`")
@@ -201,7 +203,9 @@ class ChatContentParser:
                 language = self._detect_language(code_content)
 
             # Generate title and description
-            title, description = self._generate_code_metadata(code_content, language, message)
+            title, description = self._generate_code_metadata(
+                code_content, language, message
+            )
 
             code_item = ContentItem(
                 type="code",
@@ -238,7 +242,9 @@ class ChatContentParser:
                 continue
 
             language = self._detect_language(code_content)
-            title, description = self._generate_code_metadata(code_content, language, message)
+            title, description = self._generate_code_metadata(
+                code_content, language, message
+            )
 
             inline_item = ContentItem(
                 type="code",
@@ -274,7 +280,9 @@ class ChatContentParser:
 
         return "text"
 
-    def _generate_code_metadata(self, code: str, language: str, context: str) -> Tuple[str, str]:
+    def _generate_code_metadata(
+        self, code: str, language: str, context: str
+    ) -> Tuple[str, str]:
         """Generate title and description for code"""
         lines = code.strip().split("\n")
 
@@ -454,7 +462,9 @@ class ChatContentParser:
                     title=title,
                     content=paragraph,
                     description=(
-                        f"Educational content about {topic}" if topic else "Topic description"
+                        f"Educational content about {topic}"
+                        if topic
+                        else "Topic description"
                     ),
                     language=None,
                     topic=topic,
@@ -469,7 +479,9 @@ class ChatContentParser:
         text_lower = text.lower()
 
         # Check for topic keywords
-        keyword_count = sum(1 for keyword in self.topic_keywords if keyword in text_lower)
+        keyword_count = sum(
+            1 for keyword in self.topic_keywords if keyword in text_lower
+        )
 
         # Check for explanatory phrases
         explanatory_phrases = [
@@ -490,7 +502,11 @@ class ChatContentParser:
         phrase_count = sum(1 for phrase in explanatory_phrases if phrase in text_lower)
 
         # Heuristic: if text has educational keywords or explanatory phrases
-        return keyword_count > 0 or phrase_count > 0 or self._has_educational_structure(text)
+        return (
+            keyword_count > 0
+            or phrase_count > 0
+            or self._has_educational_structure(text)
+        )
 
     def _has_educational_structure(self, text: str) -> bool:
         """Check if text has educational structure"""
@@ -625,7 +641,9 @@ class ChatContentParser:
 
         return unique_items
 
-    def _are_similar_topics(self, content1: str, content2: str, threshold: float = 0.8) -> bool:
+    def _are_similar_topics(
+        self, content1: str, content2: str, threshold: float = 0.8
+    ) -> bool:
         """Check if two topic contents are similar"""
         # Simple similarity check based on word overlap
         words1 = set(content1.lower().split())

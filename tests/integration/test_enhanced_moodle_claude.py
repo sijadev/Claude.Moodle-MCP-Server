@@ -31,7 +31,9 @@ class TestSectionConfig(unittest.TestCase):
 
     def test_section_config_creation(self):
         """Test basic section config creation"""
-        config = SectionConfig(name="Test Section", summary="Test summary", visible=True)
+        config = SectionConfig(
+            name="Test Section", summary="Test summary", visible=True
+        )
 
         self.assertEqual(config.name, "Test Section")
         self.assertEqual(config.summary, "Test summary")
@@ -214,7 +216,10 @@ class TestEnhancedMoodleAPI(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
         self.mock_session.post.return_value = mock_response
 
-        section_moves = [{"sectionid": 1, "position": 3}, {"sectionid": 2, "position": 1}]
+        section_moves = [
+            {"sectionid": 1, "position": 3},
+            {"sectionid": 2, "position": 1},
+        ]
 
         result = self.api.move_sections(section_moves)
 
@@ -257,7 +262,9 @@ class TestEnhancedMoodleAPI(unittest.TestCase):
         # Configure session to return different responses for different calls
         self.mock_session.post.side_effect = [upload_response, save_response]
 
-        file_config = FileUploadConfig(filename="test.txt", content=b"Test content", contextid=123)
+        file_config = FileUploadConfig(
+            filename="test.txt", content=b"Test content", contextid=123
+        )
 
         result = self.api.upload_file(file_config)
 
@@ -271,7 +278,9 @@ class TestEnhancedMoodleAPI(unittest.TestCase):
         upload_response.raise_for_status.return_value = None
         self.mock_session.post.return_value = upload_response
 
-        file_config = FileUploadConfig(filename="test.txt", content=b"Test content", contextid=123)
+        file_config = FileUploadConfig(
+            filename="test.txt", content=b"Test content", contextid=123
+        )
 
         with self.assertRaises(Exception) as context:
             self.api.upload_file(file_config)
@@ -323,7 +332,9 @@ class TestMoodleClaudeIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.integration = MoodleClaudeIntegration("http://test.moodle.com", "test_token")
+        self.integration = MoodleClaudeIntegration(
+            "http://test.moodle.com", "test_token"
+        )
         self.mock_api = Mock()
         self.integration.api = self.mock_api
 
@@ -348,13 +359,13 @@ class TestMoodleClaudeIntegration(unittest.TestCase):
         chat_content = """
         # Introduction
         This is the introduction section.
-        
+
         ## Chapter 1
         This is chapter 1 content.
-        
+
         ### Subsection
         This is a subsection.
-        
+
         # Conclusion
         Final thoughts.
         """
@@ -395,12 +406,14 @@ class TestMoodleClaudeIntegration(unittest.TestCase):
         chat_content = """
         # Introduction
         Welcome to the course.
-        
+
         # Main Content
         This is the main content.
         """
 
-        result = self.integration.create_structured_course_from_chat(chat_content, "Test Course", 1)
+        result = self.integration.create_structured_course_from_chat(
+            chat_content, "Test Course", 1
+        )
 
         self.assertEqual(result["courseid"], 123)
         self.assertEqual(len(result["sections"]), 2)
@@ -485,7 +498,9 @@ class TestMoodleClaudeIntegration(unittest.TestCase):
         """Test handling of non-existent files"""
         mock_exists.return_value = False
 
-        resources = [{"type": "file", "path": "/nonexistent/file.pdf", "name": "Missing File"}]
+        resources = [
+            {"type": "file", "path": "/nonexistent/file.pdf", "name": "Missing File"}
+        ]
 
         results = self.integration.add_resources_to_section(123, 1, resources)
 
@@ -503,7 +518,9 @@ class TestMoodleClaudeIntegration(unittest.TestCase):
             "name": "PDF Resource",
         }
 
-        result = self.integration._create_file_resource_from_description(123, 1, file_info)
+        result = self.integration._create_file_resource_from_description(
+            123, 1, file_info
+        )
 
         self.assertEqual(result["cmid"], 999)
         self.mock_api.create_url_resource.assert_called_once()
@@ -514,7 +531,9 @@ class TestIntegrationScenarios(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.integration = MoodleClaudeIntegration("http://test.moodle.com", "test_token")
+        self.integration = MoodleClaudeIntegration(
+            "http://test.moodle.com", "test_token"
+        )
         self.mock_api = Mock()
         self.integration.api = self.mock_api
 
@@ -522,18 +541,22 @@ class TestIntegrationScenarios(unittest.TestCase):
         """Test complete workflow of course creation with sections and resources"""
         # Mock API responses for the complete workflow
         self.mock_api.create_course.return_value = {"id": 123}
-        self.mock_api.create_course_section.side_effect = [{"id": 1}, {"id": 2}, {"id": 3}]
+        self.mock_api.create_course_section.side_effect = [
+            {"id": 1},
+            {"id": 2},
+            {"id": 3},
+        ]
         self.mock_api.create_url_resource.return_value = {"cmid": 456}
 
         # Complex chat content with multiple sections and resources
         chat_content = """
         # Course Introduction
         Welcome to our comprehensive course on Python programming.
-        
+
         ## Getting Started
         Before we begin, make sure you have Python installed.
         Resource: https://python.org/downloads/python-installer.exe
-        
+
         # Advanced Topics
         Now let's dive into advanced concepts.
         """
@@ -560,7 +583,11 @@ class TestIntegrationScenarios(unittest.TestCase):
         # Perform bulk operations
         bulk_updates = [
             {"type": "move_section", "sectionid": 1, "position": 2},
-            {"type": "update_section", "sectionid": 2, "data": {"name": "Updated Section"}},
+            {
+                "type": "update_section",
+                "sectionid": 2,
+                "data": {"name": "Updated Section"},
+            },
         ]
 
         self.mock_api.bulk_section_operations.return_value = {"success": True}
@@ -636,7 +663,9 @@ class TestPerformance(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures"""
-        self.integration = MoodleClaudeIntegration("http://test.moodle.com", "test_token")
+        self.integration = MoodleClaudeIntegration(
+            "http://test.moodle.com", "test_token"
+        )
         self.mock_api = Mock()
         self.integration.api = self.mock_api
 
@@ -644,7 +673,8 @@ class TestPerformance(unittest.TestCase):
         """Test that bulk operations are more efficient than individual calls"""
         # Simulate bulk operations
         bulk_operations = [
-            {"type": "move_section", "sectionid": i, "position": i + 1} for i in range(10)
+            {"type": "move_section", "sectionid": i, "position": i + 1}
+            for i in range(10)
         ]
 
         self.mock_api.bulk_section_operations.return_value = {"success": True}

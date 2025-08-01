@@ -8,7 +8,7 @@ make test
 
 # Run specific test types
 make test-unit        # Unit tests only
-make test-integration # Integration tests only 
+make test-integration # Integration tests only
 make test-e2e        # End-to-end tests only
 
 # With options
@@ -274,7 +274,7 @@ make e2e-setup  # Installs all dependencies including browsers
    ```bash
    # Verify Moodle is running
    curl -I http://localhost
-   
+
    # Check credentials
    python demos/check_webservices.py
    ```

@@ -67,16 +67,18 @@ class MoodleE2ETestBase:
         """Logout if already logged in"""
         try:
             await self.page.goto(f"{self.config.moodle_url}")
-            
+
             # Check if already logged in (look for logout link or user menu)
-            logout_link = self.page.locator('a[href*="logout"], .usermenu a:has-text("Logout")')
+            logout_link = self.page.locator(
+                'a[href*="logout"], .usermenu a:has-text("Logout")'
+            )
             if await logout_link.count() > 0:
                 print("User already logged in, logging out...")
                 await logout_link.first.click()
                 await self.page.wait_for_timeout(2000)
                 return True
             return False
-            
+
         except Exception as e:
             print(f"Logout check failed: {e}")
             return False
@@ -86,7 +88,7 @@ class MoodleE2ETestBase:
         try:
             # First, logout if already logged in
             await self.logout_if_needed()
-            
+
             await self.page.goto(f"{self.config.moodle_url}/login/index.php")
 
             # Check if we're already logged in (redirected away from login page)
@@ -99,24 +101,30 @@ class MoodleE2ETestBase:
 
             # Wait for login form to be visible
             await self.page.wait_for_selector('input[name="username"]', timeout=5000)
-            
+
             # Fill login form
             await self.page.fill('input[name="username"]', self.config.admin_username)
             await self.page.fill('input[name="password"]', self.config.admin_password)
 
             # Submit form (click specific login button, not guest button)
-            login_button = self.page.locator('button[type="submit"]:has-text("Log in"), #loginbtn')
+            login_button = self.page.locator(
+                'button[type="submit"]:has-text("Log in"), #loginbtn'
+            )
             await login_button.click()
 
             # Wait for navigation away from login page (more flexible than specific URL)
             try:
-                await self.page.wait_for_url(lambda url: "login" not in url, timeout=15000)
+                await self.page.wait_for_url(
+                    lambda url: "login" not in url, timeout=15000
+                )
             except:
                 # Fallback: check if we can access the dashboard
                 await self.page.goto(f"{self.config.moodle_url}/my/")
-            
+
             # Verify login by checking for user menu or dashboard elements
-            user_indicators = self.page.locator('.usermenu, .userbutton, #page-my-index, body:has-text("Dashboard")')
+            user_indicators = self.page.locator(
+                '.usermenu, .userbutton, #page-my-index, body:has-text("Dashboard")'
+            )
             await user_indicators.first.wait_for(timeout=5000)
 
             print("Login successful")
@@ -138,7 +146,9 @@ class MoodleE2ETestBase:
         """Enable edit mode in Moodle"""
         try:
             # Look for edit mode toggle
-            edit_toggle = self.page.locator('input[name="setmode"], .editmode-switch-form input')
+            edit_toggle = self.page.locator(
+                'input[name="setmode"], .editmode-switch-form input'
+            )
             if await edit_toggle.count() > 0:
                 await edit_toggle.check()
                 await self.page.wait_for_timeout(1000)  # Wait for edit mode to activate
@@ -155,13 +165,17 @@ class MoodleE2ETestBase:
 
             # Fill course details
             await self.page.fill('input[name="fullname"]', course_name)
-            await self.page.fill('input[name="shortname"]', course_name.lower().replace(" ", "_"))
+            await self.page.fill(
+                'input[name="shortname"]', course_name.lower().replace(" ", "_")
+            )
 
             # Set course format to topics for better section management
             await self.page.select_option('select[name="format"]', "topics")
 
             # Save course
-            await self.page.click('input[name="saveandreturn"], button:has-text("Save and return")')
+            await self.page.click(
+                'input[name="saveandreturn"], button:has-text("Save and return")'
+            )
 
             # Extract course ID from URL
             await self.page.wait_for_url("**/course/view.php?id=*")
@@ -177,9 +191,13 @@ class MoodleE2ETestBase:
     async def delete_test_course(self, course_id: int):
         """Delete a test course"""
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/delete.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/delete.php?id={course_id}"
+            )
             await self.page.click('input[value="Delete"], button:has-text("Delete")')
-            await self.page.click('input[value="Continue"], button:has-text("Continue")')
+            await self.page.click(
+                'input[value="Continue"], button:has-text("Continue")'
+            )
         except Exception as e:
             print(f"Course deletion failed: {e}")
 
@@ -204,13 +222,17 @@ class TestSectionManagement(MoodleE2ETestBase):
 
         try:
             # Navigate to course
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
 
             # Enable edit mode
             await self.enable_edit_mode()
 
             # Find and click "Add section" link
-            add_section_link = self.page.locator('a:has-text("Add section"), .add-section')
+            add_section_link = self.page.locator(
+                'a:has-text("Add section"), .add-section'
+            )
             await add_section_link.first.click()
 
             # Verify new section was created
@@ -230,7 +252,9 @@ class TestSectionManagement(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Find section edit button
@@ -241,19 +265,27 @@ class TestSectionManagement(MoodleE2ETestBase):
                 await edit_section_btn.first.click()
 
                 # Look for inline editing field or modal
-                section_name_input = self.page.locator('input[name*="name"], .section-name input')
+                section_name_input = self.page.locator(
+                    'input[name*="name"], .section-name input'
+                )
                 if await section_name_input.count() > 0:
                     new_name = f"Updated Section {int(time.time())}"
                     await section_name_input.fill(new_name)
 
                     # Save changes
-                    save_btn = self.page.locator('button:has-text("Save"), input[type="submit"]')
+                    save_btn = self.page.locator(
+                        'button:has-text("Save"), input[type="submit"]'
+                    )
                     await save_btn.click()
 
                     # Verify name change
                     await self.page.wait_for_timeout(2000)
-                    section_heading = self.page.locator(f'.section h3:has-text("{new_name}")')
-                    assert await section_heading.count() > 0, "Section name was not updated"
+                    section_heading = self.page.locator(
+                        f'.section h3:has-text("{new_name}")'
+                    )
+                    assert (
+                        await section_heading.count() > 0
+                    ), "Section name was not updated"
 
                     print(f"✅ Successfully updated section name to: {new_name}")
 
@@ -266,7 +298,9 @@ class TestSectionManagement(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Create additional sections first
@@ -276,12 +310,16 @@ class TestSectionManagement(MoodleE2ETestBase):
                 await self.page.wait_for_timeout(1000)
 
             # Look for bulk actions button
-            bulk_actions_btn = self.page.locator('button:has-text("Bulk actions"), .bulk-actions')
+            bulk_actions_btn = self.page.locator(
+                'button:has-text("Bulk actions"), .bulk-actions'
+            )
             if await bulk_actions_btn.count() > 0:
                 await bulk_actions_btn.click()
 
                 # Select multiple sections
-                section_checkboxes = self.page.locator('.section input[type="checkbox"]')
+                section_checkboxes = self.page.locator(
+                    '.section input[type="checkbox"]'
+                )
                 checkbox_count = await section_checkboxes.count()
 
                 if checkbox_count >= 2:
@@ -299,7 +337,10 @@ class TestSectionManagement(MoodleE2ETestBase):
                     available_operations = [
                         op
                         for op in expected_operations
-                        if any(expected in str(bulk_operations) for expected in [op.lower()])
+                        if any(
+                            expected in str(bulk_operations)
+                            for expected in [op.lower()]
+                        )
                     ]
 
                     assert (
@@ -316,7 +357,9 @@ class TestSectionManagement(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Look for section settings/edit
@@ -387,7 +430,9 @@ class TestFileUpload(MoodleE2ETestBase):
         test_dir = await self.setup_test_files()
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Find "Add content" or "+" button
@@ -397,7 +442,9 @@ class TestFileUpload(MoodleE2ETestBase):
             await add_content_btn.first.click()
 
             # Look for "Activity or resource" option
-            activity_resource = self.page.locator('button:has-text("Activity or resource")')
+            activity_resource = self.page.locator(
+                'button:has-text("Activity or resource")'
+            )
             if await activity_resource.count() > 0:
                 await activity_resource.click()
 
@@ -429,7 +476,9 @@ class TestFileUpload(MoodleE2ETestBase):
             await file_input.set_input_files(str(test_file))
 
             # Submit upload
-            upload_btn = self.page.locator('button:has-text("Upload this file"), .fp-upload-btn')
+            upload_btn = self.page.locator(
+                'button:has-text("Upload this file"), .fp-upload-btn'
+            )
             await upload_btn.click()
 
             # Save the resource
@@ -440,7 +489,9 @@ class TestFileUpload(MoodleE2ETestBase):
 
             # Verify file resource was created
             await self.page.wait_for_timeout(3000)
-            file_resource = self.page.locator('.activity.resource:has-text("Test File Resource")')
+            file_resource = self.page.locator(
+                '.activity.resource:has-text("Test File Resource")'
+            )
             assert await file_resource.count() > 0, "File resource was not created"
 
             print("✅ File resource created successfully with uploaded file")
@@ -458,14 +509,18 @@ class TestFileUpload(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Navigate to add file resource
             add_content_btn = self.page.locator('button:has-text("Insert content")')
             await add_content_btn.first.click()
 
-            activity_resource = self.page.locator('button:has-text("Activity or resource")')
+            activity_resource = self.page.locator(
+                'button:has-text("Activity or resource")'
+            )
             if await activity_resource.count() > 0:
                 await activity_resource.click()
 
@@ -479,7 +534,9 @@ class TestFileUpload(MoodleE2ETestBase):
             # Wait for file picker and check available repositories
             await self.page.wait_for_selector(".file-picker")
 
-            repository_tabs = await self.page.locator(".fp-repo-name, .fp-tab").all_text_contents()
+            repository_tabs = await self.page.locator(
+                ".fp-repo-name, .fp-tab"
+            ).all_text_contents()
 
             expected_repositories = [
                 "Upload a file",
@@ -518,17 +575,23 @@ class TestFileUpload(MoodleE2ETestBase):
         test_dir = await self.setup_test_files()
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Look for drag-drop area
-            drag_drop_area = self.page.locator(".filemanager-container, .drag-drop-area")
+            drag_drop_area = self.page.locator(
+                ".filemanager-container, .drag-drop-area"
+            )
             if await drag_drop_area.count() > 0:
                 # Create file resource first
                 add_content_btn = self.page.locator('button:has-text("Insert content")')
                 await add_content_btn.first.click()
 
-                activity_resource = self.page.locator('button:has-text("Activity or resource")')
+                activity_resource = self.page.locator(
+                    'button:has-text("Activity or resource")'
+                )
                 if await activity_resource.count() > 0:
                     await activity_resource.click()
 
@@ -572,7 +635,9 @@ class TestMoodleClaudeIntegration(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Create sections based on chat content
@@ -590,7 +655,9 @@ class TestMoodleClaudeIntegration(MoodleE2ETestBase):
                         await edit_btns.nth(created_sections).click()
 
                         # Add section content as text/media area
-                        add_content = self.page.locator('button:has-text("Insert content")')
+                        add_content = self.page.locator(
+                            'button:has-text("Insert content")'
+                        )
                         if await add_content.count() > 0:
                             await add_content.first.click()
 
@@ -601,7 +668,9 @@ class TestMoodleClaudeIntegration(MoodleE2ETestBase):
                                 await activity_resource.click()
 
                             # Add text and media area
-                            text_media = self.page.locator('a:has-text("Text and media area")')
+                            text_media = self.page.locator(
+                                'a:has-text("Text and media area")'
+                            )
                             if await text_media.count() > 0:
                                 await text_media.click()
 
@@ -610,14 +679,20 @@ class TestMoodleClaudeIntegration(MoodleE2ETestBase):
                                     'iframe[title*="Rich text area"]'
                                 )
                                 if await content_editor.count() > 0:
-                                    await content_editor.first.fill(section_data["content"])
+                                    await content_editor.first.fill(
+                                        section_data["content"]
+                                    )
 
-                                save_btn = self.page.locator('button:has-text("Save and return")')
+                                save_btn = self.page.locator(
+                                    'button:has-text("Save and return")'
+                                )
                                 await save_btn.click()
                                 await self.page.wait_for_timeout(2000)
 
                     except Exception as e:
-                        print(f"Could not add content to section {section_data['title']}: {e}")
+                        print(
+                            f"Could not add content to section {section_data['title']}: {e}"
+                        )
 
                 created_sections += 1
 
@@ -640,7 +715,9 @@ class TestMoodleClaudeIntegration(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Create multiple sections for bulk operations
@@ -673,7 +750,9 @@ class TestMoodleClaudeIntegration(MoodleE2ETestBase):
                     print(f"✅ Bulk actions available: {operation_count} operations")
 
                     # Test selection count
-                    selected_count = self.page.locator('.bulk-actions :has-text("selected")')
+                    selected_count = self.page.locator(
+                        '.bulk-actions :has-text("selected")'
+                    )
                     if await selected_count.count() > 0:
                         count_text = await selected_count.first.text_content()
                         assert "3" in count_text or "selected" in count_text.lower()
@@ -692,7 +771,9 @@ class TestAccessibilityAndUsability(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
             await self.enable_edit_mode()
 
             # Test tab navigation
@@ -722,10 +803,14 @@ class TestAccessibilityAndUsability(MoodleE2ETestBase):
         course_id = await self.create_test_course(course_name)
 
         try:
-            await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
+            await self.page.goto(
+                f"{self.config.moodle_url}/course/view.php?id={course_id}"
+            )
 
             # Check for proper heading structure
-            headings = await self.page.locator("h1, h2, h3, h4, h5, h6").all_text_contents()
+            headings = await self.page.locator(
+                "h1, h2, h3, h4, h5, h6"
+            ).all_text_contents()
             assert len(headings) > 0, "No headings found for screen reader navigation"
 
             # Check for alt text on images
@@ -761,7 +846,9 @@ class TestAccessibilityAndUsability(MoodleE2ETestBase):
                             labeled_inputs += 1
 
                 label_percentage = (labeled_inputs / min(5, input_count)) * 100
-                assert label_percentage >= 50, f"Only {label_percentage}% of inputs have labels"
+                assert (
+                    label_percentage >= 50
+                ), f"Only {label_percentage}% of inputs have labels"
                 print(f"✅ Form inputs properly labeled: {label_percentage}%")
 
         finally:
@@ -855,7 +942,9 @@ class TestReportGenerator:
         self.test_results = []
         self.start_time = time.time()
 
-    def add_result(self, test_name: str, status: str, duration: float, details: str = ""):
+    def add_result(
+        self, test_name: str, status: str, duration: float, details: str = ""
+    ):
         """Add test result"""
         self.test_results.append(
             {
@@ -897,7 +986,7 @@ class TestReportGenerator:
                 <p>Generated on: {time.strftime('%Y-%m-%d %H:%M:%S')}</p>
                 <p>Total Duration: {total_duration:.2f}s</p>
             </div>
-            
+
             <div class="summary">
                 <div class="metric">
                     <h3>Total Tests</h3>
@@ -916,7 +1005,7 @@ class TestReportGenerator:
                     <p>{(len(passed_tests) / len(self.test_results) * 100):.1f}%</p>
                 </div>
             </div>
-            
+
             <h2>Test Results</h2>
         """
 
@@ -977,7 +1066,9 @@ async def run_comprehensive_e2e_tests():
                 continue
 
             # Get test methods
-            test_methods = [method for method in dir(test_instance) if method.startswith("test_")]
+            test_methods = [
+                method for method in dir(test_instance) if method.startswith("test_")
+            ]
 
             for method_name in test_methods:
                 test_start = time.time()
@@ -1001,7 +1092,10 @@ async def run_comprehensive_e2e_tests():
                     print(f"❌ {method_name} FAILED ({test_duration:.2f}s): {str(e)}")
 
                     report_generator.add_result(
-                        f"{category_name}: {method_name}", "FAILED", test_duration, str(e)
+                        f"{category_name}: {method_name}",
+                        "FAILED",
+                        test_duration,
+                        str(e),
                     )
 
         finally:
@@ -1034,9 +1128,15 @@ async def main():
     parser.add_argument("--url", default="http://localhost", help="Moodle URL")
     parser.add_argument("--username", default="simon", help="Admin username")
     parser.add_argument("--password", default="Pwd1234!", help="Admin password")
-    parser.add_argument("--category", type=int, default=1, help="Test course category ID")
-    parser.add_argument("--timeout", type=int, default=30000, help="Default timeout in ms")
-    parser.add_argument("--report", default="e2e_report.html", help="HTML report output file")
+    parser.add_argument(
+        "--category", type=int, default=1, help="Test course category ID"
+    )
+    parser.add_argument(
+        "--timeout", type=int, default=30000, help="Default timeout in ms"
+    )
+    parser.add_argument(
+        "--report", default="e2e_report.html", help="HTML report output file"
+    )
 
     args = parser.parse_args()
 

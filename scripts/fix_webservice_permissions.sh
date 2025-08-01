@@ -31,7 +31,7 @@ MANAGER_ROLE_ID=$(mysql_exec "SELECT id FROM mdl_role WHERE shortname = 'manager
 
 if [ -n "$MANAGER_ROLE_ID" ]; then
     echo "   Manager role ID: $MANAGER_ROLE_ID"
-    
+
     # Add web service capabilities
     CAPABILITIES=(
         "webservice/rest:use"
@@ -44,7 +44,7 @@ if [ -n "$MANAGER_ROLE_ID" ]; then
         "mod/page:addinstance"
         "mod/label:addinstance"
     )
-    
+
     for capability in "${CAPABILITIES[@]}"; do
         echo "   Adding capability: $capability"
         mysql_exec "INSERT IGNORE INTO mdl_role_capabilities (roleid, capability, permission, contextid, component, timecreated, timemodified) VALUES ($MANAGER_ROLE_ID, '$capability', 1, 1, '', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());"

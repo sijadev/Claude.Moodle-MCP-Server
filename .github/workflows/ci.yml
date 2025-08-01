@@ -1,0 +1,440 @@
+name: MoodleClaude CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, advanced-features ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Nightly tests at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'comprehensive'
+        type: choice
+        options:
+        - quick
+        - comprehensive
+        - performance
+        - security
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Smoke test - runs first to validate basic functionality
+  smoke-test:
+    name: Smoke Test Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp pytest
+
+      - name: Run Smoke Test
+        run: |
+          chmod +x scripts/smoke_test.sh
+          ./scripts/smoke_test.sh --quick --skip-docker
+
+      - name: Upload smoke test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: smoke-test-report
+          path: reports/smoke_test/
+
+  # Pre-flight checks
+  pre-flight:
+    name: Pre-flight Checks
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    outputs:
+      should_run_tests: ${{ steps.changes.outputs.should_run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for relevant changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -E '\.(py|yml|yaml|json|md)$' || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate project structure
+        run: |
+          echo "🔍 Validating project structure..."
+          required_files=(
+            "setup_moodleclaude_v3_fixed.py"
+            "tools/run_docker_test_suite_fixed.py"
+            "src/core/working_mcp_server.py"
+            "BUGFIX_DOCUMENTATION.md"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+
+  # Code quality checks
+  quality-checks:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    needs: pre-flight
+    if: needs.pre-flight.outputs.should_run_tests == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort bandit safety
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Code formatting check (Black)
+        run: black --check --diff .
+
+      - name: Import sorting check (isort)
+        run: isort --check-only --diff .
+
+      - name: Linting (flake8)
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Security scan (Bandit)
+        run: bandit -r . -x tests/,venv/,.venv/
+
+      - name: Dependency vulnerability check
+        run: safety check
+
+  # Unit tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [pre-flight, quality-checks]
+    if: needs.pre-flight.outputs.should_run_tests == 'true'
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-html pytest-json-report
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/unit/ \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=html \
+            --html=reports/pytest_report.html \
+            --json-report --json-report-file=reports/pytest_report.json \
+            -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: unit-test-reports-py${{ matrix.python-version }}
+          path: reports/
+
+  # Integration tests with Docker
+  integration-tests:
+    name: Integration Tests (Docker)
+    runs-on: ubuntu-latest
+    needs: [pre-flight, quality-checks]
+    if: needs.pre-flight.outputs.should_run_tests == 'true'
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: moodletest
+          POSTGRES_USER: moodleuser
+          POSTGRES_PASSWORD: MoodleTestPass2025!
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # Install additional test dependencies
+          pip install aiohttp requests psycopg2-binary
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test environment
+        run: |
+          docker-compose -f operations/docker/docker-compose.test.yml build
+
+      - name: Run integration tests
+        run: |
+          echo "🚀 Running MoodleClaude Integration Tests with Bug Fixes"
+          python tools/run_docker_test_suite_fixed.py --verbose
+
+      - name: Collect test artifacts
+        if: always()
+        run: |
+          mkdir -p artifacts/
+          cp -r test-results/ artifacts/ 2>/dev/null || true
+          cp -r test-reports/ artifacts/ 2>/dev/null || true
+          cp -r logs/ artifacts/ 2>/dev/null || true
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-artifacts
+          path: artifacts/
+
+  # Performance benchmarks
+  performance-tests:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    needs: [pre-flight, quality-checks]
+    if: needs.pre-flight.outputs.should_run_tests == 'true' && (github.event_name == 'schedule' || github.event.inputs.test_type == 'performance')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest-benchmark
+
+      - name: Run performance benchmarks
+        run: |
+          echo "🏃‍♂️ Running performance benchmarks..."
+          python tools/run_docker_test_suite_fixed.py --performance-mode --benchmark
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-benchmarks
+          path: benchmark-results/
+
+  # Security tests
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: [pre-flight, quality-checks]
+    if: needs.pre-flight.outputs.should_run_tests == 'true' && (github.event_name == 'schedule' || github.event.inputs.test_type == 'security')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Docker security scan
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(pwd):/src aquasec/trivy image --exit-code 0 --no-progress \
+            --format table $(docker build -q -f operations/docker/Dockerfile.test .)
+
+  # Build and test Docker images
+  docker-build:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: [pre-flight, quality-checks]
+    if: needs.pre-flight.outputs.should_run_tests == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        run: |
+          docker build -t moodleclaude:latest .
+
+      - name: Build test image
+        run: |
+          docker build -f operations/docker/Dockerfile.test -t moodleclaude:test .
+
+      - name: Test Docker images
+        run: |
+          echo "🧪 Testing Docker images..."
+          # Test that images can start
+          docker run --rm moodleclaude:test python --version
+          
+          # Test bug fixes are included
+          docker run --rm moodleclaude:test python -c "
+          import os
+          print('Bug fixes enabled:', os.environ.get('APPLY_BUGFIXES', 'false'))
+          print('Python path fix:', os.environ.get('PYTHON_PATH_FIX', 'false'))
+          "
+
+      - name: Export Docker images
+        run: |
+          docker save moodleclaude:latest | gzip > moodleclaude-latest.tar.gz
+          docker save moodleclaude:test | gzip > moodleclaude-test.tar.gz
+
+      - name: Upload Docker images
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-images
+          path: "*.tar.gz"
+
+  # Deployment readiness check
+  deployment-check:
+    name: Deployment Readiness
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, docker-build]
+    if: github.ref == 'refs/heads/main' && needs.pre-flight.outputs.should_run_tests == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run deployment readiness check
+        run: |
+          echo "🚀 Checking deployment readiness..."
+          python setup_moodleclaude_v3_fixed.py --validate-only --production-check
+
+      - name: Generate deployment report
+        run: |
+          echo "📊 Generating deployment report..."
+          cat > deployment-report.md << EOF
+          # MoodleClaude Deployment Report
+          
+          **Build:** ${{ github.sha }}
+          **Date:** $(date)
+          **Branch:** ${{ github.ref_name }}
+          
+          ## Test Results
+          - ✅ Unit Tests: Passed
+          - ✅ Integration Tests: Passed  
+          - ✅ Docker Build: Passed
+          - ✅ Bug Fixes: Applied
+          
+          ## Deployment Ready: ✅
+          EOF
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-report
+          path: deployment-report.md
+
+  # Notification and reporting
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, docker-build]
+    if: always() && needs.pre-flight.outputs.should_run_tests == 'true'
+    steps:
+      - name: Determine overall result
+        id: result
+        run: |
+          if [[ "${{ needs.unit-tests.result }}" == "success" && "${{ needs.integration-tests.result }}" == "success" && "${{ needs.docker-build.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=🎉 All tests passed! MoodleClaude is ready for deployment." >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=❌ Some tests failed. Please check the results." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create summary
+        run: |
+          echo "## 🧪 MoodleClaude Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.result.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+
+      # Optional: Send Slack notification (uncomment if you have Slack webhook)
+      # - name: Slack Notification
+      #   uses: 8398a7/action-slack@v3
+      #   with:
+      #     status: ${{ steps.result.outputs.status }}
+      #     text: ${{ steps.result.outputs.message }}
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #   if: always()

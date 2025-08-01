@@ -46,7 +46,9 @@ class ContentItem:
         # Generate default title if not provided
         if not self.title or not self.title.strip():
             if self.type == "code":
-                self.title = f"{self.language.title() if self.language else 'Code'} Example"
+                self.title = (
+                    f"{self.language.title() if self.language else 'Code'} Example"
+                )
             else:
                 # Use first few words of content as title
                 words = self.content.split()[:6]
@@ -102,8 +104,12 @@ class ChatContent:
             {
                 "total_items": len(self.items),
                 "code_items": len([item for item in self.items if item.type == "code"]),
-                "topic_items": len([item for item in self.items if item.type == "topic"]),
-                "languages": list(set(item.language for item in self.items if item.language)),
+                "topic_items": len(
+                    [item for item in self.items if item.type == "topic"]
+                ),
+                "languages": list(
+                    set(item.language for item in self.items if item.language)
+                ),
                 "topics": list(set(item.topic for item in self.items if item.topic)),
             }
         )
@@ -168,8 +174,12 @@ class CourseSection:
             {
                 "item_count": len(self.items),
                 "code_count": len([item for item in self.items if item.type == "code"]),
-                "topic_count": len([item for item in self.items if item.type == "topic"]),
-                "languages": list(set(item.language for item in self.items if item.language)),
+                "topic_count": len(
+                    [item for item in self.items if item.type == "topic"]
+                ),
+                "languages": list(
+                    set(item.language for item in self.items if item.language)
+                ),
             }
         )
 
@@ -221,7 +231,9 @@ class CourseStructure:
 
         def to_course_section(self) -> CourseSection:
             """Convert to CourseSection"""
-            return CourseSection(name=self.name, description=self.description, items=self.items)
+            return CourseSection(
+                name=self.name, description=self.description, items=self.items
+            )
 
     def __post_init__(self):
         """Process course structure after initialization"""

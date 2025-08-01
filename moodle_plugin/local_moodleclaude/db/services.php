@@ -26,7 +26,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
     ],
-    
+
     'local_moodleclaude_create_label_activity' => [
         'classname'   => 'local_moodleclaude\external\create_label_activity',
         'methodname'  => 'execute',
@@ -36,7 +36,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
     ],
-    
+
     'local_moodleclaude_create_file_resource' => [
         'classname'   => 'local_moodleclaude\external\create_file_resource',
         'methodname'  => 'execute',
@@ -46,7 +46,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
     ],
-    
+
     'local_moodleclaude_update_section_content' => [
         'classname'   => 'local_moodleclaude\external\update_section_content',
         'methodname'  => 'execute',
@@ -56,7 +56,7 @@ $functions = [
         'ajax'        => true,
         'loginrequired' => true,
     ],
-    
+
     'local_moodleclaude_create_course_structure' => [
         'classname'   => 'local_moodleclaude\external\create_course_structure',
         'methodname'  => 'execute',
@@ -74,11 +74,11 @@ $services = [
         'functions' => [
             // MoodleClaude custom functions
             'local_moodleclaude_create_page_activity',
-            'local_moodleclaude_create_label_activity', 
+            'local_moodleclaude_create_label_activity',
             'local_moodleclaude_create_file_resource',
             'local_moodleclaude_update_section_content',
             'local_moodleclaude_create_course_structure',
-            
+
             // Essential core functions for web service operation
             'core_webservice_get_site_info',        // Required for token validation
             'core_course_create_courses',           // Required for course creation

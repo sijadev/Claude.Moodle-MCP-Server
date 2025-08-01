@@ -28,24 +28,24 @@ def sample_chat_content():
     """Sample chat content for testing"""
     return """
     User: Can you show me how to create a Python function?
-    
+
     Assistant: Here's a simple Python function:
-    
+
     ```python
     def greet(name):
         return f"Hello, {name}!"
-    
+
     # Example usage
     result = greet("World")
     print(result)  # Output: Hello, World!
     ```
-    
+
     This function takes a name parameter and returns a greeting string.
-    
+
     User: What about error handling?
-    
+
     Assistant: Here's the same function with error handling:
-    
+
     ```python
     def safe_greet(name):
         if not isinstance(name, str):
@@ -53,7 +53,7 @@ def sample_chat_content():
         if not name.strip():
             raise ValueError("Name cannot be empty")
         return f"Hello, {name}!"
-    
+
     # Example with error handling
     try:
         result = safe_greet("World")
@@ -61,7 +61,7 @@ def sample_chat_content():
     except (TypeError, ValueError) as e:
         print(f"Error: {e}")
     ```
-    
+
     This version includes input validation and proper error handling.
     """
 
@@ -69,15 +69,15 @@ def sample_chat_content():
 @pytest.fixture
 def sample_course_structure():
     """Sample course structure for testing"""
-    import sys
     import os
-    
-    # Add the src directory to the Python path for imports to work  
+    import sys
+
+    # Add the src directory to the Python path for imports to work
     current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    src_dir = os.path.join(current_dir, 'src')
+    src_dir = os.path.join(current_dir, "src")
     if src_dir not in sys.path:
         sys.path.insert(0, src_dir)
-    
+
     try:
         from src.models.models import ContentItem, CourseStructure
     except ImportError:
@@ -125,7 +125,9 @@ def mock_moodle_responses():
             {"id": 1, "fullname": "Test Course 1", "shortname": "test1"},
             {"id": 2, "fullname": "Test Course 2", "shortname": "test2"},
         ],
-        "get_categories": [{"id": 1, "name": "General", "description": "General category"}],
+        "get_categories": [
+            {"id": 1, "name": "General", "description": "General category"}
+        ],
     }
 
 
@@ -135,8 +137,12 @@ def mock_moodle_client(mock_moodle_responses):
     client = AsyncMock()
     client.create_course.return_value = mock_moodle_responses["create_course"]["id"]
     client.create_section.return_value = mock_moodle_responses["create_section"]["id"]
-    client.create_page_activity.return_value = mock_moodle_responses["create_page_activity"]
-    client.create_file_activity.return_value = mock_moodle_responses["create_file_activity"]
+    client.create_page_activity.return_value = mock_moodle_responses[
+        "create_page_activity"
+    ]
+    client.create_file_activity.return_value = mock_moodle_responses[
+        "create_file_activity"
+    ]
     client.get_courses.return_value = mock_moodle_responses["get_courses"]
     client.get_categories.return_value = mock_moodle_responses["get_categories"]
     return client

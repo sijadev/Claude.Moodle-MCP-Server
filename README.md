@@ -19,7 +19,7 @@ No manual configuration, no token hunting, no setup headaches. Just works! 🎉
 # ⚡ One-Command Installation (v3.0)
 python tools/setup/setup_fresh_moodle_v2.py --quick-setup
 
-# That's it! 🎉 
+# That's it! 🎉
 # - Complete Moodle environment
 # - MoodleClaude plugin installed
 # - API tokens generated
@@ -140,7 +140,7 @@ python server/mcp_server_launcher.py --test
 
 ### **Course Creation Testing**
 1. **Open Claude Desktop**
-2. **Start a conversation** 
+2. **Start a conversation**
 3. **Ask Claude to create a Moodle course** from your chat content
 4. **Check results** at http://localhost:8080
 
@@ -167,7 +167,7 @@ flowchart TD
     N -->|❌ No| P[⚠️ Show Issues & Continue]
     P --> O
     O --> Q[🎉 Installation Complete!]
-    
+
     style A fill:#e1f5fe
     style Q fill:#e8f5e8
     style N fill:#fff3e0

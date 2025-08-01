@@ -6,7 +6,7 @@ MoodleClaude 2.0 introduces intelligent, adaptive course creation capabilities t
 
 ## 🎯 Key Problems Solved
 
-### 1. **Length Limits** 
+### 1. **Length Limits**
 - ✅ Automatic detection of content size limits (default: 8000 characters)
 - ✅ Intelligent adaptation based on success rates
 - ✅ No manual intervention required
@@ -252,7 +252,7 @@ analytics = session_manager.get_session_analytics()
 
 # Key metrics:
 - analytics['overall']['total_sessions']
-- analytics['overall']['completed_sessions'] 
+- analytics['overall']['completed_sessions']
 - analytics['processor_metrics']['success_rate']
 - analytics['strategy_effectiveness'][strategy_name]
 ```

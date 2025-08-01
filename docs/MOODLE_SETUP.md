@@ -81,7 +81,7 @@ Site Administration → Server → Web services → Manage protocols
    - User: `simon` (dein Admin-User)
    - Service: `MoodleClaude API`
    - Click **Create token**
-   
+
 3. **Token kopieren**
    - Der Token sollte so aussehen: `b2021a7a41309b8c58ad026a751d0cd0`
 

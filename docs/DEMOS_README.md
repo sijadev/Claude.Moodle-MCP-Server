@@ -6,9 +6,9 @@ Dieser Ordner enthält verschiedene Demo- und Test-Scripts für das MoodleClaude
 
 ### 🎓 **Course Creation with Sections** (NEW!)
 
-#### `course_with_sections_demo.py` ⭐ 
+#### `course_with_sections_demo.py` ⭐
 - **Zweck**: Comprehensive course creation with advanced section management
-- **Features**: 
+- **Features**:
   - Structured course creation with multiple sections
   - Section visibility and availability conditions
   - Rich content integration (files, URLs, activities)
@@ -88,7 +88,7 @@ export MOODLE_USERNAME=simon
 python simple_transfer.py
 ```
 
-### Erweiterte Sektion-Management 
+### Erweiterte Sektion-Management
 ```bash
 # Enhanced API features  
 python advanced_transfer.py
@@ -123,7 +123,7 @@ python comprehensive_course_structure.py
 2. Try `test_connection.py` to verify connectivity
 3. Move to `advanced_transfer.py` for more features
 
-### **For Developers** 
+### **For Developers**
 1. Study `course_with_sections_demo.py` for best practices
 2. Use `enhanced_demo.py` for manual content creation
 3. Explore `comprehensive_course_structure.py` for advanced patterns
@@ -137,7 +137,7 @@ python comprehensive_course_structure.py
 
 ### Section Management
 - ✅ Basic: `simple_transfer.py`, `advanced_transfer.py`
-- ⭐ Enhanced: `course_with_sections_demo.py` 
+- ⭐ Enhanced: `course_with_sections_demo.py`
 - 🌟 Advanced: `comprehensive_course_structure.py`
 
 ### Content Types

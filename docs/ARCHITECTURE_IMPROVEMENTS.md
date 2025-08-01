@@ -39,7 +39,7 @@ class IntelligentSessionManager:
         self.content_processor = AdaptiveContentProcessor()  # Direct dependency
         self.moodle_client = EnhancedMoodleClient()          # Direct dependency
         self.database = sqlite3.connect()                    # Direct database access
-    
+
     def create_course(self):
         # Parse content
         # Process content  
@@ -123,7 +123,7 @@ service = container.resolve(ICourseCreationService)
 class EventPublisher(IEventPublisher):
     def __init__(self):
         self._observers: Set[ISessionObserver] = set()
-    
+
     async def publish(self, event: SessionEvent) -> None:
         for observer in self._observers:
             await observer.on_session_event(event)
@@ -160,7 +160,7 @@ class CreateCourseCommand(BaseCommand):
             description=self.course_description
         )
         return CommandResult(success=True, data={"course_id": course_id})
-    
+
     async def _undo_impl(self, session_data: Dict[str, Any]) -> CommandResult:
         # Implement undo logic
         return CommandResult(success=True)
@@ -198,7 +198,7 @@ class SQLiteSessionRepository(ISessionRepository):
                 session_data
             )
             await db.commit()
-    
+
     async def get_by_id(self, session_id: str) -> Optional[Dict[str, Any]]:
         # Implementation with proper error handling
         pass
@@ -226,21 +226,21 @@ container.register(ISessionRepository, cached_repo)
 # AFTER: Single-responsibility services
 class CourseCreationService(ICourseCreationService):
     """Focused on course creation orchestration"""
-    
+
     async def create_course_from_content(self, content: str, course_name: str, options: Dict[str, Any]) -> Dict[str, Any]:
         # High-level orchestration only
         pass
 
 class AnalyticsService(IAnalyticsService):
     """Focused on metrics and monitoring"""
-    
+
     async def get_processing_analytics(self, detailed: bool = False) -> Dict[str, Any]:
         # Analytics-specific logic only
         pass
 
 class SessionCoordinatorService:
     """Focused on session coordination"""
-    
+
     async def recover_failed_sessions(self) -> Dict[str, Any]:
         # Session recovery logic only
         pass
@@ -329,7 +329,7 @@ class MyCustomService:
     ):
         self.moodle_client = moodle_client
         self.event_publisher = event_publisher
-    
+
     async def do_something(self):
         # Use injected dependencies
         courses = await self.moodle_client.get_courses()
@@ -357,13 +357,13 @@ class CustomValidationCommand(BaseCommand):
     async def _execute_impl(self, session_data: Dict[str, Any]) -> CommandResult:
         # Custom validation logic
         is_valid = await self.validate_something(session_data)
-        
+
         return CommandResult(
             success=is_valid,
             message="Validation completed",
             data={"validation_result": is_valid}
         )
-    
+
     async def _undo_impl(self, session_data: Dict[str, Any]) -> CommandResult:
         # Undo validation if needed
         return CommandResult(success=True, message="Validation undone")
@@ -379,7 +379,7 @@ result = await command_executor.execute_command(command, session_data)
 class RedisSessionRepository(ISessionRepository):
     def __init__(self, redis_client):
         self.redis = redis_client
-    
+
     async def save(self, session_data: Dict[str, Any]) -> None:
         session_id = session_data["session_id"]
         await self.redis.set(
@@ -387,7 +387,7 @@ class RedisSessionRepository(ISessionRepository):
             json.dumps(session_data, default=str),
             ex=3600  # 1 hour expiration
         )
-    
+
     async def get_by_id(self, session_id: str) -> Optional[Dict[str, Any]]:
         data = await self.redis.get(f"session:{session_id}")
         return json.loads(data) if data else None
@@ -405,7 +405,7 @@ container.register(ISessionRepository, RedisSessionRepository)
 class CourseCreationService:
     def __init__(self, old_session_manager: IntelligentSessionManager):
         self.old_manager = old_session_manager  # Temporary wrapper
-    
+
     async def create_course(self, content: str, course_name: str) -> Dict[str, Any]:
         # Delegate to old implementation initially
         return await self.old_manager.create_intelligent_course_session(content, course_name)
@@ -418,7 +418,7 @@ class CourseCreationService:
 class EnhancedMoodleClientAdapter(IMoodleClient):
     def __init__(self, enhanced_client: EnhancedMoodleClient):
         self._client = enhanced_client
-    
+
     async def create_course(self, name: str, description: str, category_id: int = 1) -> int:
         return await self._client.create_course(name, description, category_id)
 ```
@@ -432,7 +432,7 @@ def configure_legacy_services(container: ServiceContainer):
     enhanced_client = EnhancedMoodleClient(url, token)
     client_adapter = EnhancedMoodleClientAdapter(enhanced_client)
     container.register_instance(IMoodleClient, client_adapter)
-    
+
     # Add new services
     container.register(ICourseCreationService, CourseCreationService)
 ```
@@ -444,7 +444,7 @@ def configure_legacy_services(container: ServiceContainer):
 class MoodleMCPServer:
     def __init__(self):
         self.use_new_architecture = os.getenv("USE_NEW_ARCHITECTURE", "false").lower() == "true"
-        
+
         if self.use_new_architecture:
             self.container = create_configured_container()
             self.course_service = self.container.resolve(ICourseCreationService)
@@ -485,12 +485,12 @@ def process_multiple_sessions(sessions):
 # After: Service-based parallel processing
 async def process_multiple_sessions(sessions):
     service = container.resolve(ICourseCreationService)
-    
+
     tasks = [
         service.create_course_from_content(s.content, s.name)
         for s in sessions
     ]
-    
+
     return await asyncio.gather(*tasks)  # Parallel processing
 ```
 
@@ -504,20 +504,20 @@ class TestCourseCreationService:
         # Arrange
         mock_moodle_client = Mock(spec=IMoodleClient)
         mock_moodle_client.create_course.return_value = 123
-        
+
         mock_event_publisher = Mock(spec=IEventPublisher)
         mock_repository = Mock(spec=ISessionRepository)
-        
+
         service = CourseCreationService(
             content_processor=Mock(),
             moodle_client=mock_moodle_client,
             session_repository=mock_repository,
             event_publisher=mock_event_publisher
         )
-        
+
         # Act
         result = await service.create_course_from_content("content", "Course Name", {})
-        
+
         # Assert
         assert result["success"] == True
         mock_moodle_client.create_course.assert_called_once()
@@ -531,20 +531,20 @@ class TestIntegration:
     def setup_method(self):
         # Use test configuration
         self.container = create_configured_container(TESTING_CONFIG)
-        
+
         # Override with test implementations
         self.container.register(ISessionRepository, InMemorySessionRepository())
         self.container.register(IMoodleClient, MockMoodleClient())
-    
+
     async def test_full_course_creation_flow(self):
         service = self.container.resolve(ICourseCreationService)
-        
+
         result = await service.create_course_from_content(
             content="Test content",
             course_name="Test Course",
             options={}
         )
-        
+
         assert result["success"] == True
         assert "session_id" in result
 ```
@@ -556,20 +556,20 @@ class TestPerformance:
     async def test_concurrent_course_creation(self):
         """Test system under load"""
         service = container.resolve(ICourseCreationService)
-        
+
         # Create 100 concurrent course creation requests
         tasks = [
             service.create_course_from_content(f"Content {i}", f"Course {i}", {})
             for i in range(100)
         ]
-        
+
         start_time = time.time()
         results = await asyncio.gather(*tasks, return_exceptions=True)
         end_time = time.time()
-        
+
         # Verify all completed within reasonable time
         assert end_time - start_time < 30  # 30 seconds max
-        
+
         # Verify success rate
         successful = sum(1 for r in results if isinstance(r, dict) and r.get("success"))
         assert successful >= 95  # 95% success rate minimum

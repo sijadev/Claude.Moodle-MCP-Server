@@ -1,0 +1,13 @@
+{
+  "total_test_runs": 20,
+  "success_rate_trend": [
+    {
+      "date": "2025-08-01",
+      "success_rate": 100.0,
+      "total_tests": 20
+    }
+  ],
+  "performance_trends": {},
+  "most_failing_tests": {},
+  "performance_regression": []
+}

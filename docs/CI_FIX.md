@@ -49,14 +49,14 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
-    
+
     steps:
     - name: Install uv
       uses: astral-sh/setup-uv@v3
-    
+
     - name: Install dependencies
       run: uv sync --extra test --extra dev
-    
+
     - name: Run tests
       run: |
         uv run pytest tests/unit/ -v
@@ -84,7 +84,7 @@ jobs:
     - name: Run unit tests
     - name: Run integration tests
     - name: Test import of main modules
-  
+
   lint:  # Separate job - optional
     continue-on-error: true  # Won't fail entire workflow
     steps:

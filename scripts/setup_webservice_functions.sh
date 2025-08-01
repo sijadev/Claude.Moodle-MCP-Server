@@ -51,15 +51,15 @@ check_db_connection() {
 # Enable functions in default mobile service
 enable_functions_mobile_service() {
     echo "📱 Adding functions to Moodle Mobile service..."
-    
+
     for func in "${FUNCTIONS[@]}"; do
         echo "   Adding: $func"
         mysql -h"$MOODLE_DB_HOST" -u"$MOODLE_DB_USER" -p"$MOODLE_DB_PASS" "$MOODLE_DB_NAME" << EOF
 INSERT IGNORE INTO mdl_external_services_functions (externalserviceid, functionname)
 SELECT id, '$func' FROM mdl_external_services WHERE shortname = 'moodle_mobile_app'
 AND NOT EXISTS (
-    SELECT 1 FROM mdl_external_services_functions esf2 
-    WHERE esf2.externalserviceid = mdl_external_services.id 
+    SELECT 1 FROM mdl_external_services_functions esf2
+    WHERE esf2.externalserviceid = mdl_external_services.id
     AND esf2.functionname = '$func'
 );
 EOF
@@ -69,7 +69,7 @@ EOF
 # Create custom service if needed
 create_custom_service() {
     echo "🔧 Creating custom MoodleClaude service..."
-    
+
     mysql -h"$MOODLE_DB_HOST" -u"$MOODLE_DB_USER" -p"$MOODLE_DB_PASS" "$MOODLE_DB_NAME" << EOF
 INSERT IGNORE INTO mdl_external_services (name, shortname, enabled, requiredcapability, restrictedusers, downloadfiles, uploadfiles, timecreated, timemodified)
 VALUES ('MoodleClaude API', 'moodleclaude_api', 1, '', 0, 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
@@ -82,8 +82,8 @@ EOF
 INSERT IGNORE INTO mdl_external_services_functions (externalserviceid, functionname)
 SELECT id, '$func' FROM mdl_external_services WHERE shortname = 'moodleclaude_api'
 AND NOT EXISTS (
-    SELECT 1 FROM mdl_external_services_functions esf2 
-    WHERE esf2.externalserviceid = mdl_external_services.id 
+    SELECT 1 FROM mdl_external_services_functions esf2
+    WHERE esf2.externalserviceid = mdl_external_services.id
     AND esf2.functionname = '$func'
 );
 EOF
@@ -101,15 +101,15 @@ main() {
         echo "   3. Follow the instructions from enable_webservices.py"
         exit 1
     fi
-    
+
     echo ""
     read -p "🤔 Do you want to proceed with database modifications? (y/N): " -n 1 -r
     echo
-    
+
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         enable_functions_mobile_service
         create_custom_service
-        
+
         echo ""
         echo "✅ Web service functions have been enabled!"
         echo "🔄 You may need to purge Moodle caches:"

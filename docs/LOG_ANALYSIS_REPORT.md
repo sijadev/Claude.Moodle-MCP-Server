@@ -61,7 +61,7 @@ POST /webservice/rest/server.php HTTP/1.1" 200 1759  # Bulk operations
 
 ### **Was intermittierend fehlschlägt:**
 1. ❌ **Bulk Course-Structure-Erstellung** (119 Bytes = Fehler)
-2. ❌ **Komplexe Parameter-Arrays** 
+2. ❌ **Komplexe Parameter-Arrays**
 3. ❌ **Große Content-Payloads**
 
 ### **Queue-System Verhalten:**

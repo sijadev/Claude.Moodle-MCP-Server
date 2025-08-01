@@ -51,20 +51,20 @@ Das MoodleClaude-Projekt ist nun mit umfassenden **Google-Style Docstrings** dok
 ```python
 def method_name(self, param1: str, param2: int) -> Dict[str, Any]:
     """Kurze Beschreibung der Methode.
-    
+
     Längere Beschreibung mit Details über die Funktionalität,
     Verwendungszweck und besondere Überlegungen.
-    
+
     Args:
         param1: Beschreibung des ersten Parameters
         param2: Beschreibung des zweiten Parameters
-        
+
     Returns:
         Beschreibung des Rückgabewerts
-        
+
     Raises:
         ExceptionType: Wann diese Exception geworfen wird
-        
+
     Example:
         >>> api = EnhancedMoodleAPI("https://moodle.example.com", "token")
         >>> result = api.method_name("test", 123)

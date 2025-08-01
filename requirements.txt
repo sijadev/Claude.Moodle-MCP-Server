@@ -10,7 +10,7 @@ httpx>=0.24.0
 pydantic>=1.10.0
 dataclasses-json>=0.5.7
 
-# Database connectivity  
+# Database connectivity
 psycopg2-binary>=2.9.0
 sqlalchemy>=1.4.0
 
@@ -62,7 +62,7 @@ pillow>=9.0.0
 # PDF processing
 pypdf2>=2.12.0
 
-# Excel/CSV processing  
+# Excel/CSV processing
 pandas>=1.5.0
 openpyxl>=3.0.0
 

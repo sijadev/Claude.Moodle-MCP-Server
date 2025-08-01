@@ -12,7 +12,7 @@
 
 ### **1️⃣ Initial Moodle Setup**
 1. **Visit:** http://localhost:8080/admin/
-2. **Login:** 
+2. **Login:**
    - Username: `simon`
    - Password: `Pwd1234!`
 3. **Look for notifications** about new plugins

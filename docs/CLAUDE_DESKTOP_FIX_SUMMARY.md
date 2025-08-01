@@ -4,7 +4,7 @@
 
 ### 1. **Content Parser Regex Issue** ✅ FIXED
 **Problem**: The content parser wasn't detecting code blocks due to a strict regex pattern.
-- **Original Pattern**: `r"```(\w+)?\n(.*?)\n```"` 
+- **Original Pattern**: `r"```(\w+)?\n(.*?)\n```"`
 - **Fixed Pattern**: `r"```(\w+)?\s*(.*?)\s*```"`
 - **Impact**: Courses were being created but appeared empty because no content was parsed from chats
 
@@ -20,7 +20,7 @@
 **File Changed**: `mcp_server.py:422-447`
 
 ### 3. **Course Visibility Issues** ✅ RESOLVED
-**Problem**: Created courses weren't appearing in "My Courses" 
+**Problem**: Created courses weren't appearing in "My Courses"
 - **Root Cause**: User enrollment issues
 - **Solution**: The `fix_course_visibility.py` script resolves this
 - **Status**: 10 courses now visible, user enrolled in 9 courses
@@ -67,9 +67,9 @@
 2. In Claude Desktop, use the course creation tool with sample content:
    ```
    User: Can you explain Python functions?
-   
+
    Assistant: Here's a Python function example:
-   
+
    ```python
    def greet(name):
        return f"Hello, {name}!"

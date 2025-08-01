@@ -174,7 +174,7 @@ playwright install chromium
 
 - name: Run Integration Tests  
   run: pytest tests/integration/ --junitxml=reports/integration-results.xml
-  
+
 - name: Run E2E Tests
   run: ./run_e2e_tests.sh --headless
 ```

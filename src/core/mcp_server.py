@@ -13,12 +13,12 @@ import mcp.types as types
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 
+from src.clients.moodle_client_enhanced import EnhancedMoodleClient
 from src.core.config import Config
-from src.core.constants import Defaults, Messages, ToolDescriptions, ContentTypes
+from src.core.constants import ContentTypes, Defaults, Messages, ToolDescriptions
 from src.core.content_formatter import ContentFormatter
 from src.core.content_parser import ChatContentParser
 from src.models.models import ChatContent, CourseStructure
-from src.clients.moodle_client_enhanced import EnhancedMoodleClient
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,27 +27,27 @@ logger = logging.getLogger(__name__)
 
 class MoodleMCPServer:
     """MCP Server for Moodle Course Creation from Claude Chat Content.
-    
+
     This server provides MCP (Model Context Protocol) tools for converting Claude
     chat conversations into structured Moodle courses. It handles content parsing,
     formatting, and integration with Moodle web services.
-    
+
     Attributes:
         server: MCP Server instance for handling tool requests
         content_parser: Parser for extracting educational content from chats
         moodle_client: Client for Moodle API operations (None if no credentials)
         content_formatter: Formatter for creating Moodle-compatible content
         config: Configuration object with environment settings
-        
+
     Example:
         The server is typically started from command line:
         $ python mcp_server.py
-        
+
         Or used programmatically:
         >>> server = MoodleMCPServer()
         >>> await server.run()
     """
-    
+
     def __init__(self):
         """Initialize the Moodle MCP Server with all required components."""
         self.server = Server(Defaults.SERVER_NAME)
@@ -242,7 +242,7 @@ class MoodleMCPServer:
    - Key terminology
    - Basic examples
 
-3. **Practical Examples** 
+3. **Practical Examples**
    - Hands-on coding exercises
    - Real-world applications
    - Best practices
@@ -313,7 +313,9 @@ class MoodleMCPServer:
                 raise ValueError(f"Unknown prompt: {name}")
 
         @self.server.call_tool()
-        async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextContent]:
+        async def handle_call_tool(
+            name: str, arguments: Dict[str, Any]
+        ) -> List[types.TextContent]:
             """Handle tool calls"""
             try:
                 if name == "create_course_from_chat":
@@ -327,16 +329,20 @@ class MoodleMCPServer:
             except Exception as e:
                 logger.error(f"Tool execution failed: {e}")
                 return [
-                    types.TextContent(type="text", text=f"Error executing tool '{name}': {str(e)}")
+                    types.TextContent(
+                        type="text", text=f"Error executing tool '{name}': {str(e)}"
+                    )
                 ]
 
-    async def _create_course_from_chat(self, arguments: Dict[str, Any]) -> List[types.TextContent]:
+    async def _create_course_from_chat(
+        self, arguments: Dict[str, Any]
+    ) -> List[types.TextContent]:
         """Create a new Moodle course from chat content"""
         if not self.moodle_client:
             return [
                 types.TextContent(
                     type="text",
-                    text="""Error: Moodle client not initialized. 
+                    text="""Error: Moodle client not initialized.
 
 To create actual Moodle courses, you need to set these environment variables:
 - MOODLE_URL: Your Moodle site URL (e.g., https://moodle.example.com)
@@ -390,18 +396,22 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
                             content=item.content,
                             filename=f"{item.title.lower().replace(' ', '_')}.{item.language or 'txt'}",
                         )
-                        if isinstance(file_result, dict) and file_result.get('success'):
+                        if isinstance(file_result, dict) and file_result.get("success"):
                             created_activities.append(file_result)
                         else:
                             # Legacy support for old return format
-                            created_activities.append({"success": True, "activity_id": file_result})
+                            created_activities.append(
+                                {"success": True, "activity_id": file_result}
+                            )
 
                         # Create page with syntax highlighted code
-                        formatted_content = self.content_formatter.format_code_for_moodle(
-                            code=item.content,
-                            language=item.language,
-                            title=item.title,
-                            description=item.description or "",
+                        formatted_content = (
+                            self.content_formatter.format_code_for_moodle(
+                                code=item.content,
+                                language=item.language,
+                                title=item.title,
+                                description=item.description or "",
+                            )
                         )
                         page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -413,14 +423,18 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
                             created_activities.append(page_result)
                         else:
                             # Legacy support for old return format
-                            created_activities.append({"success": True, "activity_id": page_result})
+                            created_activities.append(
+                                {"success": True, "activity_id": page_result}
+                            )
 
                     elif item.type == "topic":
                         # Create page for topic description
-                        formatted_content = self.content_formatter.format_topic_for_moodle(
-                            content=item.content,
-                            title=item.title,
-                            description=item.description or "",
+                        formatted_content = (
+                            self.content_formatter.format_topic_for_moodle(
+                                content=item.content,
+                                title=item.title,
+                                description=item.description or "",
+                            )
                         )
                         page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -432,26 +446,36 @@ For now, you can use 'extract_and_preview_content' to see what would be created.
                             created_activities.append(page_result)
                         else:
                             # Legacy support for old return format
-                            created_activities.append({"success": True, "activity_id": page_result})
+                            created_activities.append(
+                                {"success": True, "activity_id": page_result}
+                            )
 
             # Get the course URL for easy access
             course_url = f"{self.moodle_client.base_url}/course/view.php?id={course_id}"
-            
+
             # Calculate actual success counts
-            successful_activities = sum(1 for activity in created_activities if isinstance(activity, dict) and activity.get('success', False))
+            successful_activities = sum(
+                1
+                for activity in created_activities
+                if isinstance(activity, dict) and activity.get("success", False)
+            )
             failed_activities = len(created_activities) - successful_activities
-            
+
             # Generate detailed activity status
             activity_details = []
             for i, activity in enumerate(created_activities, 1):
                 if isinstance(activity, dict):
-                    status = "[OK]" if activity.get('success') else "[ERROR]"
-                    method = activity.get('method', 'unknown')
-                    message = activity.get('message', 'No details')
-                    activity_details.append(f"   {i}. {status} Method: {method} - {message}")
+                    status = "[OK]" if activity.get("success") else "[ERROR]"
+                    method = activity.get("method", "unknown")
+                    message = activity.get("message", "No details")
+                    activity_details.append(
+                        f"   {i}. {status} Method: {method} - {message}"
+                    )
                 else:
-                    activity_details.append(f"   {i}. [OK] Legacy format (assumed success)")
-            
+                    activity_details.append(
+                        f"   {i}. [OK] Legacy format (assumed success)"
+                    )
+
             summary = f"""
 {'[OK]' if successful_activities > 0 else '[WARNING]'} Course structure created!
 
@@ -494,7 +518,11 @@ Copy the content below into your Moodle course sections:
 
         except Exception as e:
             logger.error(f"Failed to create course: {e}")
-            return [types.TextContent(type="text", text=f"Failed to create course: {str(e)}")]
+            return [
+                types.TextContent(
+                    type="text", text=f"Failed to create course: {str(e)}"
+                )
+            ]
 
     async def _extract_and_preview_content(
         self, arguments: Dict[str, Any]
@@ -525,14 +553,22 @@ Detailed Structure:
 
         except Exception as e:
             logger.error(f"Failed to preview content: {e}")
-            return [types.TextContent(type="text", text=f"Failed to preview content: {str(e)}")]
+            return [
+                types.TextContent(
+                    type="text", text=f"Failed to preview content: {str(e)}"
+                )
+            ]
 
     async def _add_content_to_existing_course(
         self, arguments: Dict[str, Any]
     ) -> List[types.TextContent]:
         """Add content to existing Moodle course"""
         if not self.moodle_client:
-            return [types.TextContent(type="text", text="Error: Moodle client not initialized.")]
+            return [
+                types.TextContent(
+                    type="text", text="Error: Moodle client not initialized."
+                )
+            ]
 
         course_id = arguments["course_id"]
         chat_content = arguments["chat_content"]
@@ -561,17 +597,21 @@ Detailed Structure:
                             content=item.content,
                             filename=f"{item.title.lower().replace(' ', '_')}.{item.language or 'txt'}",
                         )
-                        if isinstance(file_result, dict) and file_result.get('success'):
+                        if isinstance(file_result, dict) and file_result.get("success"):
                             added_activities.append(file_result)
                         else:
                             # Legacy support for old return format
-                            added_activities.append({"success": True, "activity_id": file_result})
+                            added_activities.append(
+                                {"success": True, "activity_id": file_result}
+                            )
 
-                        formatted_content = self.content_formatter.format_code_for_moodle(
-                            code=item.content,
-                            language=item.language,
-                            title=item.title,
-                            description=item.description or "",
+                        formatted_content = (
+                            self.content_formatter.format_code_for_moodle(
+                                code=item.content,
+                                language=item.language,
+                                title=item.title,
+                                description=item.description or "",
+                            )
                         )
                         page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -583,13 +623,17 @@ Detailed Structure:
                             added_activities.append(page_result)
                         else:
                             # Legacy support for old return format
-                            added_activities.append({"success": True, "activity_id": page_result})
+                            added_activities.append(
+                                {"success": True, "activity_id": page_result}
+                            )
 
                     elif item.type == "topic":
-                        formatted_content = self.content_formatter.format_topic_for_moodle(
-                            content=item.content,
-                            title=item.title,
-                            description=item.description or "",
+                        formatted_content = (
+                            self.content_formatter.format_topic_for_moodle(
+                                content=item.content,
+                                title=item.title,
+                                description=item.description or "",
+                            )
                         )
                         page_result = await self.moodle_client.create_page_activity(
                             course_id=course_id,
@@ -601,23 +645,33 @@ Detailed Structure:
                             added_activities.append(page_result)
                         else:
                             # Legacy support for old return format
-                            added_activities.append({"success": True, "activity_id": page_result})
+                            added_activities.append(
+                                {"success": True, "activity_id": page_result}
+                            )
 
             # Calculate actual success counts
-            successful_activities = sum(1 for activity in added_activities if isinstance(activity, dict) and activity.get('success', False))
+            successful_activities = sum(
+                1
+                for activity in added_activities
+                if isinstance(activity, dict) and activity.get("success", False)
+            )
             failed_activities = len(added_activities) - successful_activities
-            
+
             # Generate detailed activity status
             activity_details = []
             for i, activity in enumerate(added_activities, 1):
                 if isinstance(activity, dict):
-                    status = "[OK]" if activity.get('success') else "[ERROR]"
-                    method = activity.get('method', 'unknown')
-                    message = activity.get('message', 'No details')
-                    activity_details.append(f"   {i}. {status} Method: {method} - {message}")
+                    status = "[OK]" if activity.get("success") else "[ERROR]"
+                    method = activity.get("method", "unknown")
+                    message = activity.get("message", "No details")
+                    activity_details.append(
+                        f"   {i}. {status} Method: {method} - {message}"
+                    )
                 else:
-                    activity_details.append(f"   {i}. [OK] Legacy format (assumed success)")
-            
+                    activity_details.append(
+                        f"   {i}. [OK] Legacy format (assumed success)"
+                    )
+
             summary = f"""
 {'[OK]' if successful_activities > 0 else '[WARNING]'} Content added to existing course!
 
@@ -643,7 +697,9 @@ Detailed Structure:
         except Exception as e:
             logger.error(f"Failed to add content to course: {e}")
             return [
-                types.TextContent(type="text", text=f"Failed to add content to course: {str(e)}")
+                types.TextContent(
+                    type="text", text=f"Failed to add content to course: {str(e)}"
+                )
             ]
 
     def _organize_content(self, parsed_content: ChatContent) -> CourseStructure:
@@ -695,38 +751,52 @@ Detailed Structure:
             for item in section.items:
                 if item.type == "code":
                     preview_lines.append(f"    Code: {item.title}")
-                    preview_lines.append(f"      Language: {item.language or 'Unknown'}")
-                    preview_lines.append(f"      Lines: {len(item.content.splitlines())}")
+                    preview_lines.append(
+                        f"      Language: {item.language or 'Unknown'}"
+                    )
+                    preview_lines.append(
+                        f"      Lines: {len(item.content.splitlines())}"
+                    )
                 elif item.type == "topic":
                     preview_lines.append(f"    Topic: {item.title}")
-                    preview_lines.append(f"      Content length: {len(item.content)} characters")
+                    preview_lines.append(
+                        f"      Content length: {len(item.content)} characters"
+                    )
 
                 if item.description:
-                    preview_lines.append(f"      Description: {item.description[:100]}...")
+                    preview_lines.append(
+                        f"      Description: {item.description[:100]}..."
+                    )
 
         return "\n".join(preview_lines)
 
     def _format_content_for_manual_addition(self, structure: CourseStructure) -> str:
         """Format content in a way that's easy to copy-paste into Moodle sections"""
         content_lines = []
-        
+
         for i, section in enumerate(structure.sections, 1):
             content_lines.append(f"\n{'='*60}")
             content_lines.append(f"SECTION {i}: {section.name.upper()}")
             content_lines.append(f"{'='*60}")
-            content_lines.append(f"\n[INFO] **Instructions**: Copy the HTML content below into Moodle Section {i}")
-            content_lines.append(f"   1. Go to your course: http://localhost:8080/course/view.php")
+            content_lines.append(
+                f"\n[INFO] **Instructions**: Copy the HTML content below into Moodle Section {i}"
+            )
+            content_lines.append(
+                f"   1. Go to your course: http://localhost:8080/course/view.php"
+            )
             content_lines.append(f"   2. Click 'Edit' mode")
             content_lines.append(f"   3. In Section {i}, click 'Edit section'")
-            content_lines.append(f"   4. Paste the content below into the 'Summary' field")
+            content_lines.append(
+                f"   4. Paste the content below into the 'Summary' field"
+            )
             content_lines.append(f"   5. Save changes")
-            
+
             # Combine all items in this section into one formatted content block
             section_content = f"""
 <div style="background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px;">
 <h2 style="color: #0d6efd; margin-bottom: 20px;">[CONTENT] {section.name}</h2>
 """
-            
+
             for item in section.items:
                 if item.type == "topic":
                     section_content += f"""
@@ -744,23 +814,23 @@ Detailed Structure:
 <pre style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>{item.content}</code></pre>
 </div>
 """
-            
+
             section_content += """
 </div>
 <div style="margin-top: 20px; padding: 10px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px;">
 <small style="color: #0c5460;">
-[TIP] <strong>Tip:</strong> This content was automatically generated from your chat. 
+[TIP] <strong>Tip:</strong> This content was automatically generated from your chat.
 You can edit it directly in Moodle to customize the formatting or add additional materials.
 </small>
 </div>
 """
-            
+
             content_lines.append(f"\n **HTML Content for Section {i}:**")
             content_lines.append("```html")
             content_lines.append(section_content.strip())
             content_lines.append("```")
             content_lines.append(f"\n")
-        
+
         return "\n".join(content_lines)
 
 

@@ -27,7 +27,7 @@ Activities: 1 total (only 1 forum from original course)
 
 ### **1. Course Name Discrepancy**
 - **Claude Desktop Says**: "Digitale Fotografie für Einsteiger"
-- **Database Shows**: "WSManageSections Test Course" 
+- **Database Shows**: "WSManageSections Test Course"
 - **Explanation**: MCP server reports the requested course name but doesn't actually update the database course name
 
 ### **2. Activity Creation Claims vs Reality**  
@@ -44,7 +44,7 @@ Activities: 1 total (only 1 forum from original course)
 
 ### **The Current MCP Server Behavior:**
 
-1. **Course "Creation"**: 
+1. **Course "Creation"**:
    - Finds existing course with available sections
    - Reuses Course ID 6 ("WSManageSections Test Course")
    - **Does NOT** update the course name in database
@@ -81,7 +81,7 @@ Activities: 1 total (only 1 forum from original course)
 
 ### **MCP Server Logic Issues:**
 
-1. **Misleading Success Reports**: 
+1. **Misleading Success Reports**:
    - Reports success even when activities fail to create
    - Shows intended names instead of actual database state
 

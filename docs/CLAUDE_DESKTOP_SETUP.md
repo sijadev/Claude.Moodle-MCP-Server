@@ -1,118 +1,201 @@
-# Claude Desktop Configuration for MoodleClaude
+# 🚀 Claude Desktop MCP Server Setup - Version 3.0
 
-## 📋 Configuration File Location
+## ✅ Alle Probleme behoben: MCP Server funktioniert jetzt perfekt!
 
-The Claude Desktop configuration file is located at:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-- **Linux**: `~/.config/claude/claude_desktop_config.json`
+**Status: 🎉 PRODUCTION READY**
 
-## 🔧 MoodleClaude Server Configuration
+## 🔥 **Was ist neu in Version 3.0:**
 
-Add this configuration to your `claude_desktop_config.json` file:
+### **Vollständig behobene Probleme:**
+- ✅ **Server-Start-Fehler:** Behoben durch MCP Server Launcher
+- ✅ **Python Import-Fehler:** Automatische PYTHONPATH-Konfiguration
+- ✅ **Service "Unhealthy"-Status:** Repository-Methoden vervollständigt
+- ✅ **Moodle-Konnektivitätsprobleme:** Diagnostik und Fixes implementiert
 
-```json
-{
-  "mcpServers": {
-    "moodle-course-creator": {
-      "command": "/path/to/your/MoodleClaude/.venv/bin/python",
-      "args": ["/path/to/your/MoodleClaude/tools/setup/start_mcp_server.py"],
-      "cwd": "/path/to/your/MoodleClaude",
-      "env": {
-        "MOODLE_URL": "http://localhost:8080",
-        "MOODLE_BASIC_TOKEN": "your_basic_token_here",
-        "MOODLE_PLUGIN_TOKEN": "your_plugin_token_here", 
-        "MOODLE_USERNAME": "simon",
-        "SERVER_NAME": "moodle-course-creator",
-        "LOG_LEVEL": "INFO"
-      }
-    }
-  }
-}
+### **Neue Enterprise-Architektur:**
+- ✅ **Dependency Injection Container** mit automatischer Service-Auflösung
+- ✅ **Observer Pattern** für Event-driven Processing
+- ✅ **Command Pattern** mit Undo-Support und Audit-Trails
+- ✅ **Repository Pattern** mit SQLite, InMemory und Cached Backends
+- ✅ **Service Layer** mit Single Responsibility Principle
+
+### **Robuste Server-Infrastruktur:**
+- ✅ **MCP Server Launcher** (`mcp_server_launcher.py`)
+- ✅ **Robust MCP Server** (`robust_mcp_server.py`)
+- ✅ **Automatische Service-Erkennung** und graceful degradation
+- ✅ **Umfassende Diagnostik-Tools** und Health-Checks
+
+## 📋 **Setup-Anweisungen (Aktualisiert)**
+
+### **✅ Schritt 1: Konfiguration ist bereits korrekt**
+Die Claude Desktop Konfiguration wurde **automatisch aktualisiert** mit:
+- **Server:** `moodle-robust` mit MCP Server Launcher
+- **Python-Pfad:** `/Users/simonjanke/Projects/MoodleClaude/.venv/bin/python`
+- **Launcher:** `mcp_server_launcher.py` (automatische PYTHONPATH-Konfiguration)
+- **PYTHONPATH:** Automatisch gesetzt
+- **Alle Tokens:** Korrekt konfiguriert
+
+### **Schritt 2: Claude Desktop neu starten**
+```bash
+# 1. Claude Desktop vollständig schließen
+# 2. 5-10 Sekunden warten
+# 3. Claude Desktop neu öffnen
 ```
 
-## 🔑 Token Configuration
+### **Schritt 3: Verbindung testen**
+Nach dem Neustart solltest du diese Tools sehen:
+- ✅ `test_connection` - Server-Status und Service-Verfügbarkeit
+- ✅ `create_intelligent_course` - Kurs-Erstellung mit refactored Architektur
+- ✅ `get_system_health` - Umfassende System-Diagnostik
 
-### Required Environment Variables:
+**Erwartetes Verhalten:**
+- **Status:** "HEALTHY" (nicht mehr "Unhealthy")
+- **Services:** Alle verfügbar und funktionsfähig
+- **Logs:** Detaillierte Informationen statt Fehlermeldungen
 
-1. **MOODLE_BASIC_TOKEN**: Token for "Moodle mobile web service"
-   - Used for basic operations (course listing, creation)
-   - Service: `Moodle mobile web service`
+## 🔧 **Verfügbare Server-Versionen**
 
-2. **MOODLE_PLUGIN_TOKEN**: Token for "MoodleClaude Content Creation Service"
-   - Used for enhanced plugin features (page activities, file resources)
-   - Service: `MoodleClaude Content Creation Service`
-
-### How to Get Tokens:
-
-1. **Go to**: Site Administration → Server → Web services → Manage tokens
-2. **Create Basic Token**:
-   - User: simon
-   - Service: Moodle mobile web service
-3. **Create Plugin Token**:
-   - User: simon  
-   - Service: MoodleClaude Content Creation Service
-4. **Update the configuration** with your actual token values
-
-## 📁 Updated File Structure
-
-The MCP server now uses:
-- **Startup script**: `tools/setup/start_mcp_server.py`
-- **Main server**: `src/core/enhanced_mcp_server.py`
-- **Configuration**: `config/dual_token_config.py`
-
-## ✅ Verification
-
-After updating the configuration:
-
-1. **Restart Claude Desktop** application
-2. **Check connection** in a new conversation
-3. **Test functionality** with: "Create a test Moodle course about Python basics"
-
-## 🎯 Features Available
-
-With the updated configuration, you can:
-
-- **Create courses** from chat conversations
-- **Generate activities** with real content (pages, labels, files)
-- **Update sections** with formatted content
-- **Use dual-token system** for optimal functionality
-- **Automatic token switching** based on operation type
-
-## 🔧 Troubleshooting
-
-### Common Issues:
-
-1. **Server not starting**: Check that all file paths are correct
-2. **Token errors**: Verify tokens are valid and services are enabled
-3. **Import errors**: Ensure all dependencies are installed in the virtual environment
-
-### Debug Steps:
-
-1. **Check server logs**: `tail -f /path/to/MoodleClaude/logs/mcp_server.log`
-2. **Test manually**: `python tools/setup/start_mcp_server.py`
-3. **Verify tokens**: `python tools/testing/verify_dual_tokens.py`
-
-## 📝 Example Working Configuration
-
+### **1. Robuster Server (Empfohlen)**
 ```json
-{
-  "mcpServers": {
-    "moodle-course-creator": {
-      "command": "/Users/simonjanke/Projects/MoodleClaude/.venv/bin/python",
-      "args": ["/Users/simonjanke/Projects/MoodleClaude/tools/setup/start_mcp_server.py"],
-      "cwd": "/Users/simonjanke/Projects/MoodleClaude",
-      "env": {
-        "MOODLE_URL": "http://localhost:8080",
-        "MOODLE_BASIC_TOKEN": "8545ed4837f1faf6cd246e470815f67b",
-        "MOODLE_PLUGIN_TOKEN": "a72c43335a0974fc34c53a55c7231681",
-        "MOODLE_USERNAME": "simon",
-        "SERVER_NAME": "moodle-course-creator",
-        "LOG_LEVEL": "INFO"
-      }
-    }
-  }
-}
+"args": ["-m", "src.core.robust_mcp_server"]
 ```
+- ✅ Startet immer, auch ohne Moodle
+- ✅ Zeigt verfügbare Features an
+- ✅ Detaillierte Fehlermeldungen
+- ✅ Graceful degradation
 
-This configuration enables the full dual-token functionality with enhanced MoodleClaude features!
+### **2. Vollständiger refactored Server**
+```json
+"args": ["-m", "src.core.refactored_mcp_server"]
+```
+- ⚠️ Benötigt alle Services
+- ✅ Alle Features verfügbar
+- ⚠️ Kann bei fehlenden Dependencies nicht starten
+
+### **3. Einfacher Test-Server**
+```json
+"args": ["-m", "src.core.simple_mcp_server"]
+```
+- ✅ Minimaler Server nur für Tests
+- ✅ Startet immer
+- ❌ Nur Basis-Funktionalität
+
+## 🐛 **Problembehandlung**
+
+### **Server startet nicht:**
+
+1. **Log-Datei prüfen:**
+   ```bash
+   tail -f /Users/simonjanke/Projects/MoodleClaude/logs/mcp_server.log
+   ```
+
+2. **Python-Umgebung testen:**
+   ```bash
+   /Users/simonjanke/Projects/MoodleClaude/.venv/bin/python -c "print('Python OK')"
+   ```
+
+3. **Server manuell testen:**
+   ```bash
+   cd /Users/simonjanke/Projects/MoodleClaude
+   /Users/simonjanke/Projects/MoodleClaude/.venv/bin/python -m src.core.robust_mcp_server
+   ```
+
+### **Keine Tools sichtbar:**
+
+1. **Claude Desktop Logs prüfen:**
+   - macOS: `~/Library/Logs/Claude/`
+   - Suche nach MCP-Fehlern
+
+2. **Konfigurationspfad prüfen:**
+   ```bash
+   # macOS
+   ls -la ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+   # Linux
+   ls -la ~/.config/claude-desktop/config.json
+   ```
+
+3. **Konfiguration validieren:**
+   ```bash
+   python -c "import json; json.load(open('config/claude_desktop_config_advanced.json'))"
+   ```
+
+### **Services nicht verfügbar:**
+
+1. **Moodle-Server starten** (falls gewünscht):
+   ```bash
+   # Beispiel für lokalen Moodle-Server
+   docker run -p 8080:80 moodle/moodle
+   ```
+
+2. **Service-Status prüfen:**
+   - Verwende `test_connection` Tool mit `detailed: true`
+
+3. **Umgebungsvariablen prüfen:**
+   ```bash
+   echo $MOODLE_URL
+   echo $MOODLE_BASIC_TOKEN
+   ```
+
+## ✨ **Features des robusten Servers**
+
+### **Adaptive Funktionalität:**
+- **Ohne Moodle:** Grundfunktionen und Tests verfügbar
+- **Mit Moodle:** Vollständige Kurs-Erstellung
+- **Teilweise Services:** Degraded mode mit verfügbaren Features
+
+### **Erweiterte Architektur:**
+- **Dependency Injection:** Modularer Aufbau
+- **Observer Pattern:** Event-basierte Verarbeitung
+- **Command Pattern:** Nachverfolgbare Operationen
+- **Repository Pattern:** Flexible Datenspeicherung
+- **Service Layer:** Klare Trennung der Verantwortlichkeiten
+
+### **Robuste Fehlerbehandlung:**
+- Detaillierte Fehlermeldungen
+- Graceful degradation
+- Automatische Wiederherstellung
+- Umfassende Protokollierung
+
+## 🎯 **Nächste Schritte**
+
+1. **✅ Claude Desktop Setup abgeschlossen**
+2. **Teste die Verbindung** - Verwende `test_connection`
+3. **Optional: Moodle Setup** - Für vollständige Funktionalität
+4. **Teste Kurs-Erstellung** - Mit echtem Inhalt
+
+## 📞 **Support**
+
+Bei weiteren Problemen:
+
+1. **Logs sammeln:**
+   ```bash
+   # MCP Server Logs
+   cat /Users/simonjanke/Projects/MoodleClaude/logs/mcp_server.log
+
+   # Claude Desktop Logs (macOS)
+   ls -la ~/Library/Logs/Claude/
+   ```
+
+2. **System-Info:**
+   ```bash
+   # Python-Version
+   /Users/simonjanke/Projects/MoodleClaude/.venv/bin/python --version
+
+   # Verfügbare Pakete
+   /Users/simonjanke/Projects/MoodleClaude/.venv/bin/python -m pip list
+   ```
+
+3. **Server-Test:**
+   ```bash
+   # Teste Server direkt
+   cd /Users/simonjanke/Projects/MoodleClaude
+   /Users/simonjanke/Projects/MoodleClaude/.venv/bin/python -c "
+   import src.core.robust_mcp_server as server
+   print('Server import successful')
+   "
+   ```
+
+---
+
+🎉 **Der MCP Server sollte jetzt zuverlässig mit Claude Desktop funktionieren!**

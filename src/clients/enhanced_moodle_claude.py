@@ -17,10 +17,10 @@ import requests
 @dataclass
 class SectionConfig:
     """Configuration for creating/updating course sections.
-    
+
     This dataclass encapsulates all the parameters needed to create or update
     a course section in Moodle through the local_wsmanagesections plugin.
-    
+
     Attributes:
         name: Display name of the section
         summary: Optional HTML description/summary of the section
@@ -28,7 +28,7 @@ class SectionConfig:
         availability_conditions: JSON-serializable availability/restriction conditions
         position: Specific position/order in the course (0-based index)
         format_options: Additional format-specific options for the section
-        
+
     Example:
         >>> config = SectionConfig(
         ...     name="Introduction to Python",
@@ -49,10 +49,10 @@ class SectionConfig:
 @dataclass
 class FileUploadConfig:
     """Configuration for file uploads to Moodle.
-    
+
     This dataclass contains all parameters needed to upload files to Moodle
     through the core_files_upload web service function.
-    
+
     Attributes:
         filename: Name of the file including extension
         content: Raw bytes content of the file
@@ -64,7 +64,7 @@ class FileUploadConfig:
         author: Author attribution for the file (default: "Claude AI")
         license: License identifier for the file content
         userid: Specific user ID to associate with upload
-        
+
     Example:
         >>> config = FileUploadConfig(
         ...     filename="example.pdf",
@@ -88,16 +88,16 @@ class FileUploadConfig:
 
 class EnhancedMoodleAPI:
     """Enhanced Moodle API client with advanced section and file management.
-    
+
     This class provides a high-level interface to Moodle Web Services with specialized
     methods for course section management and file uploads. It handles authentication,
     error handling, and provides convenient methods for complex operations.
-    
+
     Attributes:
         base_url: Base URL of the Moodle installation (without trailing slash)
         token: Web service authentication token
         session: Persistent HTTP session for API requests
-        
+
     Example:
         >>> api = EnhancedMoodleAPI("https://moodle.example.com", "your_token_here")
         >>> site_info = api.get_site_info()
@@ -106,17 +106,17 @@ class EnhancedMoodleAPI:
 
     def __init__(self, base_url: str, token: str):
         """Initialize the Enhanced Moodle API client.
-        
+
         Args:
             base_url: Base URL of the Moodle installation
             token: Valid web service authentication token
-            
+
         Raises:
             ValueError: If base_url or token are empty
         """
         if not base_url or not token:
             raise ValueError("base_url and token are required")
-            
+
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.session = requests.Session()
@@ -124,14 +124,14 @@ class EnhancedMoodleAPI:
 
     def _make_request(self, wsfunction: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Make a request to the Moodle Web Service API.
-        
+
         Args:
             wsfunction: Name of the Moodle web service function to call
             params: Dictionary of parameters to send with the request
-            
+
         Returns:
             Dictionary containing the API response data
-            
+
         Raises:
             requests.RequestException: For HTTP-related errors
             json.JSONDecodeError: If response is not valid JSON
@@ -169,30 +169,32 @@ class EnhancedMoodleAPI:
 
     def get_site_info(self) -> Dict[str, Any]:
         """Get basic information about the Moodle site.
-        
+
         Returns:
             Dictionary containing site information including sitename, username,
             firstname, lastname, functions, and other site metadata.
-            
+
         Example:
             >>> info = api.get_site_info()
             >>> print(f"Site: {info['sitename']}, User: {info['username']}")
         """
         return self._make_request("core_webservice_get_site_info", {})
 
-    def create_course_section(self, courseid: int, section_config: SectionConfig) -> Dict[str, Any]:
+    def create_course_section(
+        self, courseid: int, section_config: SectionConfig
+    ) -> Dict[str, Any]:
         """Create a new course section with the specified configuration.
-        
+
         Args:
             courseid: ID of the course where the section should be created
             section_config: SectionConfig object containing section parameters
-            
+
         Returns:
             Dictionary containing the created section data including sectionid
-            
+
         Raises:
             Exception: If the section creation fails or courseid is invalid
-            
+
         Example:
             >>> config = SectionConfig(
             ...     name="Week 1: Introduction",
@@ -242,7 +244,9 @@ class EnhancedMoodleAPI:
             )
         return self.bulk_section_operations(operations)
 
-    def bulk_section_operations(self, operations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def bulk_section_operations(
+        self, operations: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Perform bulk operations on sections"""
         params = {"operations": operations}
         return self._make_request("local_wsmanagesections_bulk_operations", params)
@@ -262,7 +266,8 @@ class EnhancedMoodleAPI:
             "file": (
                 file_config.filename,
                 file_config.content,
-                mimetypes.guess_type(file_config.filename)[0] or "application/octet-stream",
+                mimetypes.guess_type(file_config.filename)[0]
+                or "application/octet-stream",
             )
         }
 
@@ -300,7 +305,9 @@ class EnhancedMoodleAPI:
             if file_config.license:
                 save_params["license"] = file_config.license
 
-            save_result = self._make_request("core_files_save_draft_area_files", save_params)
+            save_result = self._make_request(
+                "core_files_save_draft_area_files", save_params
+            )
             return save_result
 
         return upload_result
@@ -338,7 +345,9 @@ class EnhancedMoodleAPI:
             "name": name,
             "intro": description,
             "visible": 1,
-            "files": upload_result if isinstance(upload_result, list) else [upload_result],
+            "files": upload_result
+            if isinstance(upload_result, list)
+            else [upload_result],
         }
 
         return self._make_request("core_course_create_module", module_params)
@@ -389,15 +398,15 @@ class EnhancedMoodleAPI:
 
 class MoodleClaudeIntegration:
     """Integration layer between Claude and Moodle with enhanced functionality.
-    
+
     This class provides high-level methods for converting Claude chat content
     into structured Moodle courses with sections, resources, and files. It combines
     the enhanced API functionality with intelligent content parsing capabilities.
-    
+
     Attributes:
         api: EnhancedMoodleAPI instance for Moodle operations
         moodle_url: Base URL of the Moodle installation
-        
+
     Example:
         >>> integration = MoodleClaudeIntegration(
         ...     "https://moodle.example.com",
@@ -411,7 +420,7 @@ class MoodleClaudeIntegration:
 
     def __init__(self, moodle_url: str, token: str):
         """Initialize the MoodleClaude integration.
-        
+
         Args:
             moodle_url: Base URL of the Moodle installation
             token: Valid web service authentication token
@@ -468,7 +477,9 @@ class MoodleClaudeIntegration:
                         ".mp4",
                         ".avi",
                     ]
-                    is_file = any(filename.lower().endswith(ext) for ext in file_extensions)
+                    is_file = any(
+                        filename.lower().endswith(ext) for ext in file_extensions
+                    )
 
                     current_section["files"].append(
                         {
@@ -531,7 +542,10 @@ class MoodleClaudeIntegration:
 
             section_result = self.api.create_course_section(courseid, section_config)
             created_sections.append(
-                {"section_info": section_result, "resources": section_data.get("files", [])}
+                {
+                    "section_info": section_result,
+                    "resources": section_data.get("files", []),
+                }
             )
 
         return {
@@ -630,7 +644,9 @@ class MoodleClaudeIntegration:
                     }
                 )
             elif update["type"] == "delete_section":
-                operations.append({"operation": "delete", "sectionid": update["sectionid"]})
+                operations.append(
+                    {"operation": "delete", "sectionid": update["sectionid"]}
+                )
 
         return self.api.bulk_section_operations(operations)
 
@@ -714,7 +730,9 @@ class MoodleClaudeIntegration:
                     visible=section_data.get("visible", True),
                 )
 
-                section_result = self.api.create_course_section(target_courseid, section_config)
+                section_result = self.api.create_course_section(
+                    target_courseid, section_config
+                )
                 results["imported_sections"].append(section_result)
 
             except Exception as e:
@@ -727,7 +745,11 @@ class MoodleClaudeIntegration:
 
 # Convenience functions for common operations
 def create_course_from_conversation(
-    moodle_url: str, token: str, conversation_text: str, course_name: str, category_id: int
+    moodle_url: str,
+    token: str,
+    conversation_text: str,
+    course_name: str,
+    category_id: int,
 ) -> Dict[str, Any]:
     """Convenience function to create a course from conversation text"""
     integration = MoodleClaudeIntegration(moodle_url, token)
@@ -737,7 +759,11 @@ def create_course_from_conversation(
 
 
 def upload_files_to_course(
-    moodle_url: str, token: str, courseid: int, file_list: List[str], section_number: int = 1
+    moodle_url: str,
+    token: str,
+    courseid: int,
+    file_list: List[str],
+    section_number: int = 1,
 ) -> List[Dict[str, Any]]:
     """Convenience function to upload multiple files to a course section"""
     integration = MoodleClaudeIntegration(moodle_url, token)

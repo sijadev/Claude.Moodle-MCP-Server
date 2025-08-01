@@ -55,7 +55,7 @@ For the original MoodleClaude version:
 {
   "mcpServers": {
     "moodle-course-creator": {
-      "command": "python", 
+      "command": "python",
       "args": ["-m", "tools.setup.start_mcp_server"],
       "cwd": "/path/to/your/MoodleClaude",
       "env": {
@@ -150,7 +150,7 @@ User: "Create course from chat"
 ### Issue: "Server not found"
 **Solution**: Check that the `cwd` path points to your MoodleClaude directory
 
-### Issue: "Module not found" 
+### Issue: "Module not found"
 **Solution**: Ensure you're using the correct Python environment with dependencies
 
 ### Issue: "Database errors"

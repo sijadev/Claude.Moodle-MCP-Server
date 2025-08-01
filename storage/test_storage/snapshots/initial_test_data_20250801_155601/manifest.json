@@ -1,0 +1,11 @@
+{
+  "snapshot_name": "initial_test_data",
+  "created": "2025-08-01T15:56:01.143666",
+  "include_cache": false,
+  "files": [
+    "test_data.db",
+    "results/test_run_bfb56016.json",
+    "results/storage_test.json",
+    "results/trend_analysis_bfb56016.json"
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "session_id": "bfb56016",
+  "start_time": "2025-08-01T15:55:52.475502",
+  "environment": "persistent_local",
+  "version": "3.0.0",
+  "tests": {
+    "python_version_check": {
+      "success": true,
+      "message": "Python 3.12.11",
+      "duration": 0.0,
+      "details": {
+        "version": "3.12.11"
+      }
+    },
+    "directory_src": {
+      "success": true,
+      "message": "Directory src exists",
+      "duration": 0.0,
+      "details": {
+        "path": "/Users/simonjanke/Projects/MoodleClaude/src"
+      }
+    },
+    "directory_config": {
+      "success": true,
+      "message": "Directory config exists",
+      "duration": 0.0,
+      "details": {
+        "path": "/Users/simonjanke/Projects/MoodleClaude/config"
+      }
+    },
+    "directory_tools": {
+      "success": true,
+      "message": "Directory tools exists",
+      "duration": 0.0,
+      "details": {
+        "path": "/Users/simonjanke/Projects/MoodleClaude/tools"
+      }
+    },
+    "directory_operations": {
+      "success": true,
+      "message": "Directory operations exists",
+      "duration": 0.0,
+      "details": {
+        "path": "/Users/simonjanke/Projects/MoodleClaude/operations"
+      }
+    },
+    "storage_system_check": {
+      "success": true,
+      "message": "Storage system working",
+      "duration": 0.0,
+      "details": {
+        "storage_dir": "/Users/simonjanke/Projects/MoodleClaude/test_storage"
+      }
+    },
+    "environment_check": {
+      "success": true,
+      "message": "Environment check: 6/6 passed",
+      "duration": 0.0034470558166503906,
+      "details": {
+        "total_checks": 6,
+        "passed_checks": 6,
+        "previous_runs": 0
+      }
+    },
+    "import_asyncio": {
+      "success": true,
+      "message": "Successfully imported asyncio",
+      "duration": 2.6226043701171875e-06,
+      "details": {}
+    },
+    "import_aiohttp": {
+      "success": true,
+      "message": "Successfully imported aiohttp",
+      "duration": 0.09671497344970703,
+      "details": {}
+    },
+    "import_json": {
+      "success": true,
+      "message": "Successfully imported json",
+      "duration": 2.86102294921875e-06,
+      "details": {}
+    },
+    "import_logging": {
+      "success": true,
+      "message": "Successfully imported logging",
+      "duration": 2.1457672119140625e-06,
+      "details": {}
+    },
+    "import_pathlib": {
+      "success": true,
+      "message": "Successfully imported pathlib",
+      "duration": 9.5367431640625e-07,
+      "details": {}
+    },
+    "import_datetime": {
+      "success": true,
+      "message": "Successfully imported datetime",
+      "duration": 2.1457672119140625e-06,
+      "details": {}
+    },
+    "import_optional_pydantic": {
+      "success": true,
+      "message": "Optional module pydantic available",
+      "duration": 0.01714038848876953,
+      "details": {}
+    },
+    "import_optional_requests": {
+      "success": true,
+      "message": "Optional module requests available",
+      "duration": 0.04783201217651367,
+      "details": {}
+    },
+    "import_optional_pytest": {
+      "success": true,
+      "message": "Optional module pytest available",
+      "duration": 0.04223799705505371,
+      "details": {}
+    },
+    "import_optional_sqlite3": {
+      "success": true,
+      "message": "Optional module sqlite3 available",
+      "duration": 3.0994415283203125e-06,
+      "details": {}
+    },
+    "async_performance_test": {
+      "success": true,
+      "message": "Async performance: 0.011s",
+      "duration": 0.011267900466918945,
+      "details": {}
+    },
+    "json_processing_benchmark": {
+      "success": true,
+      "message": "JSON processing: 0.0001s",
+      "duration": 0.00010395050048828125,
+      "details": {}
+    },
+    "file_io_benchmark": {
+      "success": true,
+      "message": "File I/O: write 0.0001s, read 0.0000s",
+      "duration": 0.00013327598571777344,
+      "details": {}
+    }
+  },
+  "benchmarks": [
+    {
+      "test_name": "environment_check",
+      "metric_name": "check_duration",
+      "value": 0.0034470558166503906,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_asyncio",
+      "metric_name": "import_time",
+      "value": 2.6226043701171875e-06,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_aiohttp",
+      "metric_name": "import_time",
+      "value": 0.09671497344970703,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_json",
+      "metric_name": "import_time",
+      "value": 2.86102294921875e-06,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_logging",
+      "metric_name": "import_time",
+      "value": 2.1457672119140625e-06,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_pathlib",
+      "metric_name": "import_time",
+      "value": 9.5367431640625e-07,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_datetime",
+      "metric_name": "import_time",
+      "value": 2.1457672119140625e-06,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_pydantic",
+      "metric_name": "import_time",
+      "value": 0.01714038848876953,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_requests",
+      "metric_name": "import_time",
+      "value": 0.04783201217651367,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_pytest",
+      "metric_name": "import_time",
+      "value": 0.04223799705505371,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "import_sqlite3",
+      "metric_name": "import_time",
+      "value": 3.0994415283203125e-06,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "async_performance_test",
+      "metric_name": "execution_time",
+      "value": 0.011267900466918945,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "json_processing",
+      "metric_name": "serialize_time",
+      "value": 4.696846008300781e-05,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "json_processing",
+      "metric_name": "deserialize_time",
+      "value": 5.698204040527344e-05,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "file_io",
+      "metric_name": "write_time",
+      "value": 0.00010228157043457031,
+      "unit": "seconds"
+    },
+    {
+      "test_name": "file_io",
+      "metric_name": "read_time",
+      "value": 3.0994415283203125e-05,
+      "unit": "seconds"
+    }
+  ],
+  "end_time": "2025-08-01T15:55:52.710003",
+  "overall_success": true,
+  "trend_analysis": {
+    "total_test_runs": 20,
+    "success_rate_trend": [
+      {
+        "date": "2025-08-01",
+        "success_rate": 100.0,
+        "total_tests": 20
+      }
+    ],
+    "performance_trends": {},
+    "most_failing_tests": {},
+    "performance_regression": []
+  }
+}

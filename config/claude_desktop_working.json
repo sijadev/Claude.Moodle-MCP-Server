@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "moodleclaude-working": {
+      "command": "python",
+      "args": [
+        "/Users/simonjanke/Projects/MoodleClaude/src/core/working_mcp_server.py"
+      ],
+      "env": {
+        "MOODLE_URL": "http://localhost:8080",
+        "MOODLE_TOKEN_BASIC": "bfef4e5ef1f77d5ad173407b1967d838",
+        "MOODLE_TOKEN_ENHANCED": "e14a2f11d2695415dd90688690b39328",
+        "MOODLE_USERNAME": "admin",
+        "SERVER_NAME": "working-moodle-mcp",
+        "LOG_LEVEL": "INFO"
+      },
+      "timeout": 30,
+      "autoApprove": [
+        "test_connection",
+        "get_courses"
+      ],
+      "disabled": false,
+      "description": "Working MoodleClaude MCP Server - stable and dependency-free",
+      "version": "1.0.0"
+    }
+  },
+  "globalSettings": {
+    "logging": {
+      "level": "INFO",
+      "enableFileLogging": true,
+      "logDirectory": "/Users/simonjanke/Projects/MoodleClaude/logs"
+    },
+    "performance": {
+      "enableMetrics": false,
+      "enableHealthCheck": true
+    },
+    "security": {
+      "enableTokenRotation": false,
+      "enableRequestValidation": true
+    }
+  }
+}

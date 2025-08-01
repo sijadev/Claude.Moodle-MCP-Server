@@ -31,11 +31,17 @@ def run_command(cmd, description=""):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Test runner for MCP Moodle Course Creator")
+    parser = argparse.ArgumentParser(
+        description="Test runner for MCP Moodle Course Creator"
+    )
     parser.add_argument("--unit", action="store_true", help="Run only unit tests")
-    parser.add_argument("--integration", action="store_true", help="Run only integration tests")
+    parser.add_argument(
+        "--integration", action="store_true", help="Run only integration tests"
+    )
     parser.add_argument("--e2e", action="store_true", help="Run only end-to-end tests")
-    parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
+    parser.add_argument(
+        "--coverage", action="store_true", help="Generate coverage report"
+    )
     parser.add_argument("--html", action="store_true", help="Generate HTML test report")
     parser.add_argument("--parallel", action="store_true", help="Run tests in parallel")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")

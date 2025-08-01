@@ -25,9 +25,9 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-    
+
     'local/moodleclaude:managecourses' => [
-        'captype' => 'write', 
+        'captype' => 'write',
         'contextlevel' => CONTEXT_COURSECAT,
         'archetypes' => [
             'editingteacher' => CAP_ALLOW,

@@ -1,0 +1,169 @@
+name: 🚀 Feature Request
+description: Suggest a new feature for MoodleClaude
+title: "[FEATURE] "
+labels: ["enhancement", "feature-request"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature! Please provide as much detail as possible.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Prerequisites
+      description: Please confirm the following
+      options:
+        - label: I have searched for existing feature requests
+          required: true
+        - label: This feature is not already available in MoodleClaude
+          required: true
+        - label: This feature would be useful for other users
+          required: true
+
+  - type: dropdown
+    id: feature_type
+    attributes:
+      label: Feature Category
+      description: What category does this feature belong to?
+      options:
+        - MCP Server Enhancement
+        - Claude Desktop Integration
+        - Moodle API Extension
+        - Setup/Installation Improvement
+        - Testing/Diagnostics
+        - Performance Optimization
+        - Security Enhancement
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: Describe the problem or limitation you're experiencing
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: What would you like to see implemented?
+      placeholder: Describe your ideal solution in detail
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative approaches?
+      placeholder: Describe any alternative solutions you've considered
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to you?
+      options:
+        - Low (Nice to have)
+        - Medium (Would improve my workflow)
+        - High (Essential for my use case)
+        - Critical (Blocking my adoption)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case for this feature
+      placeholder: |
+        How would you use this feature? 
+        What would your workflow look like?
+        Who else would benefit from this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What would need to be true for this feature to be considered complete?
+      placeholder: |
+        - [ ] Feature does X
+        - [ ] Feature integrates with Y
+        - [ ] Feature has tests
+        - [ ] Feature is documented
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Simple (Few hours of work)
+        - Medium (Few days of work)
+        - Complex (Few weeks of work)
+        - Very Complex (Significant effort)
+        - I don't know
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: integration
+    attributes:
+      label: Integration Points
+      description: What parts of MoodleClaude would this feature need to integrate with?
+      options:
+        - label: MCP Server Core
+        - label: Claude Desktop Configuration
+        - label: Moodle Web Services
+        - label: Token Management
+        - label: Setup Scripts
+        - label: Test Suite
+        - label: Docker Environment
+        - label: Documentation
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes
+      description: Any technical considerations or constraints?
+      placeholder: |
+        Implementation ideas, technical challenges, 
+        compatibility requirements, etc.
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups/Examples
+      description: Do you have any mockups, examples, or references?
+      placeholder: |
+        Links to similar features, mockups, code examples, etc.
+        You can also drag and drop images here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute to this feature?
+      options:
+        - label: I would like to implement this feature myself
+        - label: I can help with testing
+        - label: I can help with documentation
+        - label: I can provide feedback during development

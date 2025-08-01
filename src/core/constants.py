@@ -8,18 +8,18 @@ from dataclasses import dataclass
 
 class Defaults:
     """Default configuration values"""
-    
+
     # Server defaults
     MOODLE_URL = "http://localhost:8080"
     MOODLE_PORT = 8080
     MOODLE_ADMIN_USER = "admin"
     MOODLE_TOKEN = ""
-    
+
     # Server configuration
     SERVER_NAME = "moodle-course-creator"
     SERVER_VERSION = "1.0.0"
     LOG_LEVEL = "INFO"
-    
+
     # Content processing limits
     MAX_CODE_LENGTH = 10000
     MAX_TOPIC_LENGTH = 5000
@@ -27,7 +27,7 @@ class Defaults:
     MIN_TOPIC_WORDS = 10
     MAX_SECTIONS = 50
     MAX_ITEMS_PER_SECTION = 100
-    
+
     # API endpoints
     WEBSERVICE_PATH = "/webservice/rest/server.php"
     ADMIN_PATH = "/admin"
@@ -36,29 +36,29 @@ class Defaults:
 
 class Messages:
     """User-facing messages and log strings"""
-    
+
     # Initialization messages
     MOODLE_CLIENT_SUCCESS = "Moodle client initialized successfully"
     MOODLE_CLIENT_FAILED = "Moodle client initialization failed: {error}"
     PREVIEW_MODE = "Running in preview mode - no Moodle credentials provided"
-    
+
     # Operation messages
     PARSING_STARTED = "Starting chat content parsing"
     PARSING_COMPLETED = "Parsed {count} content items from chat"
     COURSE_CREATED = "Created course '{name}' with ID: {course_id}"
     COURSE_CREATION_FAILED = "Failed to create course: {error}"
-    
+
     # Tool execution messages
     TOOL_EXECUTION_FAILED = "Tool execution failed: {error}"
     CONTENT_PREVIEW_FAILED = "Failed to preview content: {error}"
     CONTENT_ADD_FAILED = "Failed to add content to course: {error}"
-    
+
     # API error messages
     API_ERROR = "Moodle API error"
     CONNECTION_ERROR = "Failed to connect to Moodle server"
     AUTHENTICATION_ERROR = "Authentication failed - check token"
     PERMISSION_ERROR = "Permission denied - check user permissions"
-    
+
     # Validation messages
     INVALID_CONTENT_TYPE = "Invalid content type: {type}"
     EMPTY_CONTENT = "Content cannot be empty"
@@ -68,16 +68,18 @@ class Messages:
 
 class ToolDescriptions:
     """MCP tool descriptions and schemas"""
-    
+
     CREATE_COURSE_NAME = "create_course_from_chat"
     CREATE_COURSE_DESC = "Extract content from Claude chat and create a Moodle course"
-    
+
     PREVIEW_CONTENT_NAME = "extract_and_preview_content"
-    PREVIEW_CONTENT_DESC = "Extract and preview content from chat without creating course"
-    
+    PREVIEW_CONTENT_DESC = (
+        "Extract and preview content from chat without creating course"
+    )
+
     ADD_CONTENT_NAME = "add_content_to_course"
     ADD_CONTENT_DESC = "Add extracted content to an existing Moodle course"
-    
+
     # Schema descriptions
     CHAT_CONTENT_DESC = "The full chat conversation content"
     COURSE_NAME_DESC = "Name for the Moodle course"
@@ -88,52 +90,52 @@ class ToolDescriptions:
 
 class ContentTypes:
     """Content type constants"""
-    
+
     CODE = "code"
     TOPIC = "topic"
     MIXED = "mixed"
-    
+
     VALID_TYPES = [CODE, TOPIC, MIXED]
 
 
 class ActivityTypes:
     """Moodle activity type constants"""
-    
+
     PAGE = "page"
     RESOURCE = "resource"
     LABEL = "label"
     FORUM = "forum"
     ASSIGNMENT = "assign"
     QUIZ = "quiz"
-    
+
     DEFAULT_TYPE = PAGE
 
 
 class MoodleWebServices:
     """Moodle Web Service function names (Available in Moodle 4.3)"""
-    
+
     # Course management - ✅ Available
     CREATE_COURSES = "core_course_create_courses"
     GET_COURSES = "core_course_get_courses"
     GET_CATEGORIES = "core_course_get_categories"
     GET_CONTENTS = "core_course_get_contents"
-    
+
     # Course sections - ✅ Available
     EDIT_SECTION = "core_course_edit_section"
-    
+
     # WSManageSections plugin - ✅ Available and WORKING!
     CREATE_SECTIONS = "local_wsmanagesections_create_sections"
     GET_SECTIONS = "local_wsmanagesections_get_sections"
     UPDATE_SECTIONS = "local_wsmanagesections_update_sections"
     DELETE_SECTIONS = "local_wsmanagesections_delete_sections"
     MOVE_SECTION = "local_wsmanagesections_move_section"
-    
+
     # File management - ✅ Available
     UPLOAD_FILE = "core_files_upload"
-    
+
     # Web service info - ✅ Available
     GET_SITE_INFO = "core_webservice_get_site_info"
-    
+
     # Note: Activity creation still requires additional plugins:
     # - mod_page_add_page (activity creation requires additional plugins)
     # - mod_label_add_label (activity creation requires additional plugins)
@@ -141,18 +143,18 @@ class MoodleWebServices:
 
 class CourseFormats:
     """Moodle course format constants"""
-    
+
     TOPICS = "topics"
-    WEEKLY = "weekly" 
+    WEEKLY = "weekly"
     SOCIAL = "social"
     SINGLEACTIVITY = "singleactivity"
-    
+
     DEFAULT_FORMAT = TOPICS
 
 
 class ErrorCodes:
     """Error code constants for better error handling"""
-    
+
     CONFIGURATION_ERROR = "CONFIG_ERROR"
     CONNECTION_ERROR = "CONNECTION_ERROR"
     AUTHENTICATION_ERROR = "AUTH_ERROR"
@@ -166,7 +168,7 @@ class ErrorCodes:
 @dataclass
 class HttpStatus:
     """HTTP status codes"""
-    
+
     OK = 200
     CREATED = 201
     BAD_REQUEST = 400
@@ -178,17 +180,17 @@ class HttpStatus:
 
 class Environment:
     """Environment variable names"""
-    
+
     MOODLE_URL = "MOODLE_URL"
     MOODLE_TOKEN = "MOODLE_TOKEN"
     MOODLE_USERNAME = "MOODLE_USERNAME"
     MOODLE_ADMIN_USER = "MOODLE_ADMIN_USER"
     MOODLE_ADMIN_PASSWORD = "MOODLE_ADMIN_PASSWORD"
-    
+
     LOG_LEVEL = "LOG_LEVEL"
     SERVER_NAME = "SERVER_NAME"
     SERVER_VERSION = "SERVER_VERSION"
-    
+
     # Google Cloud specific
     PORT = "PORT"
     PROJECT_ID = "PROJECT_ID"
@@ -197,7 +199,7 @@ class Environment:
 
 class Patterns:
     """Regex patterns for content parsing"""
-    
+
     CODE_BLOCK = r"```(\w+)?\n(.*?)```"
     CODE_INLINE = r"`([^`]+)`"
     URL_PATTERN = r"https?://[^\s<>\"{}|\\^`\[\]]+"

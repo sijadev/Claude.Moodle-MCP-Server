@@ -16,7 +16,7 @@ This guide will help you install the custom MoodleClaude plugin to enable full c
    ```bash
    # From your project directory
    sudo cp -r moodle_plugin/local_moodleclaude /path/to/moodle/local/
-   
+
    # For Docker Moodle setup:
    sudo cp -r moodle_plugin/local_moodleclaude ./moodle_data/local/
    ```

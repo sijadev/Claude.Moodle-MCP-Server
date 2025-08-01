@@ -9,7 +9,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 # Add the project root directory to the Python path for imports to work
-current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+current_dir = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
@@ -17,7 +19,7 @@ try:
     from config.dual_token_config import DualTokenConfig
 except ImportError:
     # Fallback for CI environment
-    sys.path.insert(0, os.path.join(current_dir, 'config'))
+    sys.path.insert(0, os.path.join(current_dir, "config"))
     from dual_token_config import DualTokenConfig
 
 
@@ -31,13 +33,15 @@ class TestDualTokenConfig:
             "MOODLE_URL": "http://test.example.com",
             "MOODLE_BASIC_TOKEN": "basic_token_12345678901234567890123456789012",
             "MOODLE_PLUGIN_TOKEN": "plugin_token_12345678901234567890123456789012",
-            "MOODLE_USERNAME": "testuser"
+            "MOODLE_USERNAME": "testuser",
         }
 
     def test_init_with_env_vars(self, mock_env_vars):
         """Test config initialization with environment variables"""
         with patch.dict(os.environ, mock_env_vars, clear=True):
-            with patch('os.path.exists', return_value=False):  # Mock .env file doesn't exist
+            with patch(
+                "os.path.exists", return_value=False
+            ):  # Mock .env file doesn't exist
                 config = DualTokenConfig.from_env()
 
                 assert config.moodle_url == mock_env_vars["MOODLE_URL"]
@@ -49,14 +53,18 @@ class TestDualTokenConfig:
         """Test config initialization with missing URL"""
         # Clear environment
         with patch.dict(os.environ, {}, clear=True):
-            with patch('os.path.exists', return_value=False):  # Mock .env file doesn't exist
-                with pytest.raises(ValueError, match="MOODLE_URL environment variable is required"):
+            with patch(
+                "os.path.exists", return_value=False
+            ):  # Mock .env file doesn't exist
+                with pytest.raises(
+                    ValueError, match="MOODLE_URL environment variable is required"
+                ):
                     DualTokenConfig.from_env()
 
     def test_dual_token_mode(self, mock_env_vars):
         """Test dual token mode detection"""
         with patch.dict(os.environ, mock_env_vars, clear=True):
-            with patch('os.path.exists', return_value=False):
+            with patch("os.path.exists", return_value=False):
                 config = DualTokenConfig.from_env()
                 assert config.is_dual_token_mode() is True
 
@@ -67,7 +75,7 @@ class TestDualTokenConfig:
             "MOODLE_TOKEN": "single_token_12345678901234567890123456789012",
         }
         with patch.dict(os.environ, single_env, clear=True):
-            with patch('os.path.exists', return_value=False):
+            with patch("os.path.exists", return_value=False):
                 config = DualTokenConfig.from_env()
                 assert config.is_dual_token_mode() is False
                 assert config.get_basic_token() == single_env["MOODLE_TOKEN"]
@@ -76,7 +84,7 @@ class TestDualTokenConfig:
     def test_get_config_summary(self, mock_env_vars):
         """Test configuration summary"""
         with patch.dict(os.environ, mock_env_vars, clear=True):
-            with patch('os.path.exists', return_value=False):
+            with patch("os.path.exists", return_value=False):
                 config = DualTokenConfig.from_env()
                 summary = config.get_config_summary()
 
@@ -89,7 +97,7 @@ class TestDualTokenConfig:
     def test_get_basic_token(self, mock_env_vars):
         """Test basic token retrieval"""
         with patch.dict(os.environ, mock_env_vars, clear=True):
-            with patch('os.path.exists', return_value=False):
+            with patch("os.path.exists", return_value=False):
                 config = DualTokenConfig.from_env()
                 basic_token = config.get_basic_token()
                 assert basic_token == mock_env_vars["MOODLE_BASIC_TOKEN"]
@@ -97,8 +105,7 @@ class TestDualTokenConfig:
     def test_get_plugin_token(self, mock_env_vars):
         """Test plugin token retrieval"""
         with patch.dict(os.environ, mock_env_vars, clear=True):
-            with patch('os.path.exists', return_value=False):
+            with patch("os.path.exists", return_value=False):
                 config = DualTokenConfig.from_env()
                 plugin_token = config.get_plugin_token()
                 assert plugin_token == mock_env_vars["MOODLE_PLUGIN_TOKEN"]
-

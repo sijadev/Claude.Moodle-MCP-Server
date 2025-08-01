@@ -120,7 +120,7 @@ Create searchable, organized resource
 
 ### Topic Identification
 - **Concept extraction** from natural language
-- **Learning objective recognition** 
+- **Learning objective recognition**
 - **Difficulty assessment** for appropriate sectioning
 - **Relationship mapping** between concepts
 
@@ -135,7 +135,7 @@ Create searchable, organized resource
 ### WSManageSections Integration
 The breakthrough feature that enables:
 - **Dynamic section creation** at runtime
-- **Flexible course architecture** 
+- **Flexible course architecture**
 - **Content-driven organization**
 - **Professional course structure**
 

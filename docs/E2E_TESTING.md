@@ -26,7 +26,7 @@ The E2E test suite validates real browser interactions with Moodle, testing:
    ```bash
    # Install wsmanagesections plugin
    git clone https://github.com/your-repo/local_wsmanagesections.git /path/to/moodle/local/wsmanagesections
-   
+
    # Install via Moodle admin interface or CLI
    php admin/cli/upgrade.php
    ```
@@ -225,10 +225,10 @@ python -m pytest tests/e2e/test_e2e_moodle_claude.py::TestSectionManagement::tes
 # Add debugging breakpoints in test code
 async def test_debug_example(self):
     await self.page.goto(f"{self.config.moodle_url}/course/view.php?id={course_id}")
-    
+
     # Pause for manual inspection
     await self.page.pause()  # Opens browser dev tools
-    
+
     # Take screenshot
     await self.page.screenshot(path="debug_screenshot.png")
 ```
@@ -255,7 +255,7 @@ on: [push, pull_request]
 jobs:
   e2e-tests:
     runs-on: ubuntu-latest
-    
+
     services:
       moodle:
         image: moodlehq/moodle-php-apache:latest
@@ -267,20 +267,20 @@ jobs:
           MOODLE_DATABASE_NAME: moodle
           MOODLE_DATABASE_USER: moodle
           MOODLE_DATABASE_PASSWORD: password
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-    
+
     - name: Install dependencies
       run: |
         pip install -r requirements-e2e.txt
         playwright install chromium
-    
+
     - name: Run E2E tests
       run: |
         python tests/e2e/test_e2e_moodle_claude.py \
@@ -288,7 +288,7 @@ jobs:
           --username admin \
           --password admin \
           --headless
-    
+
     - name: Upload test reports
       uses: actions/upload-artifact@v3
       if: always()
@@ -365,7 +365,7 @@ class OptimizedTestBase(MoodleE2ETestBase):
         """Setup shared resources once per test class"""
         await cls.setup_browser()
         await cls.login_as_admin()
-    
+
     @classmethod  
     async def teardown_class(cls):
         """Cleanup shared resources"""

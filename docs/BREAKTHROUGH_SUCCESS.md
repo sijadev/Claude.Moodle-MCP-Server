@@ -84,10 +84,10 @@ Now the MCP tools can:
 
 ### Realistic Course Creation
 ```
-extract_and_preview_content → 
-analyze content topics → 
-create course with sections → 
-organize content by section → 
+extract_and_preview_content →
+analyze content topics →
+create course with sections →
+organize content by section →
 place activities strategically
 ```
 

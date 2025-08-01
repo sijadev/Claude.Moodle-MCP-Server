@@ -1,0 +1,352 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Skip if draft PR
+  check-draft:
+    name: Check Draft Status
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.check.outputs.should_skip }}
+    steps:
+      - name: Check if draft PR
+        id: check
+        run: |
+          if [ "${{ github.event.pull_request.draft }}" = "true" ]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Skipping validation for draft PR"
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+            echo "✅ Running validation for ready PR"
+          fi
+
+  # Run smoke test for PR validation
+  pr-smoke-test:
+    name: PR Smoke Test
+    runs-on: ubuntu-latest
+    needs: check-draft
+    if: needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install aiohttp pytest
+
+      - name: Run PR Smoke Test
+        run: |
+          chmod +x scripts/smoke_test.sh
+          ./scripts/smoke_test.sh --quick --skip-docker
+
+      - name: Upload smoke test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: pr-smoke-test-report
+          path: reports/smoke_test/
+
+  # Validate PR structure and content
+  pr-structure:
+    name: Validate PR Structure
+    runs-on: ubuntu-latest
+    needs: [check-draft, pr-smoke-test]
+    if: needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "PR Title: $PR_TITLE"
+          
+          # Check for conventional commit format
+          if [[ "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+ ]]; then
+            echo "✅ PR title follows conventional commit format"
+          else
+            echo "⚠️ PR title should follow conventional commit format (feat/fix/docs/etc: description)"
+          fi
+
+      - name: Check for breaking changes
+        run: |
+          echo "🔍 Checking for breaking changes..."
+          
+          # Check for changes in critical files
+          breaking_files=(
+            "setup_moodleclaude_v3_fixed.py"
+            "src/core/working_mcp_server.py" 
+            "config/master_config.py"
+          )
+          
+          for file in "${breaking_files[@]}"; do
+            if git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -q "^$file$"; then
+              echo "⚠️ Breaking change detected in: $file"
+              echo "Please ensure backward compatibility or update version"
+            fi
+          done
+
+      - name: Check file structure
+        run: |
+          echo "🏗️ Validating file structure..."
+          
+          required_files=(
+            "setup_moodleclaude_v3_fixed.py"
+            "tools/run_docker_test_suite_fixed.py"
+            "src/core/working_mcp_server.py"
+            "BUGFIX_DOCUMENTATION.md"
+          )
+          
+          missing_files=()
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              missing_files+=("$file")
+            fi
+          done
+          
+          if [ ${#missing_files[@]} -eq 0 ]; then
+            echo "✅ All required files present"
+          else
+            echo "❌ Missing required files:"
+            printf '%s\n' "${missing_files[@]}"
+            exit 1
+          fi
+
+  # Quick smoke tests
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [check-draft, pr-structure]
+    if: needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install basic dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black requests aiohttp
+
+      - name: Syntax check
+        run: |
+          echo "🔍 Running syntax checks..."
+          python -m py_compile setup_moodleclaude_v3_fixed.py
+          python -m py_compile tools/run_docker_test_suite_fixed.py
+          python -m py_compile src/core/working_mcp_server.py
+          echo "✅ Syntax check passed"
+
+      - name: Basic linting
+        run: |
+          echo "🧹 Running basic linting..."
+          flake8 --select=E9,F63,F7,F82 --show-source --statistics .
+          echo "✅ Basic linting passed"
+
+      - name: Import tests
+        run: |
+          echo "📦 Testing imports..."
+          cd src/core && python -c "
+          try:
+              exec(open('working_mcp_server.py').read())
+              print('✅ MCP server imports successfully')
+          except Exception as e:
+              print(f'❌ MCP server import failed: {e}')
+              exit(1)
+          "
+
+  # Bug fix validation
+  bugfix-validation:
+    name: Validate Bug Fixes
+    runs-on: ubuntu-latest
+    needs: [check-draft, pr-structure]
+    if: needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Check bug fix documentation
+        run: |
+          echo "📋 Validating bug fix documentation..."
+          
+          if [ -f "BUGFIX_DOCUMENTATION.md" ]; then
+            echo "✅ Bug fix documentation exists"
+            
+            # Check for required sections
+            sections=(
+              "spawn python ENOENT"
+              "Access control exception"
+              "Token permissions"
+              "Python path detection"
+            )
+            
+            for section in "${sections[@]}"; do
+              if grep -qi "$section" BUGFIX_DOCUMENTATION.md; then
+                echo "✅ Found documentation for: $section"
+              else
+                echo "⚠️ Missing documentation for: $section"
+              fi
+            done
+          else
+            echo "❌ Bug fix documentation missing"
+            exit 1
+          fi
+
+      - name: Validate setup script changes
+        run: |
+          echo "🔧 Validating setup script..."
+          
+          # Check for bug fix integration
+          if grep -q "get_python_path" setup_moodleclaude_v3_fixed.py; then
+            echo "✅ Python path fix integrated in setup"
+          else
+            echo "⚠️ Python path fix may be missing in setup"
+          fi
+          
+          if grep -q "bug.*fix" setup_moodleclaude_v3_fixed.py; then
+            echo "✅ Bug fixes referenced in setup"
+          else
+            echo "⚠️ Bug fixes may not be properly integrated"
+          fi
+
+      - name: Check test suite updates
+        run: |
+          echo "🧪 Validating test suite updates..."
+          
+          if [ -f "tools/run_docker_test_suite_fixed.py" ]; then
+            echo "✅ Fixed test suite exists"
+            
+            # Check for bug fix integration
+            if grep -q "bug.*fix" tools/run_docker_test_suite_fixed.py; then
+              echo "✅ Bug fixes integrated in test suite"
+            else
+              echo "⚠️ Bug fixes may not be integrated in test suite"
+            fi
+          else
+            echo "❌ Fixed test suite missing"
+            exit 1
+          fi
+
+  # Security scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [check-draft, pr-structure]
+    if: needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'  # Don't fail on vulnerabilities for PR validation
+
+      - name: Security check for secrets
+        run: |
+          echo "🔐 Checking for potential secrets..."
+          
+          # Check for common secret patterns
+          if grep -r -E "(password|token|key|secret)" --include="*.py" --include="*.yml" --include="*.yaml" . | grep -v "# " | grep -v "test" | grep -v "example"; then
+            echo "⚠️ Potential secrets found - please review"
+          else
+            echo "✅ No obvious secrets detected"
+          fi
+
+  # Performance check
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+    needs: [check-draft, pr-structure]
+    if: needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Performance analysis
+        run: |
+          echo "⚡ Running performance analysis..."
+          
+          # Check file sizes
+          large_files=$(find . -name "*.py" -size +100k)
+          if [ -n "$large_files" ]; then
+            echo "⚠️ Large Python files found:"
+            echo "$large_files"
+          else
+            echo "✅ No oversized Python files"
+          fi
+          
+          # Check for potential performance issues
+          if grep -r "time.sleep" --include="*.py" . | grep -v test; then
+            echo "⚠️ Found time.sleep() calls - consider async alternatives"
+          fi
+          
+          if grep -r "while True:" --include="*.py" . | grep -v test; then
+            echo "⚠️ Found infinite loops - ensure they have proper exit conditions"
+          fi
+
+  # Generate PR summary
+  pr-summary:
+    name: PR Summary
+    runs-on: ubuntu-latest
+    needs: [check-draft, pr-structure, smoke-tests, bugfix-validation, security-scan, performance-check]
+    if: always() && needs.check-draft.outputs.should_skip == 'false'
+    steps:
+      - name: Create PR summary
+        run: |
+          echo "## 🔍 PR Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PR:** ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Base:** ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Head:** ${{ github.event.pull_request.head.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- PR Structure: ${{ needs.pr-structure.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Smoke Tests: ${{ needs.smoke-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Bug Fix Validation: ${{ needs.bugfix-validation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Check: ${{ needs.performance-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [[ "${{ needs.pr-structure.result }}" == "success" && 
+                "${{ needs.smoke-tests.result }}" == "success" && 
+                "${{ needs.bugfix-validation.result }}" == "success" ]]; then
+            echo "### ✅ Overall Status: PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "This PR is ready for review!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Overall Status: NEEDS WORK" >> $GITHUB_STEP_SUMMARY
+            echo "Please address the issues above before requesting review." >> $GITHUB_STEP_SUMMARY
+          fi

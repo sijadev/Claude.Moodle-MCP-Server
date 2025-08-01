@@ -46,7 +46,7 @@ This folder contains all the shell scripts for the MoodleClaude project.
 - Optional HTML test reports
 - Environment validation
 
-**Usage**: 
+**Usage**:
 ```bash
 ./scripts/run_tests.sh [--html] [--coverage] [--parallel]
 ```
