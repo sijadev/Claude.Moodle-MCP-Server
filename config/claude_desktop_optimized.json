@@ -1,0 +1,67 @@
+{
+  "mcpServers": {
+    "moodleclaude-optimized": {
+      "command": "python",
+      "args": [
+        "/Users/simonjanke/Projects/MoodleClaude/src/core/optimized_mcp_server.py"
+      ],
+      "env": {
+        "MOODLE_URL": "http://localhost:8080",
+        "MOODLE_TOKEN_BASIC": "your_basic_token_here",
+        "MOODLE_TOKEN_ENHANCED": "your_enhanced_token_here",
+        "MOODLE_USERNAME": "admin",
+        "SERVER_NAME": "optimized-moodle-mcp",
+        "LOG_LEVEL": "INFO",
+        "CACHE_SIZE": "100",
+        "RATE_LIMIT_CALLS": "50",
+        "RATE_LIMIT_PERIOD": "60",
+        "MAX_CONNECTIONS": "10",
+        "CONNECTION_TIMEOUT": "30",
+        "ENABLE_METRICS": "true",
+        "ENABLE_STREAMING": "true"
+      },
+      "timeout": 30,
+      "autoApprove": [
+        "get_performance_metrics",
+        "clear_cache"
+      ],
+      "disabled": false,
+      "description": "Optimized MoodleClaude MCP Server with performance enhancements",
+      "version": "3.0.0"
+    },
+    "moodleclaude-legacy": {
+      "command": "python",
+      "args": [
+        "/Users/simonjanke/Projects/MoodleClaude/src/core/advanced_mcp_server.py"
+      ],
+      "env": {
+        "MOODLE_URL": "http://localhost:8080",
+        "MOODLE_TOKEN_BASIC": "your_basic_token_here",
+        "MOODLE_TOKEN_ENHANCED": "your_enhanced_token_here",
+        "MOODLE_USERNAME": "admin",
+        "SERVER_NAME": "advanced-moodle-mcp",
+        "LOG_LEVEL": "INFO"
+      },
+      "timeout": 60,
+      "disabled": true,
+      "description": "Legacy Advanced MCP Server (fallback option)"
+    }
+  },
+  "globalSettings": {
+    "logging": {
+      "level": "INFO",
+      "enableFileLogging": true,
+      "logDirectory": "/Users/simonjanke/Projects/MoodleClaude/logs"
+    },
+    "performance": {
+      "enableMetrics": true,
+      "metricsInterval": 300,
+      "enableHealthCheck": true
+    },
+    "security": {
+      "enableTokenRotation": false,
+      "tokenRotationInterval": 3600,
+      "enableRequestValidation": true
+    }
+  }
+}
