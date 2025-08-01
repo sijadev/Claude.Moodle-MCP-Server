@@ -73,8 +73,14 @@ def print_manual_instructions():
     """Print manual instructions for enabling web services"""
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
 
-    print(f"\n📋 MANUAL SETUP INSTRUCTIONS")
+    print(f"\n📋 SETUP INSTRUCTIONS")
     print(f"=" * 50)
+    print(f"🚀 RECOMMENDED: Use our custom web service creator!")
+    print(f"   Run: ./tools/setup/create_custom_webservice.sh")
+    print(f"   This automatically creates a dedicated MoodleClaude service")
+    print(f"   with all required functions - much easier than manual setup!")
+    print()
+    print(f"🔧 MANUAL ALTERNATIVE:")
     print(f"🌐 Access your Moodle admin panel: {moodle_url}/admin")
     print(f"👤 Login with admin credentials")
     print()
@@ -83,7 +89,7 @@ def print_manual_instructions():
     print("2. Click 'Overview' to see current status")
     print("3. Enable web services if not already enabled")
     print("4. Go to 'External services'")
-    print("5. Find or create a custom service")
+    print("5. Create a new service called 'MoodleClaude AI Web Service'")
     print("6. Add the following functions to your service:")
 
     functions = get_required_functions()
@@ -91,20 +97,29 @@ def print_manual_instructions():
         print(f"   {i:2d}. {func}")
 
     print()
-    print("7. Assign the service to your user or create a service user")
+    print("7. Create a service user with Manager role")
     print("8. Generate a new token for the service")
-    print("9. Update MOODLE_TOKEN in your .env file")
+    print("9. Update MOODLE_TOKEN_ENHANCED in your .env file")
     print()
     print("🛡️ Required user capabilities:")
     capabilities = [
         "moodle/course:manageactivities",
         "moodle/course:activityvisibility",
         "moodle/course:sectionvisibility",
+        "moodle/course:create",
+        "moodle/course:update",
         "moodle/site:config",
         "webservice/rest:use",
     ]
     for cap in capabilities:
         print(f"   • {cap}")
+
+    print()
+    print("💡 Why Custom Web Service?")
+    print("   • Solves 'external_functions' database errors")
+    print("   • Contains only needed functions")
+    print("   • Easier to manage and troubleshoot")
+    print("   • Better security with dedicated service user")
 
 
 def main():
