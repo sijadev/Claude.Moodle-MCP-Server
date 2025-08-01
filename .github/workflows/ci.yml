@@ -82,7 +82,7 @@ jobs:
         run: |
           echo "🔍 Validating project structure..."
           required_files=(
-            "setup_moodleclaude_v3_fixed.py"
+            "setup/setup_moodleclaude_v3_fixed.py"
             "tools/run_docker_test_suite_fixed.py"
             "src/core/working_mcp_server.py"
             "BUGFIX_DOCUMENTATION.md"
@@ -369,7 +369,7 @@ jobs:
       - name: Run deployment readiness check
         run: |
           echo "🚀 Checking deployment readiness..."
-          python setup_moodleclaude_v3_fixed.py --validate-only --production-check
+          python setup/setup_moodleclaude_v3_fixed.py --validate-only --production-check
 
       - name: Generate deployment report
         run: |

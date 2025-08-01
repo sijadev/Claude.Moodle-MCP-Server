@@ -64,7 +64,7 @@ jobs:
           echo "### 🛠️ Installation:" >> CHANGELOG.md
           echo "\`\`\`bash" >> CHANGELOG.md
           echo "# Complete new installation" >> CHANGELOG.md
-          echo "python setup_moodleclaude_v3_fixed.py" >> CHANGELOG.md
+          echo "python setup/setup_moodleclaude_v3_fixed.py" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "# Update existing installation" >> CHANGELOG.md
           echo "python tools/update_existing_setup.py" >> CHANGELOG.md
@@ -162,7 +162,7 @@ jobs:
           cp -r tools/ release-package/moodleclaude-${{ needs.create-release.outputs.version }}/
           cp -r config/ release-package/moodleclaude-${{ needs.create-release.outputs.version }}/
           cp -r operations/ release-package/moodleclaude-${{ needs.create-release.outputs.version }}/
-          cp setup_moodleclaude_v3_fixed.py release-package/moodleclaude-${{ needs.create-release.outputs.version }}/
+          cp setup/setup_moodleclaude_v3_fixed.py release-package/moodleclaude-${{ needs.create-release.outputs.version }}/
           cp BUGFIX_DOCUMENTATION.md release-package/moodleclaude-${{ needs.create-release.outputs.version }}/
           cp README.md release-package/moodleclaude-${{ needs.create-release.outputs.version }}/ 2>/dev/null || echo "README.md not found"
           cp requirements.txt release-package/moodleclaude-${{ needs.create-release.outputs.version }}/ 2>/dev/null || echo "requirements.txt not found"
@@ -185,7 +185,7 @@ jobs:
           
           # Run setup
           echo "🔧 Running MoodleClaude setup with bug fixes..."
-          python3 setup_moodleclaude_v3_fixed.py
+          python3 setup/setup_moodleclaude_v3_fixed.py
           
           echo "🎉 MoodleClaude installation completed!"
           echo "📋 Check the setup report for details"

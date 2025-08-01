@@ -89,7 +89,7 @@ jobs:
           
           # Check for changes in critical files
           breaking_files=(
-            "setup_moodleclaude_v3_fixed.py"
+            "setup/setup_moodleclaude_v3_fixed.py"
             "src/core/working_mcp_server.py" 
             "config/master_config.py"
           )
@@ -106,7 +106,7 @@ jobs:
           echo "🏗️ Validating file structure..."
           
           required_files=(
-            "setup_moodleclaude_v3_fixed.py"
+            "setup/setup_moodleclaude_v3_fixed.py"
             "tools/run_docker_test_suite_fixed.py"
             "src/core/working_mcp_server.py"
             "BUGFIX_DOCUMENTATION.md"
@@ -150,7 +150,7 @@ jobs:
       - name: Syntax check
         run: |
           echo "🔍 Running syntax checks..."
-          python -m py_compile setup_moodleclaude_v3_fixed.py
+          python -m py_compile setup/setup_moodleclaude_v3_fixed.py
           python -m py_compile tools/run_docker_test_suite_fixed.py
           python -m py_compile src/core/working_mcp_server.py
           echo "✅ Syntax check passed"
@@ -220,13 +220,13 @@ jobs:
           echo "🔧 Validating setup script..."
           
           # Check for bug fix integration
-          if grep -q "get_python_path" setup_moodleclaude_v3_fixed.py; then
+          if grep -q "get_python_path" setup/setup_moodleclaude_v3_fixed.py; then
             echo "✅ Python path fix integrated in setup"
           else
             echo "⚠️ Python path fix may be missing in setup"
           fi
           
-          if grep -q "bug.*fix" setup_moodleclaude_v3_fixed.py; then
+          if grep -q "bug.*fix" setup/setup_moodleclaude_v3_fixed.py; then
             echo "✅ Bug fixes referenced in setup"
           else
             echo "⚠️ Bug fixes may not be properly integrated"
