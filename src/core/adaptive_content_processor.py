@@ -337,7 +337,7 @@ class AdaptiveContentProcessor:
             Session ID for tracking
         """
         # Generate session ID and content hash
-        content_hash = hashlib.md5(content.encode()).hexdigest()
+        content_hash = hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
         session_id = f"session_{content_hash[:8]}_{int(datetime.now().timestamp())}"
 
         # Check if we already have a session for this content

@@ -1,10 +1,10 @@
 {
   "credentials": {
     "admin_user": "admin",
-    "admin_password": "MoodleClaude2025!",
+    "admin_password": "",
     "admin_email": "admin@moodleclaude.local",
     "ws_user": "wsuser",
-    "ws_password": "MoodleClaudeWS2025!",
+    "ws_password": "",
     "ws_email": "wsuser@moodleclaude.local",
     "db_host": "localhost",
     "db_port": 5432,
@@ -16,9 +16,9 @@
     "url": "http://localhost:8080",
     "enable_webservices": true,
     "webservice_protocols": "rest",
-    "admin_token": "bfef4e5ef1f77d5ad173407b1967d838",
+    "admin_token": "",
     "ws_token": "",
-    "plugin_token": "e14a2f11d2695415dd90688690b39328"
+    "plugin_token": ""
   },
   "server": {
     "name": "robust-moodle-course-creator",

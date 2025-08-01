@@ -23,12 +23,12 @@ class MoodleCredentials:
     """Centralized Moodle credentials"""
 
     admin_user: str = "admin"
-    admin_password: str = "MoodleClaude2025!"
+    admin_password: str = os.environ.get("MOODLE_ADMIN_PASSWORD", "changeme123!")
     admin_email: str = "admin@moodleclaude.local"
 
     # Web Service User
     ws_user: str = "wsuser"
-    ws_password: str = "MoodleClaudeWS2025!"
+    ws_password: str = os.environ.get("MOODLE_WS_PASSWORD", "changeme456!")
     ws_email: str = "wsuser@moodleclaude.local"
 
     # Database

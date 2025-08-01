@@ -217,6 +217,11 @@ moodle_token.txt
 .env.production
 .env.development
 
+# Sensitive config files with credentials
+config/moodle_tokens.env
+config/moodle_tokens_current.env*
+config/*.backup.*
+
 # MoodleClaude testing environment
 venv_e2e/
 test_connectivity.py

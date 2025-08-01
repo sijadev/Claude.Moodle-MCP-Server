@@ -343,8 +343,10 @@ class TestDataStorage:
                 return None
 
             # Return cached object
+            # TODO: Replace pickle with json/safer serialization for production use
+            # This is only used for internal test data caching
             with open(cache_file, "rb") as f:
-                return pickle.load(f)
+                return pickle.load(f)  # nosec B301 - internal test data only
 
         except Exception as e:
             self.logger.error(f"Failed to retrieve cached object: {e}")
