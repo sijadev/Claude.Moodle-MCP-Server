@@ -413,18 +413,49 @@ class DockerTestSuiteRunnerFixed:
             return False
 
     def apply_moodle_bug_fixes(self) -> bool:
-        """Apply Moodle-specific bug fixes to test environment"""
-        logger.info("🔧 Applying Moodle bug fixes to test environment...")
+        """Apply Moodle-specific bug fixes to test environment using new custom web service"""
+        logger.info(
+            "🔧 Setting up MoodleClaude custom web service in test environment..."
+        )
 
-        # Create web service setup script for test environment
-        setup_script = """<?php
-// MoodleClaude Web Service Setup Script for Test Environment
+        # Use our new comprehensive custom web service setup script
+        setup_script_path = (
+            self.project_root / "tools/setup/create_moodleclaude_webservice.php"
+        )
+
+        if not setup_script_path.exists():
+            logger.error(f"Custom web service script not found: {setup_script_path}")
+            self.log_phase(
+                "moodle_bugfixes", False, "Custom web service setup script missing"
+            )
+            return False
+
+        # Read the complete custom web service script
+        try:
+            with open(setup_script_path, "r") as f:
+                setup_script = f.read()
+
+            # Modify the script slightly for container execution
+            setup_script = setup_script.replace(
+                "require_once(__DIR__ . '/../../config.php')",
+                "// Container execution - config already loaded",
+            ).replace(
+                "require_once('/bitnami/moodle/config.php');",
+                "require_once('/bitnami/moodle/config.php');",
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to read custom web service script: {e}")
+
+            # Fallback to inline script with essential functions
+            setup_script = """<?php
+// MoodleClaude Custom Web Service Setup for Test Environment (Fallback)
 define('CLI_SCRIPT', true);
 require_once('/bitnami/moodle/config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
-echo "🚀 MoodleClaude Test Environment Setup\\n";
-echo "====================================\\n";
+echo "🚀 MoodleClaude Test Environment Setup (Custom Web Service)\\n";
+echo "=========================================================\\n";
 
 try {
     // Enable web services
@@ -433,59 +464,130 @@ try {
     
     // Enable REST protocol
     echo "🔌 Enabling REST protocol...\\n";
-    $protocols = explode(',', get_config('core', 'webserviceprotocols'));
-    if (!in_array('rest', $protocols)) {
-        $protocols[] = 'rest';
-        set_config('webserviceprotocols', implode(',', $protocols));
+    $protocols = get_config('core', 'webserviceprotocols');
+    if (empty($protocols)) {
+        $protocols = 'rest';
+    } else {
+        $protocols_array = explode(',', $protocols);
+        if (!in_array('rest', $protocols_array)) {
+            $protocols_array[] = 'rest';
+            $protocols = implode(',', $protocols_array);
+        }
+    }
+    set_config('webserviceprotocols', $protocols);
+    
+    // Create/update MoodleClaude custom web service  
+    echo "⚙️  Creating MoodleClaude custom web service...\\n";
+    $service_shortname = 'moodleclaude_service';
+    $existing_service = $DB->get_record('external_services', array('shortname' => $service_shortname));
+    
+    if ($existing_service) {
+        echo "📝 Updating existing MoodleClaude service\\n";
+        $service = $existing_service;
+        $service->name = 'MoodleClaude AI Web Service (Test)';
+        $service->enabled = 1;
+        $service->restrictedusers = 0;
+        $service->downloadfiles = 1;
+        $service->uploadfiles = 1;
+        $service->timemodified = time();
+        $DB->update_record('external_services', $service);
+    } else {
+        echo "🆕 Creating new MoodleClaude service\\n";
+        $service = new stdClass();
+        $service->name = 'MoodleClaude AI Web Service (Test)';
+        $service->shortname = $service_shortname;
+        $service->component = 'core';
+        $service->timecreated = time();
+        $service->timemodified = time();
+        $service->enabled = 1;
+        $service->restrictedusers = 0;
+        $service->downloadfiles = 1;
+        $service->uploadfiles = 1;
+        $service->id = $DB->insert_record('external_services', $service);
     }
     
-    // Create MoodleClaude web service
-    echo "⚙️  Setting up MoodleClaude web service...\\n";
-    $webservice = $DB->get_record('external_services', array('shortname' => 'moodleclaude_ws'));
-    
-    if (!$webservice) {
-        $webservice = new stdClass();
-        $webservice->name = 'MoodleClaude Test Web Service';
-        $webservice->shortname = 'moodleclaude_ws';
-        $webservice->component = 'core';
-        $webservice->timecreated = time();
-        $webservice->timemodified = time();
-        $webservice->enabled = 1;
-        $webservice->restrictedusers = 0;
-        $webservice->downloadfiles = 1;
-        $webservice->uploadfiles = 1;
-        $webservice->id = $DB->insert_record('external_services', $webservice);
-        echo "✅ Created MoodleClaude web service\\n";
-    }
-    
-    // Add functions to web service
-    echo "🔧 Adding functions to web service...\\n";
-    $functions = [
+    // Add comprehensive function list - all functions MoodleClaude needs
+    echo "🔧 Adding comprehensive function set...\\n";
+    $required_functions = [
+        // Core essential functions
         'core_webservice_get_site_info',
         'core_course_get_courses',
         'core_course_create_courses',
-        'core_course_delete_courses',
+        'core_course_delete_courses', 
         'core_course_get_contents',
+        'core_course_get_categories',
+        'core_course_update_courses',
+        
+        // Module/Activity creation - KEY FUNCTIONS
+        'core_course_create_modules',
+        'core_course_delete_modules',
+        'core_course_get_course_modules',
+        
+        // Section management  
+        'core_course_edit_section',
+        
+        // User management
         'core_user_get_users',
         'core_user_create_users',
         'core_enrol_get_enrolled_users',
-        'core_course_get_categories'
+        'core_enrol_get_users_courses',
+        
+        // File management
+        'core_files_upload',
+        'core_files_get_files',
+        
+        // Assignment specific (if available)
+        'mod_assign_get_assignments',
+        'mod_assign_get_submissions',
+        
+        // Forum specific (if available)  
+        'mod_forum_get_forums_by_courses',
+        'mod_forum_get_forum_discussions',
+        
+        // Course completion
+        'core_completion_get_course_completion_status',
+        
+        // Grades
+        'core_grades_get_grades',
+        'gradereport_user_get_grade_items',
     ];
     
-    foreach ($functions as $function) {
-        $exists = $DB->get_record('external_services_functions', [
-            'externalserviceid' => $webservice->id,
-            'functionname' => $function
+    $added_count = 0;
+    $skipped_count = 0;
+    $missing_count = 0;
+
+    foreach ($required_functions as $function_name) {
+        // Check if function exists in Moodle
+        $function_exists = $DB->get_record('external_functions', array('name' => $function_name));
+        
+        if (!$function_exists) {
+            echo "⚠️  Function not available: {$function_name}\\n";
+            $missing_count++;
+            continue;
+        }
+        
+        // Check if already added to service
+        $service_function_exists = $DB->get_record('external_services_functions', [
+            'externalserviceid' => $service->id,
+            'functionname' => $function_name
         ]);
         
-        if (!$exists) {
-            $service_function = new stdClass();
-            $service_function->externalserviceid = $webservice->id;
-            $service_function->functionname = $function;
-            $DB->insert_record('external_services_functions', $service_function);
-            echo "  ✅ Added function: $function\\n";
+        if ($service_function_exists) {
+            $skipped_count++;
+            continue;
         }
+        
+        // Add function to service
+        $service_function = new stdClass();
+        $service_function->externalserviceid = $service->id;
+        $service_function->functionname = $function_name;
+        $DB->insert_record('external_services_functions', $service_function);
+        
+        echo "✅ Added: {$function_name}\\n";
+        $added_count++;
     }
+    
+    echo "📊 Function Summary: Added: {$added_count}, Skipped: {$skipped_count}, Missing: {$missing_count}\\n";
     
     // Fix permissions and roles
     echo "🔐 Setting up permissions...\\n";
@@ -540,20 +642,66 @@ try {
         }
     }
     
-    // Reassign tokens to MoodleClaude service
-    echo "🔄 Reassigning tokens...\\n";
-    $mobile_service = $DB->get_record('external_services', array('shortname' => 'moodle_mobile_app'));
+    // Create/update service user and token for testing
+    echo "👤 Setting up service user and token...\\n";
+    $service_user = $DB->get_record('user', array('username' => 'moodleclaude_test'));
     
-    if ($mobile_service && $webservice) {
-        $tokens = $DB->get_records('external_tokens', ['externalserviceid' => $mobile_service->id]);
-        foreach ($tokens as $token) {
-            $token->externalserviceid = $webservice->id;
-            $DB->update_record('external_tokens', $token);
-            echo "✅ Reassigned token to MoodleClaude service\\n";
+    if (!$service_user) {
+        echo "🆕 Creating MoodleClaude test service user\\n";
+        $service_user = new stdClass();
+        $service_user->username = 'moodleclaude_test';
+        $service_user->password = hash_internal_user_password('MoodleClaude_Test_' . time() . '!');
+        $service_user->firstname = 'MoodleClaude';
+        $service_user->lastname = 'Test Service';
+        $service_user->email = 'moodleclaude-test@example.com';
+        $service_user->confirmed = 1;
+        $service_user->mnethostid = $CFG->mnet_localhost_id;
+        $service_user->timecreated = time();
+        $service_user->timemodified = time();
+        $service_user->id = $DB->insert_record('user', $service_user);
+    }
+    
+    // Assign Manager role to test service user
+    if ($manager_role && $service_user) {
+        $existing_assignment = $DB->get_record('role_assignments', [
+            'roleid' => $manager_role->id,
+            'userid' => $service_user->id,
+            'contextid' => $context_system->id
+        ]);
+        
+        if (!$existing_assignment) {
+            $role_assignment = new stdClass();
+            $role_assignment->roleid = $manager_role->id;
+            $role_assignment->contextid = $context_system->id;
+            $role_assignment->userid = $service_user->id;
+            $role_assignment->timemodified = time();
+            $role_assignment->modifierid = 2;
+            $role_assignment->component = '';
+            $role_assignment->itemid = 0;
+            $role_assignment->sortorder = 0;
+            $DB->insert_record('role_assignments', $role_assignment);
+            echo "✅ Assigned Manager role to test service user\\n";
         }
     }
     
-    echo "\\n🎯 Test environment setup complete!\\n";
+    // Create or update token for test service
+    $existing_token = $DB->get_record('external_tokens', [
+        'userid' => $service_user->id,
+        'externalserviceid' => $service->id
+    ]);
+    
+    if ($existing_token) {
+        echo "🔑 Using existing test token\\n";
+    } else {
+        echo "🆕 Creating new test token\\n";
+        $token = external_generate_token(EXTERNAL_TOKEN_PERMANENT, $service->id, $service_user->id, $context_system);
+        echo "🔑 Test token created for service\\n";
+    }
+    
+    echo "\\n🎯 MoodleClaude Custom Web Service Test Setup Complete!\\n";
+    echo "Service ID: {$service->id}\\n";
+    echo "Functions Added: {$added_count}\\n";
+    echo "Service User: {$service_user->username}\\n";
     
 } catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage() . "\\n";
@@ -581,13 +729,18 @@ try {
 
                 if run_result.returncode == 0:
                     self.log_phase(
-                        "moodle_bugfixes", True, "Moodle bug fixes applied successfully"
+                        "moodle_bugfixes",
+                        True,
+                        "MoodleClaude custom web service applied successfully",
                     )
                     self.test_results["bug_fixes_applied"].extend(
                         [
-                            "web_service_configuration",
+                            "custom_web_service_creation",
+                            "comprehensive_function_set",
+                            "service_user_with_manager_role",
                             "token_permissions",
                             "course_creation_capability",
+                            "core_course_create_modules_enabled",
                         ]
                     )
                     return True
