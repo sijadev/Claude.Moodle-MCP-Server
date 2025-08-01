@@ -29,3 +29,30 @@ dev = [
     "isort>=6.0.1",
     "mypy>=1.17.0",
 ]
+
+[tool.isort]
+profile = "black"
+skip_glob = [
+    ".venv/*",
+    "venv/*",
+    "__pycache__/*",
+    ".git/*",
+    "archive/*",
+    "*.git",
+    ".pytest_cache/*"
+]
+known_first_party = ["core", "clients", "models"]
+known_third_party = ["aiohttp", "aiosqlite", "markdown", "mcp", "pygments", "pytest", "requests", "dotenv"]
+
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    \.venv
+  | venv
+  | __pycache__
+  | \.git
+  | archive
+  | \.pytest_cache
+)/
+'''
