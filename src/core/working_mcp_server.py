@@ -362,6 +362,11 @@ async def handle_list_tools() -> List[types.Tool]:
                 "required": ["course_id", "name", "intro"],
             },
         ),
+        types.Tool(
+            name="diagnose_webservices",
+            description="Diagnose available web service functions and configuration",
+            inputSchema={"type": "object", "properties": {}},
+        ),
     ]
 
 
@@ -387,6 +392,8 @@ async def handle_call_tool(
             return await handle_create_assignment(arguments)
         elif name == "create_forum":
             return await handle_create_forum(arguments)
+        elif name == "diagnose_webservices":
+            return await handle_diagnose_webservices(arguments)
         else:
             raise ValueError(f"Unknown tool: {name}")
 
@@ -649,39 +656,97 @@ async def handle_add_course_module(
 
         client = await get_moodle_client(use_enhanced=True)
 
-        # Create module using core_course_create_modules
-        module_data = {
-            "courseid": course_id,
-            "section": section,
-            "modulename": module_name,
-            "name": name,
-            "intro": intro,
-            "introformat": 1,  # HTML format
-            "visible": 1 if visible else 0,
-        }
+        # Try primary method: core_course_create_modules
+        try:
+            module_data = {
+                "courseid": course_id,
+                "section": section,
+                "modulename": module_name,
+                "name": name,
+                "intro": intro,
+                "introformat": 1,  # HTML format
+                "visible": 1 if visible else 0,
+            }
 
-        result = await client.call_webservice(
-            "core_course_create_modules", modules=[module_data]
-        )
+            result = await client.call_webservice(
+                "core_course_create_modules", modules=[module_data]
+            )
 
-        if result and len(result) > 0:
-            module_id = result[0].get("coursemodule")
+            if result and len(result) > 0:
+                module_id = result[0].get("coursemodule")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"✅ Course module added successfully!\n"
+                        f"Module ID: {module_id}\n"
+                        f"Type: {module_name}\n"
+                        f"Name: {name}\n"
+                        f"Course ID: {course_id}\n"
+                        f"Section: {section}",
+                    )
+                ]
+            else:
+                raise Exception("No result returned from core_course_create_modules")
 
+        except Exception as primary_error:
+            # Fallback: Add content to course summary or description
+            logger.warning(f"Primary module creation failed: {primary_error}")
+
+            # Get course info to append module info to description
+            try:
+                course_info = await client.call_webservice(
+                    "core_course_get_courses", options={"ids": [course_id]}
+                )
+
+                if course_info and len(course_info) > 0:
+                    current_summary = course_info[0].get("summary", "")
+
+                    # Append module information to course summary as fallback
+                    new_content = f"\n\n**{module_name.upper()}: {name}**\n{intro}\n(Section {section})"
+                    updated_summary = current_summary + new_content
+
+                    # Try to update course summary
+                    update_result = await client.call_webservice(
+                        "core_course_update_courses",
+                        courses=[
+                            {
+                                "id": course_id,
+                                "summary": updated_summary,
+                                "summaryformat": 1,
+                            }
+                        ],
+                    )
+
+                    return [
+                        types.TextContent(
+                            type="text",
+                            text=f"⚠️ Module creation via web service failed.\n"
+                            f"📝 Added {module_name} '{name}' to course description as fallback.\n"
+                            f"Course ID: {course_id}\n"
+                            f"Section: {section}\n\n"
+                            f"💡 To enable full module creation, configure:\n"
+                            f"• Site Administration → Server → Web services → External services\n"
+                            f"• Add 'core_course_create_modules' to your web service\n"
+                            f"• Original error: {primary_error}",
+                        )
+                    ]
+
+            except Exception as fallback_error:
+                logger.error(f"Fallback method also failed: {fallback_error}")
+
+            # If all methods fail, provide helpful error message
             return [
                 types.TextContent(
                     type="text",
-                    text=f"✅ Course module added successfully!\n"
-                    f"Module ID: {module_id}\n"
-                    f"Type: {module_name}\n"
-                    f"Name: {name}\n"
-                    f"Course ID: {course_id}\n"
-                    f"Section: {section}",
-                )
-            ]
-        else:
-            return [
-                types.TextContent(
-                    type="text", text="❌ Module creation failed: No result returned"
+                    text=f"❌ Failed to add module: {primary_error}\n\n"
+                    f"🔧 **SOLUTION REQUIRED:**\n"
+                    f"1. Go to: Site Administration → Server → Web services → External services\n"
+                    f"2. Find your MoodleClaude web service\n"
+                    f"3. Add these functions:\n"
+                    f"   • core_course_create_modules\n"
+                    f"   • core_course_update_courses\n"
+                    f"4. Save and try again\n\n"
+                    f"Module details: {module_name} '{name}' in course {course_id}, section {section}",
                 )
             ]
 
@@ -706,53 +771,102 @@ async def handle_create_assignment(
 
         client = await get_moodle_client(use_enhanced=True)
 
-        # Create assignment using mod_assign_save_assignment
-        assignment_data = {
-            "courseid": course_id,
-            "section": section,
-            "name": name,
-            "intro": intro,
-            "introformat": 1,  # HTML format
-            "duedate": duedate,
-            "allowsubmissionsfromdate": allowsubmissionsfromdate,
-            "grade": grade,
-            "visible": 1,
-        }
+        # Try primary method: core_course_create_modules with assignment module
+        try:
+            assignment_module = {
+                "courseid": course_id,
+                "section": section,
+                "modulename": "assign",
+                "name": name,
+                "intro": intro,
+                "introformat": 1,
+                "visible": 1,
+            }
 
-        # Use generic module creation for assignments
-        assignment_module = {
-            "courseid": course_id,
-            "section": section,
-            "modulename": "assign",
-            "name": name,
-            "intro": intro,
-            "introformat": 1,
-            "visible": 1,
-        }
+            result = await client.call_webservice(
+                "core_course_create_modules", modules=[assignment_module]
+            )
 
-        result = await client.call_webservice(
-            "core_course_create_modules", modules=[assignment_module]
-        )
+            if result and len(result) > 0:
+                module_id = result[0].get("coursemodule")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"✅ Assignment created successfully!\n"
+                        f"Assignment ID: {module_id}\n"
+                        f"Name: {name}\n"
+                        f"Course ID: {course_id}\n"
+                        f"Section: {section}\n"
+                        f"Max Grade: {grade}",
+                    )
+                ]
+            else:
+                raise Exception("No result returned from core_course_create_modules")
 
-        if result and len(result) > 0:
-            module_id = result[0].get("coursemodule")
+        except Exception as primary_error:
+            # Fallback: Add assignment info to course summary
+            logger.warning(f"Primary assignment creation failed: {primary_error}")
 
-            return [
-                types.TextContent(
-                    type="text",
-                    text=f"✅ Assignment created successfully!\n"
-                    f"Assignment ID: {module_id}\n"
-                    f"Name: {name}\n"
-                    f"Course ID: {course_id}\n"
-                    f"Section: {section}\n"
-                    f"Max Grade: {grade}",
+            try:
+                course_info = await client.call_webservice(
+                    "core_course_get_courses", options={"ids": [course_id]}
                 )
-            ]
-        else:
+
+                if course_info and len(course_info) > 0:
+                    current_summary = course_info[0].get("summary", "")
+
+                    # Format assignment details for course summary
+                    due_info = f" (Due: {duedate})" if duedate > 0 else ""
+                    assignment_content = (
+                        f"\n\n**ASSIGNMENT: {name}**{due_info}\n"
+                        f"{intro}\n"
+                        f"Max Grade: {grade} points\n"
+                        f"Section: {section}"
+                    )
+                    updated_summary = current_summary + assignment_content
+
+                    await client.call_webservice(
+                        "core_course_update_courses",
+                        courses=[
+                            {
+                                "id": course_id,
+                                "summary": updated_summary,
+                                "summaryformat": 1,
+                            }
+                        ],
+                    )
+
+                    return [
+                        types.TextContent(
+                            type="text",
+                            text=f"⚠️ Assignment web service creation failed.\n"
+                            f"📝 Added assignment '{name}' to course description as fallback.\n"
+                            f"Course ID: {course_id}\n"
+                            f"Section: {section}\n"
+                            f"Max Grade: {grade}\n\n"
+                            f"💡 To enable full assignment creation, configure:\n"
+                            f"• Site Administration → Server → Web services → External services\n"
+                            f"• Add 'core_course_create_modules' to your web service\n"
+                            f"• Original error: {primary_error}",
+                        )
+                    ]
+
+            except Exception as fallback_error:
+                logger.error(f"Assignment fallback failed: {fallback_error}")
+
+            # Final error message with solution
             return [
                 types.TextContent(
                     type="text",
-                    text="❌ Assignment creation failed: No result returned",
+                    text=f"❌ Failed to create assignment: {primary_error}\n\n"
+                    f"🔧 **SOLUTION REQUIRED:**\n"
+                    f"1. Go to: Site Administration → Server → Web services → External services\n"
+                    f"2. Find your MoodleClaude web service\n"
+                    f"3. Add these functions:\n"
+                    f"   • core_course_create_modules\n"
+                    f"   • core_course_update_courses\n"
+                    f"4. Save and try again\n\n"
+                    f"Assignment: '{name}' in course {course_id}, section {section}, grade {grade}",
                 )
             ]
 
@@ -777,39 +891,100 @@ async def handle_create_forum(
 
         client = await get_moodle_client(use_enhanced=True)
 
-        # Create forum using generic module creation
-        forum_module = {
-            "courseid": course_id,
-            "section": section,
-            "modulename": "forum",
-            "name": name,
-            "intro": intro,
-            "introformat": 1,
-            "visible": 1,
-        }
+        # Try primary method: core_course_create_modules with forum module
+        try:
+            forum_module = {
+                "courseid": course_id,
+                "section": section,
+                "modulename": "forum",
+                "name": name,
+                "intro": intro,
+                "introformat": 1,
+                "visible": 1,
+            }
 
-        result = await client.call_webservice(
-            "core_course_create_modules", modules=[forum_module]
-        )
+            result = await client.call_webservice(
+                "core_course_create_modules", modules=[forum_module]
+            )
 
-        if result and len(result) > 0:
-            module_id = result[0].get("coursemodule")
+            if result and len(result) > 0:
+                module_id = result[0].get("coursemodule")
+                return [
+                    types.TextContent(
+                        type="text",
+                        text=f"✅ Forum created successfully!\n"
+                        f"Forum ID: {module_id}\n"
+                        f"Name: {name}\n"
+                        f"Type: {forum_type}\n"
+                        f"Course ID: {course_id}\n"
+                        f"Section: {section}",
+                    )
+                ]
+            else:
+                raise Exception("No result returned from core_course_create_modules")
 
+        except Exception as primary_error:
+            # Fallback: Add forum info to course summary
+            logger.warning(f"Primary forum creation failed: {primary_error}")
+
+            try:
+                course_info = await client.call_webservice(
+                    "core_course_get_courses", options={"ids": [course_id]}
+                )
+
+                if course_info and len(course_info) > 0:
+                    current_summary = course_info[0].get("summary", "")
+
+                    # Format forum details for course summary
+                    forum_content = (
+                        f"\n\n**FORUM: {name}** ({forum_type})\n"
+                        f"{intro}\n"
+                        f"Section: {section}"
+                    )
+                    updated_summary = current_summary + forum_content
+
+                    await client.call_webservice(
+                        "core_course_update_courses",
+                        courses=[
+                            {
+                                "id": course_id,
+                                "summary": updated_summary,
+                                "summaryformat": 1,
+                            }
+                        ],
+                    )
+
+                    return [
+                        types.TextContent(
+                            type="text",
+                            text=f"⚠️ Forum web service creation failed.\n"
+                            f"📝 Added forum '{name}' to course description as fallback.\n"
+                            f"Course ID: {course_id}\n"
+                            f"Section: {section}\n"
+                            f"Type: {forum_type}\n\n"
+                            f"💡 To enable full forum creation, configure:\n"
+                            f"• Site Administration → Server → Web services → External services\n"
+                            f"• Add 'core_course_create_modules' to your web service\n"
+                            f"• Original error: {primary_error}",
+                        )
+                    ]
+
+            except Exception as fallback_error:
+                logger.error(f"Forum fallback failed: {fallback_error}")
+
+            # Final error message with solution
             return [
                 types.TextContent(
                     type="text",
-                    text=f"✅ Forum created successfully!\n"
-                    f"Forum ID: {module_id}\n"
-                    f"Name: {name}\n"
-                    f"Type: {forum_type}\n"
-                    f"Course ID: {course_id}\n"
-                    f"Section: {section}",
-                )
-            ]
-        else:
-            return [
-                types.TextContent(
-                    type="text", text="❌ Forum creation failed: No result returned"
+                    text=f"❌ Failed to create forum: {primary_error}\n\n"
+                    f"🔧 **SOLUTION REQUIRED:**\n"
+                    f"1. Go to: Site Administration → Server → Web services → External services\n"
+                    f"2. Find your MoodleClaude web service\n"
+                    f"3. Add these functions:\n"
+                    f"   • core_course_create_modules\n"
+                    f"   • core_course_update_courses\n"
+                    f"4. Save and try again\n\n"
+                    f"Forum: '{name}' ({forum_type}) in course {course_id}, section {section}",
                 )
             ]
 
@@ -817,6 +992,95 @@ async def handle_create_forum(
         return [
             types.TextContent(type="text", text=f"❌ Failed to create forum: {str(e)}")
         ]
+
+
+async def handle_diagnose_webservices(
+    arguments: Dict[str, Any],
+) -> List[types.TextContent]:
+    """Diagnose available web service functions and configuration."""
+    try:
+        client = await get_moodle_client(use_enhanced=True)
+
+        # Get site info and available functions
+        site_info = await client.call_webservice("core_webservice_get_site_info")
+
+        # Extract available functions
+        functions = site_info.get("functions", [])
+        available_functions = [func.get("name", "") for func in functions]
+
+        # Check for required functions
+        required_functions = [
+            "core_course_create_modules",
+            "core_course_update_courses",
+            "local_wsmanagesections_create_sections",
+            "local_wsmanagesections_update_sections",
+            "core_course_get_courses",
+            "core_course_create_courses",
+        ]
+
+        # Check availability
+        function_status = {}
+        for func in required_functions:
+            function_status[func] = (
+                "✅ Available" if func in available_functions else "❌ Missing"
+            )
+
+        # Build diagnostic report
+        report = f"🔍 **MOODLE WEB SERVICE DIAGNOSTIC REPORT**\n\n"
+        report += f"**Site Information:**\n"
+        report += f"• Site Name: {site_info.get('sitename', 'Unknown')}\n"
+        report += f"• Version: {site_info.get('release', 'Unknown')}\n"
+        report += f"• User: {site_info.get('username', 'Unknown')}\n"
+        report += f"• Total Functions Available: {len(available_functions)}\n\n"
+
+        report += f"**Required Function Status:**\n"
+        for func, status in function_status.items():
+            report += f"• {func}: {status}\n"
+
+        # Count missing functions
+        missing_functions = [
+            func for func, status in function_status.items() if "Missing" in status
+        ]
+
+        if missing_functions:
+            report += f"\n❌ **{len(missing_functions)} FUNCTIONS MISSING**\n\n"
+            report += f"**🔧 CONFIGURATION REQUIRED:**\n"
+            report += f"1. Go to: Site Administration → Server → Web services → External services\n"
+            report += f"2. Find or create your MoodleClaude web service\n"
+            report += f"3. Add these missing functions:\n"
+            for func in missing_functions:
+                report += f"   • {func}\n"
+            report += f"4. Save configuration\n"
+            report += f"5. Test again with this diagnostic tool\n\n"
+        else:
+            report += f"\n✅ **ALL REQUIRED FUNCTIONS AVAILABLE**\n"
+            report += (
+                f"Your Moodle installation is properly configured for MoodleClaude!\n\n"
+            )
+
+        # Add troubleshooting section
+        report += f"**🛠️ TROUBLESHOOTING:**\n"
+        report += f"• If functions are missing, check web service configuration\n"
+        report += f"• Ensure your user has 'webservice/rest:use' capability\n"
+        report += f"• For section management, install local_wsmanagesections plugin\n"
+        report += f"• Test basic functions like 'get_courses' first\n"
+
+        return [types.TextContent(type="text", text=report)]
+
+    except Exception as e:
+        error_report = f"❌ **DIAGNOSTIC FAILED**\n\n"
+        error_report += f"Error: {str(e)}\n\n"
+        error_report += f"**Possible Issues:**\n"
+        error_report += f"• Web services not enabled\n"
+        error_report += f"• Invalid token or credentials\n"
+        error_report += f"• Network connectivity issues\n"
+        error_report += f"• Moodle site not accessible\n\n"
+        error_report += f"**Basic Checks:**\n"
+        error_report += f"1. Verify MOODLE_URL is correct\n"
+        error_report += f"2. Check MOODLE_TOKEN_ENHANCED is valid\n"
+        error_report += f"3. Test 'test_connection' tool first\n"
+
+        return [types.TextContent(type="text", text=error_report)]
 
 
 async def cleanup():
