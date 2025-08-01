@@ -66,13 +66,13 @@ class OptimizedMoodleSetup:
             if capture_output:
                 result = subprocess.run(
                     cmd,
-                    shell=True,
+                    shell=True,  # nosec B602 - admin setup script with controlled input
                     capture_output=True,
                     text=True,
                     cwd=self.project_root,
                 )
             else:
-                result = subprocess.run(cmd, shell=True, cwd=self.project_root)
+                result = subprocess.run(cmd, shell=True, cwd=self.project_root)  # nosec B602 - admin setup script
 
             if result.returncode == 0:
                 self.log_step(f"Success: {description}")
@@ -289,7 +289,7 @@ class OptimizedMoodleSetup:
 
         result = subprocess.run(
             f'docker exec moodle_app bash -c "{token_script}"',
-            shell=True,
+            shell=True,  # nosec B602 - admin setup script with controlled input
             capture_output=True,
             text=True,
         )
