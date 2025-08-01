@@ -234,6 +234,62 @@ class AdaptiveContentProcessor:
         
         return analysis
     
+    def _analyze_content_complexity_sync(self, content: str) -> Dict[str, Any]:
+        """
+        Synchronous fallback for content analysis when async is not available
+        """
+        analysis = {
+            'content_length': len(content),
+            'estimated_sections': 0,
+            'code_blocks': 0,
+            'topics': 0,
+            'complexity_score': 0.0,
+            'recommended_strategy': ProcessingStrategy.SINGLE_PASS,
+            'estimated_chunks': 1,
+            'processing_time_estimate': 30
+        }
+        
+        try:
+            # Simple regex-based analysis for fallback
+            import re
+            
+            # Count code blocks
+            code_blocks = len(re.findall(r'```[\s\S]*?```', content))
+            analysis['code_blocks'] = code_blocks
+            
+            # Count sections (lines starting with # or ##)
+            sections = len(re.findall(r'^#+\s+', content, re.MULTILINE))
+            analysis['estimated_sections'] = sections
+            
+            # Estimate topics based on structure
+            analysis['topics'] = max(sections, len(re.findall(r'\*\*[^*]+\*\*', content)))
+            
+            # Calculate complexity score
+            length_factor = min(analysis['content_length'] / 10000, 1.0)
+            structure_factor = min((analysis['estimated_sections'] + analysis['code_blocks']) / 20, 1.0)
+            analysis['complexity_score'] = (length_factor + structure_factor) / 2
+            
+            # Determine strategy
+            if analysis['content_length'] > self.content_limits.max_char_length:
+                analysis['recommended_strategy'] = ProcessingStrategy.INTELLIGENT_CHUNK
+                analysis['estimated_chunks'] = max(2, analysis['content_length'] // self.content_limits.max_char_length + 1)
+            elif analysis['complexity_score'] > 0.4:
+                analysis['recommended_strategy'] = ProcessingStrategy.INTELLIGENT_CHUNK
+                analysis['estimated_chunks'] = 2
+                
+            logger.info(f"Sync content analysis: {analysis['content_length']} chars, "
+                       f"complexity: {analysis['complexity_score']:.2f}, "
+                       f"strategy: {analysis['recommended_strategy'].value}")
+                       
+        except Exception as e:
+            logger.error(f"Error in sync content analysis: {e}")
+            # Ultra-safe fallback
+            if analysis['content_length'] > 8000:
+                analysis['recommended_strategy'] = ProcessingStrategy.INTELLIGENT_CHUNK
+                analysis['estimated_chunks'] = 3
+                
+        return analysis
+    
     def create_session(self, content: str, course_name: str = "") -> str:
         """
         Create a new processing session
@@ -256,7 +312,19 @@ class AdaptiveContentProcessor:
             return existing_session.session_id
         
         # Analyze content to determine strategy
-        analysis = asyncio.run(self.analyze_content_complexity(content))
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # We're already in an event loop, use create_task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self.analyze_content_complexity(content))
+                    analysis = future.result()
+            else:
+                analysis = asyncio.run(self.analyze_content_complexity(content))
+        except RuntimeError:
+            # Fallback: run synchronously
+            analysis = self._analyze_content_complexity_sync(content)
         
         # Create new session
         session = ProcessingSession(

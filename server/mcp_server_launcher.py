@@ -19,7 +19,9 @@ def setup_logging():
 
 def setup_python_path():
     """Setup Python path for module imports"""
-    project_root = os.path.dirname(os.path.abspath(__file__))
+    # Get the actual project root (parent of server directory)
+    server_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(server_dir)
     
     # Add project root to Python path if not already there
     if project_root not in sys.path:

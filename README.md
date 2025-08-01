@@ -78,6 +78,90 @@ pytest tests/unit/
 pytest tests/integration/
 ```
 
+## 📊 System Diagrams
+
+### 🔄 v3.0 Setup Workflow
+
+```mermaid
+flowchart TD
+    A[🚀 python tools/setup/setup_fresh_moodle_v2.py --quick-setup] --> B[🎯 Generate Unified Config]
+    B --> C[🧹 Docker Cleanup]
+    C --> D[🐳 Start Fresh Containers]
+    D --> E[⏳ Wait for Moodle Ready]
+    E --> F[👤 Setup Admin User]
+    F --> G[🌐 Enable Webservices]
+    G --> H[🔌 Install MoodleClaude Plugin]
+    H --> I[🔧 Create WebService User]
+    I --> J[🎫 Generate API Tokens]
+    J --> K[🔧 Fix MCP Server Paths]
+    K --> L[🖥️ Update Claude Desktop Config]
+    L --> M[🧪 Run 7-Stage Validation]
+    M --> N{All Tests Pass?}
+    N -->|✅ Yes| O[💾 Create Default Backup]
+    N -->|❌ No| P[⚠️ Show Issues & Continue]
+    P --> O
+    O --> Q[🎉 Installation Complete!]
+    
+    style A fill:#e1f5fe
+    style Q fill:#e8f5e8
+    style N fill:#fff3e0
+    style P fill:#ffebee
+    style O fill:#f3e5f5
+```
+
+### 🔗 MCP Server & Claude Desktop Communication
+
+```mermaid
+sequenceDiagram
+    participant CD as 🖥️ Claude Desktop
+    participant MCP as 🔧 MCP Server Launcher
+    participant Server as 🚀 Robust MCP Server
+    participant Moodle as 🎓 Moodle Instance
+    participant DB as 🗄️ PostgreSQL
+
+    Note over CD,DB: System Startup & Configuration
+    CD->>MCP: Launch MCP Server
+    MCP->>MCP: Fix Python Paths
+    MCP->>Server: Import & Initialize
+    Server->>Server: Load Master Config
+    Server->>Moodle: Validate API Tokens
+    Moodle-->>Server: ✅ Connection OK
+    Server-->>CD: 🟢 MCP Server Ready
+
+    Note over CD,DB: Course Creation Flow
+    CD->>Server: create_intelligent_course(content)
+    Server->>Server: Analyze Content Complexity
+    Server->>Moodle: Create Course Structure
+    Moodle->>DB: Store Course Data
+    DB-->>Moodle: ✅ Course Created
+    Server->>Moodle: Add Activities & Resources
+    Moodle->>DB: Store Activities
+    DB-->>Moodle: ✅ Activities Added
+    Server->>Moodle: Finalize Course
+    Moodle-->>Server: 📚 Course Complete
+    Server-->>CD: ✅ Course Created Successfully
+
+    Note over CD,DB: Real-time Updates
+    CD->>Server: get_session_status()
+    Server->>DB: Query Session Data
+    DB-->>Server: Session Info
+    Server-->>CD: 📊 Current Progress
+
+    Note over CD,DB: Error Handling
+    CD->>Server: continue_course_session()
+    Server->>Moodle: API Request
+    Moodle-->>Server: ❌ API Error
+    Server->>Server: Log Error & Retry
+    Server->>Moodle: Retry Request
+    Moodle-->>Server: ✅ Success
+    Server-->>CD: 🔄 Session Continued
+
+    style CD fill:#e3f2fd
+    style Server fill:#e8f5e8
+    style Moodle fill:#fff8e1
+    style DB fill:#f3e5f5
+```
+
 ## 🏗️ Architecture Overview
 
 MoodleClaude uses a layered architecture with intelligent session management and adaptive content processing:
