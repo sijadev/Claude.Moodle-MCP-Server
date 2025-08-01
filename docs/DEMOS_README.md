@@ -76,7 +76,7 @@ Für die Live-Transfer-Scripts benötigst du:
 
 ```bash
 export MOODLE_URL=http://localhost:8080
-export MOODLE_TOKEN=b2021a7a41309b8c58ad026a751d0cd0
+export MOODLE_TOKEN=your-moodle-token-here
 export MOODLE_USERNAME=simon
 ```
 

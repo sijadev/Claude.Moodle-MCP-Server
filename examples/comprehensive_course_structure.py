@@ -1010,7 +1010,7 @@ async def main():
 
     # Get environment variables
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
-    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    moodle_token = os.getenv("MOODLE_TOKEN", "your-moodle-token-here")
 
     print(f"🔗 Connecting to: {moodle_url}")
     print(f"🔑 Using token: {moodle_token[:10]}...")
@@ -1031,7 +1031,7 @@ async def main():
 if __name__ == "__main__":
     # Set default environment variables if not provided
     if not os.getenv("MOODLE_TOKEN"):
-        os.environ["MOODLE_TOKEN"] = "b2021a7a41309b8c58ad026a751d0cd0"
+        os.environ["MOODLE_TOKEN"] = "your-moodle-token-here"
 
     if not os.getenv("MOODLE_URL"):
         os.environ["MOODLE_URL"] = "http://localhost:8080"

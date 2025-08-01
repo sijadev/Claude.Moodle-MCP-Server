@@ -23,7 +23,7 @@ from moodle_client import MoodleAPIError, MoodleClient
 async def create_course_with_sections():
     """Create a course and try to add sections using different methods"""
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
-    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    moodle_token = os.getenv("MOODLE_TOKEN", "your-moodle-token-here")
 
     course_name = "Python Kurs - Mit Sektionen"
     course_description = (
@@ -269,7 +269,7 @@ async def main():
     if not os.getenv("MOODLE_URL"):
         os.environ["MOODLE_URL"] = "http://localhost:8080"
     if not os.getenv("MOODLE_TOKEN"):
-        os.environ["MOODLE_TOKEN"] = "b2021a7a41309b8c58ad026a751d0cd0"
+        os.environ["MOODLE_TOKEN"] = "your-moodle-token-here"
 
     print(f"Connecting to: {os.getenv('MOODLE_URL')}")
     print(f"Using token: {os.getenv('MOODLE_TOKEN')[:10]}...")
@@ -289,7 +289,7 @@ async def create_course_with_enhanced_api():
     """Create a course using the Enhanced Moodle API with advanced section features"""
 
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
-    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    moodle_token = os.getenv("MOODLE_TOKEN", "your-moodle-token-here")
 
     print(f"\n🔥 ENHANCED API DEMO - Advanced Section Management")
     print(f"=" * 70)

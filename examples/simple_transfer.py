@@ -80,7 +80,7 @@ async def main():
 
     # Set environment variables
     moodle_url = "http://localhost"
-    moodle_token = "b2021a7a41309b8c58ad026a751d0cd0"
+    moodle_token = "your-moodle-token-here"
 
     os.environ["MOODLE_URL"] = moodle_url
     os.environ["MOODLE_TOKEN"] = moodle_token

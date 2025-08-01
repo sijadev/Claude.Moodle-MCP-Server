@@ -83,7 +83,7 @@ Site Administration → Server → Web services → Manage protocols
    - Click **Create token**
 
 3. **Token kopieren**
-   - Der Token sollte so aussehen: `b2021a7a41309b8c58ad026a751d0cd0`
+   - Der Token sollte so aussehen: `your-32-character-token-here`
 
 ### 5. User-Berechtigungen setzen
 

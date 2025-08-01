@@ -299,7 +299,7 @@ class MoodleSetupVerifier:
 
 async def main():
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
-    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    moodle_token = os.getenv("MOODLE_TOKEN", "your-moodle-token-here")
 
     print(f"Testing Moodle setup:")
     print(f"URL: {moodle_url}")

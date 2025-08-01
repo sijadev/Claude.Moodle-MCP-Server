@@ -49,7 +49,7 @@ def generate_moodle_token():
 
                 # Replace old token
                 content = content.replace(
-                    "MOODLE_TOKEN=b2021a7a41309b8c58ad026a751d0cd0",
+                    "MOODLE_TOKEN=your-moodle-token-here",
                     f"MOODLE_TOKEN={token}",
                 )
 

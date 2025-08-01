@@ -21,7 +21,7 @@ from moodle_client import MoodleAPIError, MoodleClient
 async def check_available_functions():
     """Check what web service functions are available"""
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
-    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    moodle_token = os.getenv("MOODLE_TOKEN", "your-moodle-token-here")
 
     print("🔍 Checking available Moodle Web Service functions...")
     print(f"URL: {moodle_url}")
@@ -130,7 +130,7 @@ async def check_available_functions():
 async def test_manual_section_creation():
     """Test if we can create sections using direct API calls"""
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
-    moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
+    moodle_token = os.getenv("MOODLE_TOKEN", "your-moodle-token-here")
 
     print(f"\n🧪 Testing manual section creation...")
 
@@ -187,7 +187,7 @@ async def main():
     if not os.getenv("MOODLE_URL"):
         os.environ["MOODLE_URL"] = "http://localhost:8080"
     if not os.getenv("MOODLE_TOKEN"):
-        os.environ["MOODLE_TOKEN"] = "b2021a7a41309b8c58ad026a751d0cd0"
+        os.environ["MOODLE_TOKEN"] = "your-moodle-token-here"
 
     success = await check_available_functions()
 
