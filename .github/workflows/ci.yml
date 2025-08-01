@@ -307,7 +307,7 @@ jobs:
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
             -v $(pwd):/src aquasec/trivy image --exit-code 0 --no-progress \
-            --format table $(docker build -q -f operations/docker/Dockerfile.test .)
+            --format table $(docker build -q -f deployment/docker/Dockerfile.test .)
 
   # Build and test Docker images
   docker-build:
@@ -322,13 +322,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build production image
-        run: |
-          docker build -t moodleclaude:latest .
-
       - name: Build test image
         run: |
-          docker build -f operations/docker/Dockerfile.test -t moodleclaude:test .
+          docker build -f deployment/docker/Dockerfile.test -t moodleclaude:test .
 
       - name: Test Docker images
         run: |
@@ -345,7 +341,6 @@ jobs:
 
       - name: Export Docker images
         run: |
-          docker save moodleclaude:latest | gzip > moodleclaude-latest.tar.gz
           docker save moodleclaude:test | gzip > moodleclaude-test.tar.gz
 
       - name: Upload Docker images
