@@ -276,11 +276,51 @@ class DockerTestSuiteRunnerFixed:
             )
             return False
 
-        # Start containers
+        # Start containers with staggered approach for better reliability
         try:
+            # Start PostgreSQL first
+            logger.info("🐘 Starting PostgreSQL container first...")
+            postgres_result = self.run_command(
+                f"{self.compose_cmd} -f {self.compose_file} up -d postgres_test",
+                "Starting PostgreSQL container",
+                timeout=300,
+            )
+
+            if postgres_result.returncode != 0:
+                self.log_phase(
+                    "docker_setup",
+                    False,
+                    f"Failed to start PostgreSQL: {postgres_result.stderr}",
+                )
+                return False
+
+            # Wait for PostgreSQL to be healthy before starting Moodle
+            logger.info("⏳ Waiting for PostgreSQL to be healthy...")
+            pg_wait = 0
+            max_pg_wait = 120
+            while pg_wait < max_pg_wait:
+                pg_health = self.run_command(
+                    f"{self.compose_cmd} -f {self.compose_file} ps postgres_test",
+                    "Checking PostgreSQL health",
+                )
+                if "healthy" in pg_health.stdout:
+                    logger.info("✅ PostgreSQL is healthy")
+                    break
+                time.sleep(5)
+                pg_wait += 5
+                logger.info(f"   PostgreSQL waiting... ({pg_wait}/{max_pg_wait}s)")
+
+            if pg_wait >= max_pg_wait:
+                self.log_phase(
+                    "docker_setup", False, "PostgreSQL failed to become healthy"
+                )
+                return False
+
+            # Now start all containers
+            logger.info("🚀 Starting all test containers...")
             result = self.run_command(
                 f"{self.compose_cmd} -f {self.compose_file} up -d",
-                "Starting test containers",
+                "Starting all test containers",
                 timeout=600,
             )
 
@@ -294,29 +334,77 @@ class DockerTestSuiteRunnerFixed:
 
             # Wait for services to be healthy
             logger.info("⏳ Waiting for services to be healthy...")
-            max_wait = 180  # 3 minutes
-            wait_interval = 10
+            max_wait = 600  # 10 minutes for CI environments
+            wait_interval = 15
             waited = 0
 
             while waited < max_wait:
-                # Check if Moodle container is healthy
+                # Check container status with detailed logging
                 health_result = self.run_command(
-                    f"{self.compose_cmd} -f {self.compose_file} ps moodle_test",
-                    "Checking container health",
+                    f"{self.compose_cmd} -f {self.compose_file} ps",
+                    "Checking all container health",
                 )
 
-                if "healthy" in health_result.stdout:
+                # Log current container status for debugging
+                if self.verbose:
+                    logger.info(f"Container status:\n{health_result.stdout}")
+
+                # Check if Moodle container is healthy
+                moodle_result = self.run_command(
+                    f"{self.compose_cmd} -f {self.compose_file} ps moodle_test",
+                    "Checking Moodle container health",
+                )
+
+                if "healthy" in moodle_result.stdout:
+                    logger.info("✅ Moodle container is healthy")
                     self.log_phase("docker_setup", True, "Docker environment ready")
                     return True
+                elif "unhealthy" in moodle_result.stdout:
+                    logger.warning("⚠️  Moodle container is unhealthy, checking logs...")
+                    # Get container logs for debugging
+                    logs_result = self.run_command(
+                        f"{self.compose_cmd} -f {self.compose_file} logs --tail=50 moodle_test",
+                        "Getting Moodle container logs",
+                    )
+                    if self.verbose and logs_result.stdout:
+                        logger.info(
+                            f"Moodle logs:\n{logs_result.stdout[-1000:]}"
+                        )  # Last 1000 chars
+                elif (
+                    "starting" in moodle_result.stdout
+                    or "(health: starting)" in moodle_result.stdout
+                ):
+                    logger.info("🔄 Moodle container is still starting...")
+                else:
+                    logger.info(
+                        f"🔍 Moodle container status: {moodle_result.stdout.strip()}"
+                    )
 
                 time.sleep(wait_interval)
                 waited += wait_interval
                 logger.info(f"   Waiting... ({waited}/{max_wait}s)")
 
+            # Final attempt with logs
+            logger.error("❌ Timeout reached, getting final container status...")
+            final_status = self.run_command(
+                f"{self.compose_cmd} -f {self.compose_file} ps",
+                "Final container status check",
+            )
+            logger.error(f"Final container status:\n{final_status.stdout}")
+
+            # Get logs from all containers for debugging
+            all_logs = self.run_command(
+                f"{self.compose_cmd} -f {self.compose_file} logs --tail=100",
+                "Getting all container logs",
+            )
+            logger.error(
+                f"Container logs:\n{all_logs.stdout[-2000:]}"
+            )  # Last 2000 chars
+
             self.log_phase(
                 "docker_setup",
                 False,
-                "Containers failed to become healthy within timeout",
+                f"Containers failed to become healthy within {max_wait}s timeout",
             )
             return False
 

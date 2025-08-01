@@ -16,9 +16,10 @@ services:
       - moodle_test_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U moodleuser -d moodletest"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   # Moodle Application for Testing
   moodle_test:
@@ -46,6 +47,14 @@ services:
       # Web Services (auto-enable for testing)
       MOODLE_WEB_SERVICES_ENABLED: "yes"
       
+      # Speed up initialization for CI
+      MOODLE_SKIP_INSTALL: "no"
+      BITNAMI_DEBUG: "false"
+      
+      # Disable unnecessary features for testing
+      MOODLE_CACHE_STORE: "file"
+      MOODLE_SESSION_HANDLER_TYPE: "file"
+      
     ports:
       - "8081:8080"  # Different port for testing
       - "8444:8443"  # Use different SSL port to avoid conflicts
@@ -59,12 +68,18 @@ services:
     depends_on:
       postgres_test:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/login/index.php || curl -f http://localhost:8080 || exit 1"]
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 180s
 
   # PgAdmin for Testing (Optional - for debugging)
   pgadmin_test:
