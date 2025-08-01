@@ -72,11 +72,13 @@ jobs:
       - name: Check for relevant changes
         id: changes
         run: |
-          if git diff --name-only HEAD^ HEAD | grep -E '\.(py|yml|yaml|json|md)$' || [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
+          echo "Event name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Branch: ${{ github.head_ref || github.ref_name }}"
+          
+          # Always run tests for now to ensure CI/CD validation works
+          echo "should_run=true" >> $GITHUB_OUTPUT
+          echo "✅ Running all tests (validation mode - change detection temporarily disabled)"
 
       - name: Validate project structure
         run: |
