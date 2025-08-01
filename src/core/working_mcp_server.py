@@ -568,22 +568,42 @@ async def handle_create_course_section(
 
         client = await get_moodle_client(use_enhanced=True)
 
-        # Create section using core_course_create_sections
-        sections_data = [
-            {
-                "course": course_id,
-                "name": name,
-                "summary": summary,
-                "summaryformat": 1,  # HTML format
-            }
-        ]
+        # Create empty section first using local_wsmanagesections plugin
+        create_data = {
+            "courseid": course_id,
+            "number": 1,  # Create 1 section
+        }
 
         if section is not None:
-            sections_data[0]["section"] = section
+            create_data["position"] = section
+        else:
+            create_data["position"] = 0  # 0 means at the end
 
-        result = await client.call_webservice(
-            "core_course_create_sections", sections=sections_data
+        # Step 1: Create empty section
+        create_result = await client.call_webservice(
+            "local_wsmanagesections_create_sections", **create_data
         )
+
+        if not create_result or len(create_result) == 0:
+            raise Exception("Failed to create section")
+
+        # Step 2: Update the section with name and summary
+        new_section_id = create_result[0].get("id")
+        if new_section_id and (name or summary):
+            update_data = {}
+            if name:
+                update_data["name"] = name
+            if summary:
+                update_data["summary"] = summary
+                update_data["summaryformat"] = 1
+
+            await client.call_webservice(
+                "local_wsmanagesections_update_sections",
+                sectionid=new_section_id,
+                **update_data,
+            )
+
+        result = create_result
 
         if result and len(result) > 0:
             new_section = result[0]
