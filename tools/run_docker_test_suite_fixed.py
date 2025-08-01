@@ -49,7 +49,9 @@ class DockerTestSuiteRunnerFixed:
         self.compose_file = (
             self.project_root / "deployment" / "docker" / "docker-compose.test.yml"
         )
-        self.compose_cmd = "docker-compose"  # Default, will be updated in check_prerequisites
+        self.compose_cmd = (
+            "docker-compose"  # Default, will be updated in check_prerequisites
+        )
         self.test_network = "moodle_test_network"
         self.test_containers = [
             "moodle_postgres_test",
@@ -166,7 +168,7 @@ class DockerTestSuiteRunnerFixed:
             ("docker --version", "Docker installation"),
             (f"{self.get_python_path()} --version", "Python installation"),
         ]
-        
+
         # Check Docker Compose (try both new and legacy syntax)
         docker_compose_found = False
         for compose_cmd in ["docker compose version", "docker-compose --version"]:
@@ -182,7 +184,7 @@ class DockerTestSuiteRunnerFixed:
                     break
             except:
                 continue
-                
+
         if not docker_compose_found:
             checks.append(("false", "Docker Compose installation"))  # This will fail
         else:
