@@ -350,7 +350,9 @@ class EnhancedMoodleAPI:
             ),
         }
 
-        return self._make_request("core_course_create_module", module_params)
+        return self._make_request(
+            "core_course_create_modules", {"modules": [module_params]}
+        )
 
     def create_url_resource(
         self, courseid: int, sectionnum: int, name: str, url: str, description: str = ""
@@ -366,7 +368,9 @@ class EnhancedMoodleAPI:
             "externalurl": url,
         }
 
-        return self._make_request("core_course_create_module", module_params)
+        return self._make_request(
+            "core_course_create_modules", {"modules": [module_params]}
+        )
 
     def get_course_sections(self, courseid: int) -> List[Dict[str, Any]]:
         """Get all sections for a course"""

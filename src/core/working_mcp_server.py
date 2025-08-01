@@ -629,11 +629,11 @@ async def handle_add_course_module(
 
         client = await get_moodle_client(use_enhanced=True)
 
-        # Create module using core_course_add_course_module
+        # Create module using core_course_create_modules
         module_data = {
             "courseid": course_id,
             "section": section,
-            "module": module_name,
+            "modulename": module_name,
             "name": name,
             "intro": intro,
             "introformat": 1,  # HTML format
@@ -641,11 +641,11 @@ async def handle_add_course_module(
         }
 
         result = await client.call_webservice(
-            "core_course_add_course_module", **module_data
+            "core_course_create_modules", modules=[module_data]
         )
 
-        if result:
-            module_id = result.get("coursemodule")
+        if result and len(result) > 0:
+            module_id = result[0].get("coursemodule")
 
             return [
                 types.TextContent(
@@ -700,19 +700,22 @@ async def handle_create_assignment(
         }
 
         # Use generic module creation for assignments
+        assignment_module = {
+            "courseid": course_id,
+            "section": section,
+            "modulename": "assign",
+            "name": name,
+            "intro": intro,
+            "introformat": 1,
+            "visible": 1,
+        }
+
         result = await client.call_webservice(
-            "core_course_add_course_module",
-            courseid=course_id,
-            section=section,
-            module="assign",
-            name=name,
-            intro=intro,
-            introformat=1,
-            visible=1,
+            "core_course_create_modules", modules=[assignment_module]
         )
 
-        if result:
-            module_id = result.get("coursemodule")
+        if result and len(result) > 0:
+            module_id = result[0].get("coursemodule")
 
             return [
                 types.TextContent(
@@ -755,19 +758,22 @@ async def handle_create_forum(
         client = await get_moodle_client(use_enhanced=True)
 
         # Create forum using generic module creation
+        forum_module = {
+            "courseid": course_id,
+            "section": section,
+            "modulename": "forum",
+            "name": name,
+            "intro": intro,
+            "introformat": 1,
+            "visible": 1,
+        }
+
         result = await client.call_webservice(
-            "core_course_add_course_module",
-            courseid=course_id,
-            section=section,
-            module="forum",
-            name=name,
-            intro=intro,
-            introformat=1,
-            visible=1,
+            "core_course_create_modules", modules=[forum_module]
         )
 
-        if result:
-            module_id = result.get("coursemodule")
+        if result and len(result) > 0:
+            module_id = result[0].get("coursemodule")
 
             return [
                 types.TextContent(
