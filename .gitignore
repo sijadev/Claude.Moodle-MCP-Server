@@ -248,3 +248,4 @@ fix_*.php
 # Organized structure
 logs/
 verify_structure.py
+operations/backup/defaults/*.sql
