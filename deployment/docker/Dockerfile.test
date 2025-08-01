@@ -53,7 +53,8 @@ ENV WEB_SERVICE_FIX=true
 ENV TOKEN_PERMISSIONS_FIX=true
 
 # Create test runner script with integrated bug fixes
-RUN cat > /app/run_tests_with_fixes.sh << 'EOF'
+RUN cat > /app/run_tests_with_fixes.sh << 'EOF' && \
+    chmod +x /app/run_tests_with_fixes.sh
 #!/bin/bash
 set -e
 
@@ -110,8 +111,7 @@ fi
 echo "✅ Test suite completed"
 EOF
 
-# Make script executable
-RUN chmod +x /app/run_tests_with_fixes.sh
+# Script is already made executable in the previous RUN command
 
 # Create non-root user for security
 RUN useradd -m -u 1000 testuser && \
