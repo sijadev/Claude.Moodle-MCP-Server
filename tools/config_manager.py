@@ -15,6 +15,7 @@ Usage:
 import os
 import sys
 import json
+import time
 import argparse
 from pathlib import Path
 
@@ -45,30 +46,90 @@ def generate_env_files():
     print(f"🎯 Using unified WS user: {config.credentials.ws_user}")
 
 
-def update_claude_desktop_config():
-    """Update Claude Desktop configuration"""
+def update_claude_desktop_config(use_optimized: bool = True):
+    """Update Claude Desktop configuration with option for optimized server"""
     config = get_master_config()
     claude_config_path = Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
     
-    if not claude_config_path.exists():
-        print(f"❌ Claude Desktop config not found: {claude_config_path}")
-        return
+    # Ensure directory exists
+    claude_config_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # Read existing config
-    with open(claude_config_path, 'r') as f:
-        claude_config = json.load(f)
+    # Read existing config or create new
+    claude_config = {}
+    if claude_config_path.exists():
+        with open(claude_config_path, 'r') as f:
+            claude_config = json.load(f)
     
-    # Update moodle-robust server config
     mcp_servers = claude_config.get("mcpServers", {})
-    moodle_server_config = config.get_claude_desktop_config()
     
-    mcp_servers["moodle-robust"] = moodle_server_config
+    if use_optimized:
+        # Check if optimized server file exists
+        project_root = Path(__file__).parents[1]
+        optimized_server_path = project_root / "src" / "core" / "optimized_mcp_server.py"
+        
+        if optimized_server_path.exists():
+            print("🚀 Using optimized MCP server configuration")
+            
+            # Add optimized server as primary
+            mcp_servers["moodleclaude-optimized"] = {
+                "command": "python",
+                "args": [str(optimized_server_path)],
+                "env": {
+                    "MOODLE_URL": config.services.url,
+                    "MOODLE_TOKEN_BASIC": config.services.admin_token,
+                    "MOODLE_TOKEN_ENHANCED": config.services.plugin_token,
+                    "MOODLE_USERNAME": config.credentials.admin_user,
+                    "SERVER_NAME": "optimized-moodle-mcp",
+                    "LOG_LEVEL": "INFO",
+                    "CACHE_SIZE": "100",
+                    "RATE_LIMIT_CALLS": "50",
+                    "RATE_LIMIT_PERIOD": "60",
+                    "MAX_CONNECTIONS": "10",
+                    "ENABLE_METRICS": "true",
+                    "ENABLE_STREAMING": "true"
+                },
+                "timeout": 30,
+                "autoApprove": ["get_performance_metrics", "clear_cache"],
+                "disabled": False,
+                "description": "Optimized MoodleClaude MCP Server with performance enhancements"
+            }
+            
+            # Keep legacy server as fallback (disabled by default)
+            legacy_config = config.get_claude_desktop_config()
+            legacy_config["disabled"] = True
+            legacy_config["description"] = "Legacy MCP Server (fallback option)"
+            mcp_servers["moodle-robust-legacy"] = legacy_config
+            
+        else:
+            print("⚠️  Optimized server not found, using legacy configuration")
+            use_optimized = False
+    
+    if not use_optimized:
+        # Use legacy configuration
+        moodle_server_config = config.get_claude_desktop_config()
+        mcp_servers["moodle-robust"] = moodle_server_config
+    
     claude_config["mcpServers"] = mcp_servers
     
+    # Add global settings for optimized configuration
+    if use_optimized:
+        claude_config["globalSettings"] = {
+            "logging": {
+                "level": "INFO",
+                "enableFileLogging": True,
+                "logDirectory": str(project_root / "logs")
+            },
+            "performance": {
+                "enableMetrics": True,
+                "metricsInterval": 300,
+                "enableHealthCheck": True
+            }
+        }
+    
     # Backup original
-    backup_path = claude_config_path.with_suffix('.json.backup')
     if claude_config_path.exists():
         import shutil
+        backup_path = claude_config_path.with_suffix(f'.json.backup.{int(time.time())}')
         shutil.copy2(claude_config_path, backup_path)
         print(f"📦 Backup created: {backup_path}")
     
@@ -76,9 +137,20 @@ def update_claude_desktop_config():
     with open(claude_config_path, 'w') as f:
         json.dump(claude_config, f, indent=2)
     
-    print("✅ Updated Claude Desktop configuration")
-    print(f"🎯 Admin Token: {config.services.admin_token}")
-    print(f"🎯 Plugin Token: {config.services.plugin_token}")
+    server_type = "Optimized" if use_optimized else "Legacy"
+    print(f"✅ Updated Claude Desktop configuration ({server_type})")
+    print(f"🎯 Admin Token: {config.services.admin_token[:16]}...")
+    print(f"🎯 Plugin Token: {config.services.plugin_token[:16]}...")
+    
+    if use_optimized:
+        print("🚀 Performance features enabled:")
+        print("  • Connection Pooling (10 max connections)")
+        print("  • LRU Caching (100 entries)")
+        print("  • Rate Limiting (50 calls/60s)")
+        print("  • Enhanced Error Handling")
+        print("  • Performance Monitoring")
+    
+    print("🔄 Please restart Claude Desktop to load the new configuration")
 
 
 def validate_configuration():
