@@ -41,7 +41,7 @@ class PersistentMoodleClaudeTestSuite:
 
         # Test session ID
         self.session_id = hashlib.md5(
-            f"{datetime.now().isoformat()}".encode()
+            f"{datetime.now().isoformat()}".encode(), usedforsecurity=False
         ).hexdigest()[:8]
 
         # Set up logging
