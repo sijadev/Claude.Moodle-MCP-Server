@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload smoke test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: smoke-test-report
           path: reports/smoke_test/
@@ -175,7 +175,7 @@ jobs:
           name: codecov-umbrella
 
       - name: Upload test reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unit-test-reports-py${{ matrix.python-version }}
@@ -239,7 +239,7 @@ jobs:
           cp -r logs/ artifacts/ 2>/dev/null || true
 
       - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: integration-test-artifacts
@@ -272,7 +272,7 @@ jobs:
           python tools/run_docker_test_suite_fixed.py --performance-mode --benchmark
 
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-benchmarks
           path: benchmark-results/
@@ -346,7 +346,7 @@ jobs:
           docker save moodleclaude:test | gzip > moodleclaude-test.tar.gz
 
       - name: Upload Docker images
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-images
           path: "*.tar.gz"
@@ -391,7 +391,7 @@ jobs:
           EOF
 
       - name: Upload deployment report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deployment-report
           path: deployment-report.md
