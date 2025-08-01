@@ -252,6 +252,68 @@ async def handle_list_tools() -> List[types.Tool]:
             description="Test connection to Moodle server",
             inputSchema={"type": "object", "properties": {}},
         ),
+        types.Tool(
+            name="create_course_section",
+            description="Create a new section in a course",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "course_id": {"type": "integer", "description": "ID of the course"},
+                    "name": {"type": "string", "description": "Name of the section"},
+                    "summary": {"type": "string", "description": "Summary/description of the section"},
+                    "section": {"type": "integer", "description": "Section number (optional)"}
+                },
+                "required": ["course_id", "name"],
+            },
+        ),
+        types.Tool(
+            name="add_course_module",
+            description="Add an activity/resource module to a course section",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "course_id": {"type": "integer", "description": "ID of the course"},
+                    "section": {"type": "integer", "description": "Section number", "default": 0},
+                    "module_name": {"type": "string", "description": "Module type (forum, assign, quiz, resource, etc.)"},
+                    "name": {"type": "string", "description": "Name of the activity/resource"},
+                    "intro": {"type": "string", "description": "Introduction/description"},
+                    "visible": {"type": "boolean", "description": "Whether the module is visible", "default": True}
+                },
+                "required": ["course_id", "module_name", "name"],
+            },
+        ),
+        types.Tool(
+            name="create_assignment",
+            description="Create an assignment in a course",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "course_id": {"type": "integer", "description": "ID of the course"},
+                    "section": {"type": "integer", "description": "Section number", "default": 0},
+                    "name": {"type": "string", "description": "Assignment name"},
+                    "intro": {"type": "string", "description": "Assignment description"},
+                    "duedate": {"type": "integer", "description": "Due date timestamp (optional)"},
+                    "allowsubmissionsfromdate": {"type": "integer", "description": "Allow submissions from date timestamp (optional)"},
+                    "grade": {"type": "integer", "description": "Maximum grade", "default": 100}
+                },
+                "required": ["course_id", "name", "intro"],
+            },
+        ),
+        types.Tool(
+            name="create_forum",
+            description="Create a forum in a course",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "course_id": {"type": "integer", "description": "ID of the course"},
+                    "section": {"type": "integer", "description": "Section number", "default": 0},
+                    "name": {"type": "string", "description": "Forum name"},
+                    "intro": {"type": "string", "description": "Forum description"},
+                    "type": {"type": "string", "description": "Forum type (news, single, qanda, general)", "default": "general"}
+                },
+                "required": ["course_id", "name", "intro"],
+            },
+        ),
     ]
 
 
@@ -269,6 +331,14 @@ async def handle_call_tool(
             return await handle_get_course_contents(arguments)
         elif name == "create_course":
             return await handle_create_course(arguments)
+        elif name == "create_course_section":
+            return await handle_create_course_section(arguments)
+        elif name == "add_course_module":
+            return await handle_add_course_module(arguments)
+        elif name == "create_assignment":
+            return await handle_create_assignment(arguments)
+        elif name == "create_forum":
+            return await handle_create_forum(arguments)
         else:
             raise ValueError(f"Unknown tool: {name}")
 
@@ -435,6 +505,238 @@ async def handle_create_course(arguments: Dict[str, Any]) -> List[types.TextCont
     except Exception as e:
         return [
             types.TextContent(type="text", text=f"❌ Failed to create course: {str(e)}")
+        ]
+
+
+async def handle_create_course_section(
+    arguments: Dict[str, Any],
+) -> List[types.TextContent]:
+    """Create a new section in a course."""
+    try:
+        course_id = arguments["course_id"]
+        name = arguments["name"]
+        summary = arguments.get("summary", "")
+        section = arguments.get("section")
+        
+        client = await get_moodle_client(use_enhanced=True)
+        
+        # Create section using core_course_create_sections
+        sections_data = [{
+            "course": course_id,
+            "name": name,
+            "summary": summary,
+            "summaryformat": 1,  # HTML format
+        }]
+        
+        if section is not None:
+            sections_data[0]["section"] = section
+        
+        result = await client.call_webservice(
+            "core_course_create_sections",
+            sections=sections_data
+        )
+        
+        if result and len(result) > 0:
+            new_section = result[0]
+            section_id = new_section.get("id")
+            section_num = new_section.get("section")
+            
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"✅ Course section created successfully!\n"
+                    f"Section ID: {section_id}\n"
+                    f"Section Number: {section_num}\n"
+                    f"Name: {name}\n"
+                    f"Course ID: {course_id}",
+                )
+            ]
+        else:
+            return [
+                types.TextContent(
+                    type="text", text="❌ Section creation failed: No result returned"
+                )
+            ]
+            
+    except Exception as e:
+        return [
+            types.TextContent(type="text", text=f"❌ Failed to create section: {str(e)}")
+        ]
+
+
+async def handle_add_course_module(
+    arguments: Dict[str, Any],
+) -> List[types.TextContent]:
+    """Add a module to a course section."""
+    try:
+        course_id = arguments["course_id"]
+        section = arguments.get("section", 0)
+        module_name = arguments["module_name"]
+        name = arguments["name"]
+        intro = arguments.get("intro", "")
+        visible = arguments.get("visible", True)
+        
+        client = await get_moodle_client(use_enhanced=True)
+        
+        # Create module using core_course_add_course_module
+        module_data = {
+            "courseid": course_id,
+            "section": section,
+            "module": module_name,
+            "name": name,
+            "intro": intro,
+            "introformat": 1,  # HTML format
+            "visible": 1 if visible else 0,
+        }
+        
+        result = await client.call_webservice(
+            "core_course_add_course_module",
+            **module_data
+        )
+        
+        if result:
+            module_id = result.get("coursemodule")
+            
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"✅ Course module added successfully!\n"
+                    f"Module ID: {module_id}\n"
+                    f"Type: {module_name}\n"
+                    f"Name: {name}\n"
+                    f"Course ID: {course_id}\n"
+                    f"Section: {section}",
+                )
+            ]
+        else:
+            return [
+                types.TextContent(
+                    type="text", text="❌ Module creation failed: No result returned"
+                )
+            ]
+            
+    except Exception as e:
+        return [
+            types.TextContent(type="text", text=f"❌ Failed to add module: {str(e)}")
+        ]
+
+
+async def handle_create_assignment(
+    arguments: Dict[str, Any],
+) -> List[types.TextContent]:
+    """Create an assignment in a course."""
+    try:
+        course_id = arguments["course_id"]
+        section = arguments.get("section", 0)
+        name = arguments["name"]
+        intro = arguments["intro"]
+        duedate = arguments.get("duedate", 0)
+        allowsubmissionsfromdate = arguments.get("allowsubmissionsfromdate", 0)
+        grade = arguments.get("grade", 100)
+        
+        client = await get_moodle_client(use_enhanced=True)
+        
+        # Create assignment using mod_assign_save_assignment
+        assignment_data = {
+            "courseid": course_id,
+            "section": section,
+            "name": name,
+            "intro": intro,
+            "introformat": 1,  # HTML format
+            "duedate": duedate,
+            "allowsubmissionsfromdate": allowsubmissionsfromdate,
+            "grade": grade,
+            "visible": 1,
+        }
+        
+        # Use generic module creation for assignments
+        result = await client.call_webservice(
+            "core_course_add_course_module",
+            courseid=course_id,
+            section=section,
+            module="assign",
+            name=name,
+            intro=intro,
+            introformat=1,
+            visible=1
+        )
+        
+        if result:
+            module_id = result.get("coursemodule")
+            
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"✅ Assignment created successfully!\n"
+                    f"Assignment ID: {module_id}\n"
+                    f"Name: {name}\n"
+                    f"Course ID: {course_id}\n"
+                    f"Section: {section}\n"
+                    f"Max Grade: {grade}",
+                )
+            ]
+        else:
+            return [
+                types.TextContent(
+                    type="text", text="❌ Assignment creation failed: No result returned"
+                )
+            ]
+            
+    except Exception as e:
+        return [
+            types.TextContent(type="text", text=f"❌ Failed to create assignment: {str(e)}")
+        ]
+
+
+async def handle_create_forum(
+    arguments: Dict[str, Any],
+) -> List[types.TextContent]:
+    """Create a forum in a course."""
+    try:
+        course_id = arguments["course_id"]
+        section = arguments.get("section", 0)
+        name = arguments["name"]
+        intro = arguments["intro"]
+        forum_type = arguments.get("type", "general")
+        
+        client = await get_moodle_client(use_enhanced=True)
+        
+        # Create forum using generic module creation
+        result = await client.call_webservice(
+            "core_course_add_course_module",
+            courseid=course_id,
+            section=section,
+            module="forum",
+            name=name,
+            intro=intro,
+            introformat=1,
+            visible=1
+        )
+        
+        if result:
+            module_id = result.get("coursemodule")
+            
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"✅ Forum created successfully!\n"
+                    f"Forum ID: {module_id}\n"
+                    f"Name: {name}\n"
+                    f"Type: {forum_type}\n"
+                    f"Course ID: {course_id}\n"
+                    f"Section: {section}",
+                )
+            ]
+        else:
+            return [
+                types.TextContent(
+                    type="text", text="❌ Forum creation failed: No result returned"
+                )
+            ]
+            
+    except Exception as e:
+        return [
+            types.TextContent(type="text", text=f"❌ Failed to create forum: {str(e)}")
         ]
 
 
