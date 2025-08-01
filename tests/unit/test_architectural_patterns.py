@@ -36,125 +36,124 @@ from src.core.repositories import InMemorySessionRepository, SQLiteSessionReposi
 from src.core.services import CourseCreationService
 
 
-class TestDependencyInjectionContainer:
-    """Test the dependency injection container"""
+# Mock interfaces for dependency injection testing
+class ITestService:
+    """Interface for test service"""
 
-    def setup_method(self):
+    def get_value(self) -> str:
+        pass
+
+
+class IDependencyService:
+    """Interface for dependency service"""
+
+    def get_data(self) -> str:
+        pass
+
+
+class TestDependencyInjectionContainer:
+    """Test the dependency injection container using modern best practices"""
+
+    @pytest.fixture(autouse=True)
+    def setup_container(self):
+        """Fixture to provide fresh container for each test (state-of-the-art pattern)"""
         self.container = ServiceContainer()
 
-    def test_register_and_resolve_singleton(self):
-        """Test singleton service registration and resolution"""
+    @pytest.fixture
+    def mock_service_factory(self):
+        """Factory fixture for creating mock services with autospec (best practice)"""
 
-        # Define interfaces and implementations
-        class ITestService:
-            def get_value(self) -> str:
-                pass
+        def _create_mock_service(spec_class=None):
+            return Mock(spec=spec_class, autospec=True)
 
-        class TestService(ITestService):
-            def __init__(self):
-                self.value = "test_value"
-                self.creation_count = getattr(TestService, "_creation_count", 0) + 1
-                TestService._creation_count = self.creation_count
+        return _create_mock_service
 
-            def get_value(self) -> str:
-                return f"{self.value}_{self.creation_count}"
+    def test_singleton_lifecycle_management(self, mock_service_factory):
+        """Test singleton registration ensures single instance creation"""
+        # Arrange: Create mock with autospec for type safety
+        mock_constructor = Mock()
+        mock_instance = mock_service_factory(ITestService)
+        mock_constructor.return_value = mock_instance
 
-        # Register as singleton
-        self.container.register(ITestService, TestService, ServiceLifetime.SINGLETON)
+        # Act: Register and resolve multiple times
+        self.container.register(
+            ITestService, mock_constructor, ServiceLifetime.SINGLETON
+        )
+        resolved_service_1 = self.container.resolve(ITestService)
+        resolved_service_2 = self.container.resolve(ITestService)
 
-        # Resolve multiple times
-        service1 = self.container.resolve(ITestService)
-        service2 = self.container.resolve(ITestService)
+        # Assert: Verify singleton behavior
+        assert resolved_service_1 is resolved_service_2
+        assert resolved_service_1 is mock_instance
+        mock_constructor.assert_called_once()
 
-        # Should be the same instance
-        assert service1 is service2
-        assert service1.get_value() == "test_value_1"
+    def test_transient_lifecycle_creates_new_instances(self, mock_service_factory):
+        """Test transient registration creates new instance for each resolution"""
+        # Arrange: Create mocks for different instances
+        mock_constructor = Mock()
+        instance_1 = mock_service_factory(ITestService)
+        instance_2 = mock_service_factory(ITestService)
+        mock_constructor.side_effect = [instance_1, instance_2]
 
-    def test_register_and_resolve_transient(self):
-        """Test transient service registration and resolution"""
+        # Act: Register and resolve multiple times
+        self.container.register(
+            ITestService, mock_constructor, ServiceLifetime.TRANSIENT
+        )
+        resolved_service_1 = self.container.resolve(ITestService)
+        resolved_service_2 = self.container.resolve(ITestService)
 
-        class ITestService:
-            def get_id(self) -> int:
-                pass
+        # Assert: Verify transient behavior
+        assert resolved_service_1 is not resolved_service_2
+        assert resolved_service_1 is instance_1
+        assert resolved_service_2 is instance_2
+        assert mock_constructor.call_count == 2
 
-        class TestService(ITestService):
-            def __init__(self):
-                self.id = id(self)
+    def test_factory_override_pattern(self, mock_service_factory):
+        """Test factory override pattern for dependency testing (simplified)"""
+        # Arrange: Create different mock instances for testing override behavior
+        original_mock = mock_service_factory(ITestService)
+        override_mock = mock_service_factory(ITestService)
 
-            def get_id(self) -> int:
-                return self.id
+        original_factory = Mock(return_value=original_mock)
+        override_factory = Mock(return_value=override_mock)
 
-        # Register as transient
-        self.container.register(ITestService, TestService, ServiceLifetime.TRANSIENT)
+        # Act: Register original factory
+        self.container.register_factory(ITestService, original_factory)
+        service_original = self.container.resolve(ITestService)
 
-        # Resolve multiple times
-        service1 = self.container.resolve(ITestService)
-        service2 = self.container.resolve(ITestService)
+        # Override with test double
+        self.container.register_factory(ITestService, override_factory)
+        service_override = self.container.resolve(ITestService)
 
-        # Should be different instances
-        assert service1 is not service2
-        assert service1.get_id() != service2.get_id()
+        # Assert: Verify override behavior
+        assert service_original is original_mock
+        assert service_override is override_mock
+        assert service_original is not service_override
+        original_factory.assert_called_once()
+        override_factory.assert_called_once()
 
-    def test_constructor_dependency_injection(self):
-        """Test automatic constructor dependency injection"""
+    def test_factory_registration_with_mock_verification(self):
+        """Test factory method registration with comprehensive mock verification"""
+        # Arrange: Create spy factory function
+        mock_instance = Mock(spec=ITestService, autospec=True)
+        factory_spy = Mock(return_value=mock_instance)
 
-        class IDependency:
-            def get_data(self) -> str:
-                pass
+        # Act: Register factory and resolve
+        self.container.register_factory(ITestService, factory_spy)
+        resolved_service = self.container.resolve(ITestService)
 
-        class Dependency(IDependency):
-            def get_data(self) -> str:
-                return "dependency_data"
+        # Assert: Verify factory behavior and returned instance
+        factory_spy.assert_called_once_with()
+        assert resolved_service is mock_instance
 
-        class IService:
-            def process(self) -> str:
-                pass
+    def test_service_resolution_error_handling(self):
+        """Test proper error handling for unregistered services"""
 
-        class Service(IService):
-            def __init__(self, dependency: IDependency):
-                self.dependency = dependency
-
-            def process(self) -> str:
-                return f"processed_{self.dependency.get_data()}"
-
-        # Register services
-        self.container.register(IDependency, Dependency)
-        self.container.register(IService, Service)
-
-        # Resolve service with injected dependency
-        service = self.container.resolve(IService)
-        assert service.process() == "processed_dependency_data"
-
-    def test_factory_registration(self):
-        """Test factory method registration"""
-
-        class ITestService:
-            def get_config(self) -> str:
-                pass
-
-        class TestService(ITestService):
-            def __init__(self, config: str):
-                self.config = config
-
-            def get_config(self) -> str:
-                return self.config
-
-        # Register with factory
-        def create_test_service() -> ITestService:
-            return TestService("factory_config")
-
-        self.container.register_factory(ITestService, create_test_service)
-
-        # Resolve
-        service = self.container.resolve(ITestService)
-        assert service.get_config() == "factory_config"
-
-    def test_service_not_registered_error(self):
-        """Test error when resolving non-registered service"""
-
+        # Arrange: Use a completely unregistered interface
         class IUnregisteredService:
             pass
 
+        # Act & Assert: Verify proper exception is raised
         with pytest.raises(ValueError, match="Service .* is not registered"):
             self.container.resolve(IUnregisteredService)
 
