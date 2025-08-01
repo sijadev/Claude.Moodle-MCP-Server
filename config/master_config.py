@@ -15,7 +15,7 @@ import json
 import os
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -112,7 +112,10 @@ class MoodleConfig:
         }
 
     def update_tokens(
-        self, admin_token: str = "", ws_token: str = "", plugin_token: str = ""
+        self,
+        admin_token: Optional[str] = None,
+        ws_token: Optional[str] = None,
+        plugin_token: Optional[str] = None,
     ):
         """Update API tokens after generation"""
         if admin_token:
