@@ -1,24 +1,34 @@
-# MoodleClaude
+# MoodleClaude v3.0
 
 **Automated Moodle course creation powered by Claude AI and MCP (Model Context Protocol)**
 
 Transform Claude Desktop conversations into complete Moodle courses with activities, resources, and structured content.
 
+## 🌟 **New in v3.0: One-Command Installation!**
+
+```bash
+python tools/setup/setup_fresh_moodle_v2.py --quick-setup
+```
+
+**⚡ 5-10 minutes → Complete MoodleClaude system ready!**  
+No manual configuration, no token hunting, no setup headaches. Just works! 🎉
+
 ## 🚀 Quick Start
 
 ```bash
-# Fresh installation with complete setup
-./setup_fresh.sh
+# ⚡ One-Command Installation (v3.0)
+python tools/setup/setup_fresh_moodle_v2.py --quick-setup
 
-# Start MCP server for Claude Desktop
-python start_server.py
-
-# Create backup
-./backup.sh
-
-# Restore to fresh state
-./restore_default.sh
+# That's it! 🎉 
+# - Complete Moodle environment
+# - MoodleClaude plugin installed
+# - API tokens generated
+# - Claude Desktop configured
+# - Default backup created
 ```
+
+**⏱️ Installation time: ~5-10 minutes**  
+**🎯 Result: Ready-to-use MoodleClaude system**
 
 ## 📁 Project Structure
 
@@ -34,14 +44,24 @@ See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete organization d
 ## ✨ Features
 
 - **🤖 AI-Powered Content Creation**: Transform Claude conversations into structured courses
-- **🔄 Dual-Token System**: Separate tokens for basic and enhanced functionality  
+- **⚡ One-Command Setup**: Complete installation in minutes
+- **🔧 Centralized Configuration**: Single Source of Truth system
+- **🎫 Automatic Token Generation**: Admin + WSUser tokens created automatically
+- **💾 Auto-Backup System**: Default backups after successful installation
 - **📚 Rich Activities**: Create pages, labels, files, and structured sections
 - **🔒 Secure Authorization**: "Authorised users only" support
 - **🚀 Complete Automation**: From chat to course in seconds
 - **🐳 Docker Environment**: Ready-to-use Moodle setup
-- **🧪 Comprehensive Testing**: Unit, integration, and E2E tests
+- **🧪 7-Stage Validation**: Comprehensive system testing
 
 ## 🛠️ Installation
+
+### **Prerequisites**
+- Docker and Docker Compose
+- Python 3.8+
+- Git
+
+### **Automated Installation (Recommended)**
 
 1. **Clone the repository**
    ```bash
@@ -49,34 +69,80 @@ See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete organization d
    cd MoodleClaude
    ```
 
-2. **Set up the environment**
+2. **Run the automated setup**
    ```bash
-   python tools/setup/setup_fresh_moodle.py
+   python tools/setup/setup_fresh_moodle_v2.py --quick-setup
    ```
 
-3. **Follow the setup guide**
-   See [FRESH_SETUP_GUIDE.md](FRESH_SETUP_GUIDE.md) for detailed instructions.
+3. **Restart Claude Desktop**
+   - Essential for MCP server integration
+   - Go to Settings → Restart Application
+
+**That's it! 🎉 Your MoodleClaude system is ready to use.**
+
+### **What the Setup Does Automatically**
+✅ Creates fresh Docker containers (PostgreSQL + Moodle)  
+✅ Installs MoodleClaude plugin  
+✅ Sets up admin user: `admin/MoodleClaude2025!`  
+✅ Creates webservice user: `wsuser/MoodleClaudeWS2025!`  
+✅ Generates API tokens automatically  
+✅ Configures Claude Desktop MCP server  
+✅ Runs comprehensive validation tests  
+✅ Creates default backup  
+
+### **Manual Setup (Advanced Users)**
+For detailed manual installation, see [SETUP_GUIDE_V3.md](SETUP_GUIDE_V3.md)
 
 ## 🔧 Configuration
 
-- **Environment**: Copy `.env.example` to `.env` and configure dual tokens
-- **Docker**: Use `docker-compose.yml` for Moodle environment  
-- **Plugin**: Custom plugin in `moodle_plugin/local_moodleclaude/`
-- **Claude Desktop**: Configure MCP server in `claude_desktop_config.json` (see [docs/CLAUDE_DESKTOP_SETUP.md](docs/CLAUDE_DESKTOP_SETUP.md))
+**🎯 No manual configuration needed!** The automated setup handles everything.
+
+### **Configuration Management**
+All settings are managed through the centralized configuration system:
+
+```bash
+# View current configuration
+python tools/config_manager.py show
+
+# Validate configuration consistency
+python tools/config_manager.py validate
+
+# Sync all configuration files
+python tools/config_manager.py sync-all
+
+# Update API tokens (if needed)
+python tools/config_manager.py update-tokens --admin-token "new_token"
+```
+
+### **Access Credentials**
+- **Moodle Admin**: `admin/MoodleClaude2025!` → http://localhost:8080
+- **WebService User**: `wsuser/MoodleClaudeWS2025!`
+- **Database**: PostgreSQL on port 5432
+- **PgAdmin**: http://localhost:8082
+
+For advanced configuration, see [README_CONFIG_MANAGEMENT.md](README_CONFIG_MANAGEMENT.md)
 
 ## 🧪 Testing
 
+**🎯 Automatic testing included!** The setup runs comprehensive validation tests.
+
+### **Manual Testing**
 ```bash
-# Run all tests
-python tools/testing/run_all_tests.py
+# Test the complete v3.0 workflow
+python tools/test_fresh_workflow.py
 
-# Verify dual-token system
-python tools/testing/verify_dual_tokens.py
+# Validate current system
+python tools/config_manager.py validate
 
-# Run specific test suites
-pytest tests/unit/
-pytest tests/integration/
+# Test MCP server connectivity
+python server/mcp_server_launcher.py --test
 ```
+
+### **Course Creation Testing**
+1. **Open Claude Desktop**
+2. **Start a conversation** 
+3. **Ask Claude to create a Moodle course** from your chat content
+4. **Check results** at http://localhost:8080
 
 ## 📊 System Diagrams
 
@@ -410,14 +476,21 @@ classDiagram
 
 ## 📖 Documentation
 
-**📚 [Complete Documentation Index](docs/INDEX.md)** - All documentation organized by topic
+### **🚀 v3.0 Documentation**
+- **[INSTALLATION_V3.md](INSTALLATION_V3.md)** - Quick start guide for v3.0
+- **[SETUP_GUIDE_V3.md](SETUP_GUIDE_V3.md)** - Comprehensive v3.0 setup guide  
+- **[README_CONFIG_MANAGEMENT.md](README_CONFIG_MANAGEMENT.md)** - Configuration system
+- **[BACKUP_SYSTEM_UPDATE.md](BACKUP_SYSTEM_UPDATE.md)** - Auto-backup documentation
 
-**Quick Links:**
-- [Fresh Setup Guide](docs/FRESH_SETUP_GUIDE.md) - Complete installation instructions  
-- [Plugin Installation](docs/PLUGIN_INSTALLATION.md) - Moodle plugin setup
-- [Testing Guide](docs/TESTING_GUIDE.md) - Testing procedures
-- [Features Overview](docs/FEATURES_AND_CAPABILITIES.md) - Detailed feature list
-- [Claude Desktop Setup](docs/CLAUDE_DESKTOP_SETUP.md) - MCP integration guide
+### **🏗️ System Architecture**
+- **System Diagrams** - See above for visual workflow and communication diagrams
+- **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Project organization
+- **Architecture Overview** - See above for detailed class diagrams
+
+### **🔧 Advanced Topics**
+- **[docs/INDEX.md](docs/INDEX.md)** - Complete documentation index
+- **Manual Setup** - For advanced users who prefer manual installation
+- **Plugin Development** - Custom Moodle plugin in `moodle_plugin/local_moodleclaude/`
 
 ## 🤝 Contributing
 
@@ -433,8 +506,20 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🎯 Quick Links
 
-- **Setup**: [FRESH_SETUP_GUIDE.md](FRESH_SETUP_GUIDE.md)
-- **Claude Desktop**: [CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)
-- **Testing**: `python tools/testing/verify_dual_tokens.py`
+### **🚀 Getting Started**
+- **Installation**: `python tools/setup/setup_fresh_moodle_v2.py --quick-setup`
+- **Configuration**: `python tools/config_manager.py show`
+- **Testing**: `python tools/test_fresh_workflow.py`
+- **Moodle Admin**: http://localhost:8080 (`admin/MoodleClaude2025!`)
+
+### **📚 Documentation**
+- **Quick Start**: [INSTALLATION_V3.md](INSTALLATION_V3.md)
+- **Complete Guide**: [SETUP_GUIDE_V3.md](SETUP_GUIDE_V3.md)
+- **Configuration**: [README_CONFIG_MANAGEMENT.md](README_CONFIG_MANAGEMENT.md)
+- **Backup System**: [BACKUP_SYSTEM_UPDATE.md](BACKUP_SYSTEM_UPDATE.md)
+
+### **🔧 System Components**
 - **Plugin**: [moodle_plugin/local_moodleclaude/](moodle_plugin/local_moodleclaude/)
-- **Docker**: `docker-compose up -d`
+- **MCP Server**: [server/mcp_server_launcher.py](server/mcp_server_launcher.py)
+- **Config Manager**: [tools/config_manager.py](tools/config_manager.py)
+- **Setup Script**: [tools/setup/setup_fresh_moodle_v2.py](tools/setup/setup_fresh_moodle_v2.py)
