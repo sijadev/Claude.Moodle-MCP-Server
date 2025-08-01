@@ -1,0 +1,21 @@
+DEFAULT MOODLECLAUDE SETUP BACKUP
+================================
+Created: Thu Jul 31 21:45:56 CEST 2025
+Purpose: Fresh installation baseline after complete setup
+Type: Default Setup Backup
+Status: Protected from cleanup
+
+This backup contains:
+✅ Fresh Moodle 4.3 installation
+✅ MoodleClaude Plugin installed and working
+✅ Web Services fully configured
+✅ Admin and WS users created
+✅ Tokens generated and tested
+✅ PostgreSQL database with clean schema
+✅ All permissions and roles configured
+
+Use this backup to restore to a clean, working state anytime:
+./restore_moodleclaude.sh moodleclaude_20250731_214516
+
+Or use the shortcut:
+./restore_default_setup.sh

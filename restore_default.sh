@@ -1,0 +1,1 @@
+operations/backup/restore_default_setup.sh

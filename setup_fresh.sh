@@ -1,0 +1,1 @@
+operations/setup/setup_fresh_moodleclaude_complete.sh

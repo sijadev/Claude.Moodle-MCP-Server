@@ -1,0 +1,30 @@
+# MoodleClaude Environment Snapshot
+# Created: Thu Jul 31 21:48:14 CEST 2025
+
+## System Information
+Docker Version: Docker version 28.3.0, build 38b7060
+Docker Compose Version: Docker Compose version v2.38.1-desktop.1
+Host OS: Darwin localhost.local 24.5.0 Darwin Kernel Version 24.5.0: Tue Apr 22 19:54:49 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6000 arm64
+
+## Container Status
+NAMES                         STATUS                      PORTS
+moodleclaude_pgadmin_fresh    Up 33 minutes               0.0.0.0:8082->80/tcp, [::]:8082->80/tcp
+moodleclaude_app_fresh        Up 33 minutes (unhealthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp, 0.0.0.0:8443->8443/tcp, [::]:8443->8443/tcp
+moodleclaude_postgres_fresh   Up 33 minutes (healthy)     5432/tcp
+
+## Container Sizes
+TYPE            TOTAL     SIZE
+Images          9         4.715GB
+Containers      4         374.1MB
+Local Volumes   7         146.8MB
+Build Cache     0         0B
+
+## Setup Type: fresh
+
+## Database Info
+Database: moodle_fresh
+User: moodle
+Tables Count: 484
+
+## Moodle Info
+<title>Home | MoodleClaude v3.0 Fresh Installation</title>

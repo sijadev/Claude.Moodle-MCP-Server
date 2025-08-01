@@ -1,0 +1,5 @@
+# MoodleClaude Backup Tracking
+# This file tracks which backups are stored in git vs external storage
+
+# Format: backup_name:storage_type:size:checksum
+# storage_types: git, external, lfs, compressed

@@ -1,0 +1,35 @@
+{
+  "credentials": {
+    "admin_user": "admin",
+    "admin_password": "MoodleClaude2025!",
+    "admin_email": "admin@moodleclaude.local",
+    "ws_user": "wsuser",
+    "ws_password": "MoodleClaudeWS2025!",
+    "ws_email": "wsuser@moodleclaude.local",
+    "db_host": "localhost",
+    "db_port": 5432,
+    "db_name": "bitnami_moodle",
+    "db_user": "bn_moodle",
+    "db_password": ""
+  },
+  "services": {
+    "url": "http://localhost:8080",
+    "enable_webservices": true,
+    "webservice_protocols": "rest",
+    "admin_token": "bfef4e5ef1f77d5ad173407b1967d838",
+    "ws_token": "",
+    "plugin_token": "e14a2f11d2695415dd90688690b39328"
+  },
+  "server": {
+    "name": "robust-moodle-course-creator",
+    "version": "3.0.0",
+    "log_level": "INFO",
+    "max_chars": 8000,
+    "use_emojis": true,
+    "detailed_progress": true
+  },
+  "meta": {
+    "config_version": "3.0.0",
+    "last_updated": "2025-08-01T08:46:42.307974"
+  }
+}

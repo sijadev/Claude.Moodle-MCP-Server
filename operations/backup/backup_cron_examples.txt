@@ -1,0 +1,14 @@
+# MoodleClaude Automated Backup Cron Examples
+# Add one of these to your crontab (crontab -e)
+
+# Daily backup at 2 AM
+0 2 * * * cd /path/to/moodleclaude && ./automated_backup.sh
+
+# Every 6 hours
+0 */6 * * * cd /path/to/moodleclaude && ./automated_backup.sh
+
+# Business hours only (9 AM, 1 PM, 5 PM on weekdays)
+0 9,13,17 * * 1-5 cd /path/to/moodleclaude && ./automated_backup.sh
+
+# Weekly backup (Sunday at 1 AM) 
+0 1 * * 0 cd /path/to/moodleclaude && ./automated_backup.sh
