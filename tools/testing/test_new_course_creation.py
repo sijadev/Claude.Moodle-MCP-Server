@@ -105,7 +105,7 @@ async def main():
 
     if new_course_id:
         print(f"\n🔍 Database verification command:")
-        print(
+        print(  # nosec B608 - debug print statement, not executed SQL
             f'docker exec moodleclaude_db mariadb -u root bitnami_moodle -e "SELECT id, fullname, shortname, summary FROM mdl_course WHERE id = {new_course_id};"'
         )
 

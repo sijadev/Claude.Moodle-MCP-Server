@@ -1,0 +1,18 @@
+# Administrative and setup scripts
+tools/ linguist-documentation
+
+# Documentation
+*.md linguist-documentation
+
+# Configuration files
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.json linguist-language=JSON
+*.toml linguist-language=TOML
+
+# Python files in tools are administrative scripts
+tools/**/*.py linguist-generated=false linguist-vendored=false
+
+# Core application code
+src/**/*.py linguist-language=Python
+config/**/*.py linguist-language=Python

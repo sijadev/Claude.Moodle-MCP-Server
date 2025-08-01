@@ -395,7 +395,10 @@ try {{
                 wsuser_token = None
                 for cmd, desc in token_commands:
                     result = subprocess.run(
-                        cmd, shell=True, capture_output=True, text=True
+                        cmd,
+                        shell=True,
+                        capture_output=True,
+                        text=True,  # nosec B602 - admin setup script
                     )
                     if "Generate wsuser token" in desc and result.returncode == 0:
                         wsuser_token = result.stdout.strip()
@@ -418,7 +421,7 @@ try {{
                         update_cmd = f'python tools/config_manager.py update-tokens --admin-token "{admin_token}" --plugin-token "{wsuser_token}"'
                         result = subprocess.run(
                             update_cmd,
-                            shell=True,
+                            shell=True,  # nosec B602 - admin setup script with controlled input
                             capture_output=True,
                             text=True,
                             cwd=PROJECT_ROOT,
@@ -463,7 +466,7 @@ def fix_mcp_server_path():
         test_cmd = f"python {launcher_path} --test"
         result = subprocess.run(
             test_cmd,
-            shell=True,
+            shell=True,  # nosec B602 - admin setup script for MCP testing
             capture_output=True,
             text=True,
             cwd=PROJECT_ROOT,
@@ -541,7 +544,9 @@ def run_validation_tests():
     if admin_token and len(admin_token) > 20:
         # Test admin token with a simple API call
         token_test = f'''curl -s "http://localhost:8080/webservice/rest/server.php?wstoken={admin_token}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json"'''
-        result = subprocess.run(token_test, shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            token_test, shell=True, capture_output=True, text=True
+        )  # nosec B602 - admin token test
 
         if result.returncode == 0 and "sitename" in result.stdout:
             print("✅ Admin token validation passed")
