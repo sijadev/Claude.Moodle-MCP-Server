@@ -260,8 +260,14 @@ async def handle_list_tools() -> List[types.Tool]:
                 "properties": {
                     "course_id": {"type": "integer", "description": "ID of the course"},
                     "name": {"type": "string", "description": "Name of the section"},
-                    "summary": {"type": "string", "description": "Summary/description of the section"},
-                    "section": {"type": "integer", "description": "Section number (optional)"}
+                    "summary": {
+                        "type": "string",
+                        "description": "Summary/description of the section",
+                    },
+                    "section": {
+                        "type": "integer",
+                        "description": "Section number (optional)",
+                    },
                 },
                 "required": ["course_id", "name"],
             },
@@ -273,11 +279,28 @@ async def handle_list_tools() -> List[types.Tool]:
                 "type": "object",
                 "properties": {
                     "course_id": {"type": "integer", "description": "ID of the course"},
-                    "section": {"type": "integer", "description": "Section number", "default": 0},
-                    "module_name": {"type": "string", "description": "Module type (forum, assign, quiz, resource, etc.)"},
-                    "name": {"type": "string", "description": "Name of the activity/resource"},
-                    "intro": {"type": "string", "description": "Introduction/description"},
-                    "visible": {"type": "boolean", "description": "Whether the module is visible", "default": True}
+                    "section": {
+                        "type": "integer",
+                        "description": "Section number",
+                        "default": 0,
+                    },
+                    "module_name": {
+                        "type": "string",
+                        "description": "Module type (forum, assign, quiz, resource, etc.)",
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the activity/resource",
+                    },
+                    "intro": {
+                        "type": "string",
+                        "description": "Introduction/description",
+                    },
+                    "visible": {
+                        "type": "boolean",
+                        "description": "Whether the module is visible",
+                        "default": True,
+                    },
                 },
                 "required": ["course_id", "module_name", "name"],
             },
@@ -289,12 +312,29 @@ async def handle_list_tools() -> List[types.Tool]:
                 "type": "object",
                 "properties": {
                     "course_id": {"type": "integer", "description": "ID of the course"},
-                    "section": {"type": "integer", "description": "Section number", "default": 0},
+                    "section": {
+                        "type": "integer",
+                        "description": "Section number",
+                        "default": 0,
+                    },
                     "name": {"type": "string", "description": "Assignment name"},
-                    "intro": {"type": "string", "description": "Assignment description"},
-                    "duedate": {"type": "integer", "description": "Due date timestamp (optional)"},
-                    "allowsubmissionsfromdate": {"type": "integer", "description": "Allow submissions from date timestamp (optional)"},
-                    "grade": {"type": "integer", "description": "Maximum grade", "default": 100}
+                    "intro": {
+                        "type": "string",
+                        "description": "Assignment description",
+                    },
+                    "duedate": {
+                        "type": "integer",
+                        "description": "Due date timestamp (optional)",
+                    },
+                    "allowsubmissionsfromdate": {
+                        "type": "integer",
+                        "description": "Allow submissions from date timestamp (optional)",
+                    },
+                    "grade": {
+                        "type": "integer",
+                        "description": "Maximum grade",
+                        "default": 100,
+                    },
                 },
                 "required": ["course_id", "name", "intro"],
             },
@@ -306,10 +346,18 @@ async def handle_list_tools() -> List[types.Tool]:
                 "type": "object",
                 "properties": {
                     "course_id": {"type": "integer", "description": "ID of the course"},
-                    "section": {"type": "integer", "description": "Section number", "default": 0},
+                    "section": {
+                        "type": "integer",
+                        "description": "Section number",
+                        "default": 0,
+                    },
                     "name": {"type": "string", "description": "Forum name"},
                     "intro": {"type": "string", "description": "Forum description"},
-                    "type": {"type": "string", "description": "Forum type (news, single, qanda, general)", "default": "general"}
+                    "type": {
+                        "type": "string",
+                        "description": "Forum type (news, single, qanda, general)",
+                        "default": "general",
+                    },
                 },
                 "required": ["course_id", "name", "intro"],
             },
@@ -517,30 +565,31 @@ async def handle_create_course_section(
         name = arguments["name"]
         summary = arguments.get("summary", "")
         section = arguments.get("section")
-        
+
         client = await get_moodle_client(use_enhanced=True)
-        
+
         # Create section using core_course_create_sections
-        sections_data = [{
-            "course": course_id,
-            "name": name,
-            "summary": summary,
-            "summaryformat": 1,  # HTML format
-        }]
-        
+        sections_data = [
+            {
+                "course": course_id,
+                "name": name,
+                "summary": summary,
+                "summaryformat": 1,  # HTML format
+            }
+        ]
+
         if section is not None:
             sections_data[0]["section"] = section
-        
+
         result = await client.call_webservice(
-            "core_course_create_sections",
-            sections=sections_data
+            "core_course_create_sections", sections=sections_data
         )
-        
+
         if result and len(result) > 0:
             new_section = result[0]
             section_id = new_section.get("id")
             section_num = new_section.get("section")
-            
+
             return [
                 types.TextContent(
                     type="text",
@@ -557,10 +606,12 @@ async def handle_create_course_section(
                     type="text", text="❌ Section creation failed: No result returned"
                 )
             ]
-            
+
     except Exception as e:
         return [
-            types.TextContent(type="text", text=f"❌ Failed to create section: {str(e)}")
+            types.TextContent(
+                type="text", text=f"❌ Failed to create section: {str(e)}"
+            )
         ]
 
 
@@ -575,9 +626,9 @@ async def handle_add_course_module(
         name = arguments["name"]
         intro = arguments.get("intro", "")
         visible = arguments.get("visible", True)
-        
+
         client = await get_moodle_client(use_enhanced=True)
-        
+
         # Create module using core_course_add_course_module
         module_data = {
             "courseid": course_id,
@@ -588,15 +639,14 @@ async def handle_add_course_module(
             "introformat": 1,  # HTML format
             "visible": 1 if visible else 0,
         }
-        
+
         result = await client.call_webservice(
-            "core_course_add_course_module",
-            **module_data
+            "core_course_add_course_module", **module_data
         )
-        
+
         if result:
             module_id = result.get("coursemodule")
-            
+
             return [
                 types.TextContent(
                     type="text",
@@ -614,7 +664,7 @@ async def handle_add_course_module(
                     type="text", text="❌ Module creation failed: No result returned"
                 )
             ]
-            
+
     except Exception as e:
         return [
             types.TextContent(type="text", text=f"❌ Failed to add module: {str(e)}")
@@ -633,9 +683,9 @@ async def handle_create_assignment(
         duedate = arguments.get("duedate", 0)
         allowsubmissionsfromdate = arguments.get("allowsubmissionsfromdate", 0)
         grade = arguments.get("grade", 100)
-        
+
         client = await get_moodle_client(use_enhanced=True)
-        
+
         # Create assignment using mod_assign_save_assignment
         assignment_data = {
             "courseid": course_id,
@@ -648,7 +698,7 @@ async def handle_create_assignment(
             "grade": grade,
             "visible": 1,
         }
-        
+
         # Use generic module creation for assignments
         result = await client.call_webservice(
             "core_course_add_course_module",
@@ -658,12 +708,12 @@ async def handle_create_assignment(
             name=name,
             intro=intro,
             introformat=1,
-            visible=1
+            visible=1,
         )
-        
+
         if result:
             module_id = result.get("coursemodule")
-            
+
             return [
                 types.TextContent(
                     type="text",
@@ -678,13 +728,16 @@ async def handle_create_assignment(
         else:
             return [
                 types.TextContent(
-                    type="text", text="❌ Assignment creation failed: No result returned"
+                    type="text",
+                    text="❌ Assignment creation failed: No result returned",
                 )
             ]
-            
+
     except Exception as e:
         return [
-            types.TextContent(type="text", text=f"❌ Failed to create assignment: {str(e)}")
+            types.TextContent(
+                type="text", text=f"❌ Failed to create assignment: {str(e)}"
+            )
         ]
 
 
@@ -698,9 +751,9 @@ async def handle_create_forum(
         name = arguments["name"]
         intro = arguments["intro"]
         forum_type = arguments.get("type", "general")
-        
+
         client = await get_moodle_client(use_enhanced=True)
-        
+
         # Create forum using generic module creation
         result = await client.call_webservice(
             "core_course_add_course_module",
@@ -710,12 +763,12 @@ async def handle_create_forum(
             name=name,
             intro=intro,
             introformat=1,
-            visible=1
+            visible=1,
         )
-        
+
         if result:
             module_id = result.get("coursemodule")
-            
+
             return [
                 types.TextContent(
                     type="text",
@@ -733,7 +786,7 @@ async def handle_create_forum(
                     type="text", text="❌ Forum creation failed: No result returned"
                 )
             ]
-            
+
     except Exception as e:
         return [
             types.TextContent(type="text", text=f"❌ Failed to create forum: {str(e)}")
