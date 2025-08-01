@@ -655,7 +655,10 @@ def create_default_backup():
 
         print("🗄️ Creating database backup...")
         result = subprocess.run(
-            db_backup_cmd, shell=True, capture_output=True, text=True  # nosec B602 - admin setup script
+            db_backup_cmd,
+            shell=True,
+            capture_output=True,
+            text=True,  # nosec B602 - admin setup script
         )
 
         if result.returncode == 0:

@@ -72,7 +72,9 @@ class OptimizedMoodleSetup:
                     cwd=self.project_root,
                 )
             else:
-                result = subprocess.run(cmd, shell=True, cwd=self.project_root)  # nosec B602 - admin setup script
+                result = subprocess.run(
+                    cmd, shell=True, cwd=self.project_root
+                )  # nosec B602 - admin setup script
 
             if result.returncode == 0:
                 self.log_step(f"Success: {description}")
