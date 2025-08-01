@@ -1,0 +1,160 @@
+# MoodleClaude Docker Ignore File
+# ================================
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python cache and temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+*.cover
+.hypothesis/
+test-results/
+reports/
+screenshots/
+videos/
+
+# Logs
+*.log
+logs/
+
+# Documentation build
+docs/_build/
+
+# Large backup files (exclude from Docker context)
+backups/
+*.tar.gz
+*.sql
+*.backup
+*.bak
+
+# Docker volumes and data
+moodle_data/
+moodledata_data/
+mariadb_data/
+postgres_data/
+
+# Local development files
+local/
+local_config.py
+.env.testing
+.env.production
+.env.development
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# MacOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# JetBrains
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Exclude configuration files with sensitive data
+claude_desktop_config.json
+moodle_token.txt
+
+# Exclude large test files
+test_data/
+sample_data/
+
+# Exclude documentation source files during build
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+documentation/
+
+# Exclude CI/CD files
+.travis.yml
+.github/
+azure-pipelines.yml
+Jenkinsfile
+
+# Exclude development tools configuration
+.flake8
+.mypy.ini
+pyproject.toml
+setup.cfg
+
+# Exclude backup and restore scripts during container build
+operations/backup/
+operations/restore/
+
+# Only include essential files for Docker build
+!requirements.txt
+!src/
+!config/
+!tools/
+!operations/test/
+!operations/docker/Dockerfile*
+!tests/

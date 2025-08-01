@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Testing
+  postgres_test:
+    image: postgres:13
+    container_name: moodle_postgres_test
+    environment:
+      POSTGRES_DB: moodletest
+      POSTGRES_USER: moodleuser
+      POSTGRES_PASSWORD: MoodleTestPass2025!
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - moodle_test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moodleuser -d moodletest"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Moodle Application for Testing
+  moodle_test:
+    image: bitnami/moodle:4.1
+    container_name: moodle_app_test
+    environment:
+      # Database Configuration
+      MOODLE_DATABASE_TYPE: pgsql
+      MOODLE_DATABASE_HOST: postgres_test
+      MOODLE_DATABASE_PORT_NUMBER: 5432
+      MOODLE_DATABASE_NAME: moodletest
+      MOODLE_DATABASE_USER: moodleuser
+      MOODLE_DATABASE_PASSWORD: MoodleTestPass2025!
+      
+      # Admin Configuration (consistent with master_config.py)
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: MoodleClaude2025!
+      MOODLE_EMAIL: admin@moodleclaude.test
+      MOODLE_SITE_NAME: "MoodleClaude Test Environment"
+      
+      # Performance Settings for Testing
+      MOODLE_SKIP_BOOTSTRAP: "no"
+      ALLOW_EMPTY_PASSWORD: "yes"
+      
+      # Web Services (auto-enable for testing)
+      MOODLE_WEB_SERVICES_ENABLED: "yes"
+      
+    ports:
+      - "8081:8080"  # Different port for testing
+      - "8443:8443"
+    volumes:
+      - moodle_test_data:/bitnami/moodle
+      - moodle_test_files:/bitnami/moodledata
+      # Mount plugin directory for testing
+      - ../../moodle_plugin/local_moodleclaude:/bitnami/moodle/local/moodleclaude:ro
+    networks:
+      - moodle_test_network
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # PgAdmin for Testing (Optional - for debugging)
+  pgadmin_test:
+    image: dpage/pgadmin4:7
+    container_name: pgadmin_test
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@moodleclaude.test
+      PGADMIN_DEFAULT_PASSWORD: MoodleClaude2025!
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8083:80"  # Different port for testing
+    volumes:
+      - pgadmin_test_data:/var/lib/pgadmin
+    networks:
+      - moodle_test_network
+    depends_on:
+      - postgres_test
+    profiles:
+      - debug  # Only start with --profile debug
+
+  # Test Runner Container
+  test_runner:
+    build:
+      context: ../../
+      dockerfile: operations/docker/Dockerfile.test
+    container_name: moodleclaude_test_runner
+    environment:
+      # Test Environment Variables
+      MOODLE_URL: http://moodle_test:8080
+      MOODLE_ADMIN_USER: admin
+      MOODLE_ADMIN_PASSWORD: MoodleClaude2025!
+      MOODLE_WS_USER: wsuser
+      MOODLE_WS_PASSWORD: MoodleClaudeWS2025!
+      
+      # Test Configuration
+      TEST_ENV: "docker"
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1
+      
+      # Database for test results
+      DATABASE_URL: postgresql://moodleuser:MoodleTestPass2025!@postgres_test:5432/moodletest
+      
+    volumes:
+      - ../../:/app:ro
+      - test_results:/app/test-results
+      - test_logs:/app/logs
+    networks:
+      - moodle_test_network
+    depends_on:
+      moodle_test:
+        condition: service_healthy
+      postgres_test:
+        condition: service_healthy
+    profiles:
+      - test  # Only start for testing
+
+networks:
+  moodle_test_network:
+    driver: bridge
+    name: moodle_test_network
+
+volumes:
+  postgres_test_data:
+    name: moodle_postgres_test_data
+  moodle_test_data:
+    name: moodle_test_data
+  moodle_test_files:
+    name: moodle_test_files
+  pgadmin_test_data:
+    name: pgladmin_test_data
+  test_results:
+    name: moodleclaude_test_results
+  test_logs:
+    name: moodleclaude_test_logs
