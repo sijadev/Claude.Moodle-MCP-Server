@@ -14,7 +14,10 @@ from datetime import datetime, timedelta
 from threading import Lock
 from typing import Any, Dict, List, Optional, Union
 
-import aiosqlite
+try:
+    import aiosqlite
+except ImportError:
+    aiosqlite = None
 
 from .dependency_injection import ServiceLifetime, service
 from .interfaces import ISessionRepository
@@ -42,6 +45,11 @@ class SQLiteSessionRepository(ISessionRepository):
     """
 
     def __init__(self, db_path: str = "data/sessions.db"):
+        if aiosqlite is None:
+            raise ImportError(
+                "aiosqlite package is required for SQLiteSessionRepository. "
+                "Install with: pip install aiosqlite>=0.21.0"
+            )
         self.db_path = db_path
         self._ensure_directory()
         self._connection_lock = Lock()
