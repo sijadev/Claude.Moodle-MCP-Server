@@ -1,9 +1,9 @@
-# MoodleClaude Test Runner Dockerfile with Bug Fixes
+# MoodleClaude Test Runner Dockerfile with Bug Fixes (Updated)
 FROM python:3.11-slim
 
 LABEL maintainer="MoodleClaude Team"
 LABEL description="Test runner for MoodleClaude with bug fixes and all dependencies"
-LABEL version="3.0-fixed"
+LABEL version="3.0-fixed-v2"
 
 # Set working directory
 WORKDIR /app
@@ -53,8 +53,7 @@ ENV WEB_SERVICE_FIX=true
 ENV TOKEN_PERMISSIONS_FIX=true
 
 # Create test runner script with integrated bug fixes
-RUN cat > /app/run_tests_with_fixes.sh << 'EOF' && \
-    chmod +x /app/run_tests_with_fixes.sh
+RUN cat > /app/run_tests_with_fixes.sh << 'EOF'
 #!/bin/bash
 set -e
 
@@ -111,7 +110,8 @@ fi
 echo "✅ Test suite completed"
 EOF
 
-# Script is already made executable in the previous RUN command
+# Make script executable
+RUN chmod +x /app/run_tests_with_fixes.sh
 
 # Create non-root user for security
 RUN useradd -m -u 1000 testuser && \
