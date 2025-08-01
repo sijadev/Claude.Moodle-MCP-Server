@@ -307,9 +307,9 @@ class ChunkProcessorQueue:
             "total_sections": total_sections,
             "total_activities": total_activities,
             "successful_activities": successful_activities,
-            "activity_success_rate": successful_activities / total_activities
-            if total_activities > 0
-            else 0,
+            "activity_success_rate": (
+                successful_activities / total_activities if total_activities > 0 else 0
+            ),
             "average_processing_time": avg_processing_time,
             "failed_chunk_details": [
                 {

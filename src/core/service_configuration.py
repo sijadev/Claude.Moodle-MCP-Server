@@ -125,9 +125,11 @@ def configure_services(
         moodle_client = EnhancedMoodleClient(
             base_url=dual_config.moodle_url,
             basic_token=dual_config.get_basic_token(),
-            plugin_token=dual_config.get_plugin_token()
-            if dual_config.is_dual_token_mode()
-            else None,
+            plugin_token=(
+                dual_config.get_plugin_token()
+                if dual_config.is_dual_token_mode()
+                else None
+            ),
         )
         # Register under the interface for dependency injection
         container.register_instance(IMoodleClient, moodle_client)
@@ -165,7 +167,7 @@ def configure_services(
 
 
 def create_configured_container(
-    config_options: Dict[str, Any] = None
+    config_options: Dict[str, Any] = None,
 ) -> ServiceContainer:
     """
     Create and configure a new service container

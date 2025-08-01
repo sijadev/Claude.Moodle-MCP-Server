@@ -83,9 +83,11 @@ class ContentChunker:
                                 type=item.type,
                                 language=getattr(item, "language", None),
                                 topic=item.topic,
-                                description=f"{item.description or ''} - Part {j+1} of {len(content_chunks)}"
-                                if item.description
-                                else f"Part {j+1} of {len(content_chunks)}",
+                                description=(
+                                    f"{item.description or ''} - Part {j+1} of {len(content_chunks)}"
+                                    if item.description
+                                    else f"Part {j+1} of {len(content_chunks)}"
+                                ),
                             )
                             processed_items.append(chunked_item)
                     else:

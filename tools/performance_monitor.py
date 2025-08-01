@@ -124,7 +124,9 @@ Uptime: {uptime:.1f} seconds
             for rec in analysis["recommendations"]:
                 report += f"• {rec}\n"
         else:
-            report += "• No performance recommendations - configuration looks good! ✅\n"
+            report += (
+                "• No performance recommendations - configuration looks good! ✅\n"
+            )
 
         # Performance benchmarks
         report += f"""

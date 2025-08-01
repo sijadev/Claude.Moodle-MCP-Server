@@ -409,9 +409,9 @@ class ErrorHandlerMixin:
                 ]
             ),
             "by_category": by_category,
-            "last_error": self.error_history[-1].error_id
-            if self.error_history
-            else None,
+            "last_error": (
+                self.error_history[-1].error_id if self.error_history else None
+            ),
         }
 
     def clear_error_history(self):

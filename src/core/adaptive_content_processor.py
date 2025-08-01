@@ -615,9 +615,9 @@ class AdaptiveContentProcessor:
             response["user_message"] = self._generate_user_friendly_continuation()
         else:
             session.state = SessionState.COMPLETED
-            response[
-                "user_message"
-            ] = f"✅ Course creation completed! Created {len(course_structure.sections)} sections with your content."
+            response["user_message"] = (
+                f"✅ Course creation completed! Created {len(course_structure.sections)} sections with your content."
+            )
             response["final_summary"] = {
                 "total_sections": len(course_structure.sections),
                 "total_items": sum(
@@ -723,17 +723,19 @@ class AdaptiveContentProcessor:
             "progress": {
                 "completed_chunks": session.processed_chunks,
                 "total_chunks": session.total_chunks,
-                "percentage": (session.processed_chunks / session.total_chunks) * 100
-                if session.total_chunks > 0
-                else 0,
+                "percentage": (
+                    (session.processed_chunks / session.total_chunks) * 100
+                    if session.total_chunks > 0
+                    else 0
+                ),
             },
             "course_id": session.course_id,
             "course_name": session.course_name,
             "created_sections_count": len(session.created_sections),
             "needs_continuation": session.needs_continuation,
-            "continuation_prompt": session.continuation_prompt
-            if session.needs_continuation
-            else None,
+            "continuation_prompt": (
+                session.continuation_prompt if session.needs_continuation else None
+            ),
             "error_count": session.error_count,
             "last_error": session.last_error,
             "expires_at": session.expires_at.isoformat(),
@@ -770,7 +772,7 @@ class AdaptiveContentProcessor:
             },
             "active_sessions": active_session_count,
             "total_sessions_created": len(self.active_sessions),
-            "learning_status": "adaptive"
-            if self.content_limits.confidence_level > 0.8
-            else "learning",
+            "learning_status": (
+                "adaptive" if self.content_limits.confidence_level > 0.8 else "learning"
+            ),
         }

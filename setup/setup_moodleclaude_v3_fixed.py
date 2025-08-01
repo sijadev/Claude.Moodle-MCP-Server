@@ -16,71 +16,88 @@ Usage:
     python setup_moodleclaude_v3_fixed.py --fix-permissions-only
 """
 
-import os
-import sys
-import subprocess
 import argparse
-import time
 import json
+import os
 import shutil
-from pathlib import Path
+import subprocess
+import sys
+import time
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent
-CLAUDE_CONFIG_PATH = Path.home() / "Library/Application Support/Claude/claude_desktop_config.json"
+CLAUDE_CONFIG_PATH = (
+    Path.home() / "Library/Application Support/Claude/claude_desktop_config.json"
+)
+
 
 class MoodleClaudeSetupV3:
     """Complete MoodleClaude setup with all bug fixes"""
-    
+
     def __init__(self):
         self.project_root = PROJECT_ROOT
         self.setup_log = []
         self.config = {}
-        
+
         # Load existing config
         self.load_config()
-        
+
     def log_step(self, message: str, success: bool = True):
         """Log setup steps"""
         emoji = "✅" if success else "❌"
         log_entry = f"{emoji} {message}"
         print(log_entry)
-        self.setup_log.append({
-            "timestamp": datetime.now().isoformat(),
-            "message": message,
-            "success": success
-        })
-    
+        self.setup_log.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "message": message,
+                "success": success,
+            }
+        )
+
     def load_config(self):
         """Load configuration from token file"""
         config_file = self.project_root / "config" / "moodle_tokens.env"
-        
+
         if config_file.exists():
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 for line in f:
-                    if '=' in line and not line.strip().startswith('#'):
-                        key, value = line.strip().split('=', 1)
-                        self.config[key] = value.strip('"\'')
-        
+                    if "=" in line and not line.strip().startswith("#"):
+                        key, value = line.strip().split("=", 1)
+                        self.config[key] = value.strip("\"'")
+
         # Set defaults
-        self.config.setdefault('MOODLE_URL', 'http://localhost:8080')
-        self.config.setdefault('MOODLE_ADMIN_USER', 'admin')
-        self.config.setdefault('MOODLE_ADMIN_PASSWORD', 'MoodleClaude2025!')
-    
-    def run_command(self, cmd: str, description: str = "", capture_output: bool = True, timeout: int = 300) -> tuple[bool, str]:
+        self.config.setdefault("MOODLE_URL", "http://localhost:8080")
+        self.config.setdefault("MOODLE_ADMIN_USER", "admin")
+        self.config.setdefault("MOODLE_ADMIN_PASSWORD", "MoodleClaude2025!")
+
+    def run_command(
+        self,
+        cmd: str,
+        description: str = "",
+        capture_output: bool = True,
+        timeout: int = 300,
+    ) -> tuple[bool, str]:
         """Run shell command with proper error handling"""
         print(f"🔧 {description}")
         try:
             if capture_output:
                 result = subprocess.run(
-                    cmd, shell=True, capture_output=True, text=True, 
-                    cwd=self.project_root, timeout=timeout
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    cwd=self.project_root,
+                    timeout=timeout,
                 )
             else:
-                result = subprocess.run(cmd, shell=True, cwd=self.project_root, timeout=timeout)
-            
+                result = subprocess.run(
+                    cmd, shell=True, cwd=self.project_root, timeout=timeout
+                )
+
             if result.returncode == 0:
                 self.log_step(f"Success: {description}")
                 output = result.stdout.strip() if capture_output else ""
@@ -88,7 +105,7 @@ class MoodleClaudeSetupV3:
                     print(f"   Output: {output[:200]}...")
                 return True, output
             else:
-                error_msg = result.stderr.strip() if result.stderr else 'Unknown error'
+                error_msg = result.stderr.strip() if result.stderr else "Unknown error"
                 self.log_step(f"Failed: {description} - {error_msg[:200]}", False)
                 return False, error_msg
         except subprocess.TimeoutExpired:
@@ -97,89 +114,92 @@ class MoodleClaudeSetupV3:
         except Exception as e:
             self.log_step(f"Exception in {description}: {str(e)}", False)
             return False, str(e)
-    
+
     def check_prerequisites(self) -> bool:
         """Check system prerequisites"""
         print("🔍 Checking system prerequisites...")
-        
+
         checks = [
             ("docker --version", "Docker installation"),
             ("docker-compose --version", "Docker Compose installation"),
             ("python3 --version", "Python 3 installation"),
         ]
-        
+
         all_good = True
         for cmd, desc in checks:
             success, _ = self.run_command(cmd, f"Checking {desc}")
             if not success:
                 all_good = False
-        
+
         return all_good
-    
+
     def setup_docker_environment(self) -> bool:
         """Setup and start Docker environment"""
         print("🐳 Setting up Docker environment...")
-        
+
         # Check if containers are already running
         success, output = self.run_command(
             "docker ps --filter 'name=moodleclaude' --format '{{.Names}}'",
-            "Checking running containers"
+            "Checking running containers",
         )
-        
-        if success and 'moodleclaude_app_fresh' in output:
+
+        if success and "moodleclaude_app_fresh" in output:
             self.log_step("Moodle containers already running")
             return True
-        
+
         # Start Docker containers
         docker_compose_file = self.project_root / "docker-compose.yml"
         if not docker_compose_file.exists():
             # Try alternative locations
-            for alt_path in ["operations/docker/docker-compose.yml", "docker/docker-compose.yml"]:
+            for alt_path in [
+                "operations/docker/docker-compose.yml",
+                "docker/docker-compose.yml",
+            ]:
                 alt_file = self.project_root / alt_path
                 if alt_file.exists():
                     docker_compose_file = alt_file
                     break
-        
+
         if not docker_compose_file.exists():
             self.log_step("Docker compose file not found", False)
             return False
-        
+
         # Start containers
         success, _ = self.run_command(
             f"docker-compose -f {docker_compose_file} up -d",
             "Starting Docker containers",
-            timeout=600
+            timeout=600,
         )
-        
+
         if success:
             # Wait for containers to be healthy
             print("⏳ Waiting for containers to be ready...")
             time.sleep(30)
             return True
-        
+
         return False
-    
+
     def get_python_path(self) -> str:
         """Get the correct Python path for MCP server"""
         # Check virtual environment first
         venv_python = self.project_root / ".venv" / "bin" / "python3"
         if venv_python.exists():
             return str(venv_python)
-        
+
         # Check system Python
         success, output = self.run_command("which python3", "Finding Python3 path")
         if success and output.strip():
             return output.strip()
-        
+
         # Fallback
         return "python3"
-    
+
     def create_web_service_setup(self) -> bool:
         """Create and run web service setup script"""
         print("🌐 Setting up Moodle web services...")
-        
+
         # Create web service setup script
-        setup_script = '''<?php
+        setup_script = """<?php
 // MoodleClaude Web Service Setup Script
 define('CLI_SCRIPT', true);
 require_once('/bitnami/moodle/config.php');
@@ -263,43 +283,43 @@ try {
     echo "❌ Error: " . $e->getMessage() . "\\n";
     exit(1);
 }
-?>'''
-        
+?>"""
+
         # Write setup script to temporary file
         setup_file = self.project_root / "temp_webservice_setup.php"
-        with open(setup_file, 'w') as f:
+        with open(setup_file, "w") as f:
             f.write(setup_script)
-        
+
         try:
             # Copy to container and run
             success1, _ = self.run_command(
                 "docker cp temp_webservice_setup.php moodleclaude_app_fresh:/bitnami/moodle/",
-                "Copying web service setup script to container"
+                "Copying web service setup script to container",
             )
-            
+
             if success1:
                 success2, _ = self.run_command(
                     "docker exec moodleclaude_app_fresh php -f /bitnami/moodle/temp_webservice_setup.php",
-                    "Running web service setup script"
+                    "Running web service setup script",
                 )
-                
+
                 if success2:
                     self.log_step("Web service setup completed successfully")
                     return True
-            
+
             return False
-            
+
         finally:
             # Clean up temporary file
             if setup_file.exists():
                 setup_file.unlink()
-    
+
     def fix_token_permissions(self) -> bool:
         """Fix token permissions and roles"""
         print("🔐 Fixing token permissions and roles...")
-        
+
         # Create permissions fix script
-        fix_script = '''<?php
+        fix_script = """<?php
 // Fix course creation capabilities directly
 define('CLI_SCRIPT', true);
 require_once('/bitnami/moodle/config.php');
@@ -387,40 +407,40 @@ try {
     echo "❌ Error: " . $e->getMessage() . "\\n";
     exit(1);
 }
-?>'''
-        
+?>"""
+
         # Write and run fix script
         fix_file = self.project_root / "temp_fix_permissions.php"
-        with open(fix_file, 'w') as f:
+        with open(fix_file, "w") as f:
             f.write(fix_script)
-        
+
         try:
             # Copy to container and run
             success1, _ = self.run_command(
                 "docker cp temp_fix_permissions.php moodleclaude_app_fresh:/bitnami/moodle/",
-                "Copying permissions fix script to container"
+                "Copying permissions fix script to container",
             )
-            
+
             if success1:
                 success2, _ = self.run_command(
                     "docker exec moodleclaude_app_fresh php -f /bitnami/moodle/temp_fix_permissions.php",
-                    "Running permissions fix script"
+                    "Running permissions fix script",
                 )
-                
+
                 return success2
-            
+
             return False
-            
+
         finally:
             # Clean up temporary file
             if fix_file.exists():
                 fix_file.unlink()
-    
+
     def reassign_tokens_to_service(self) -> bool:
         """Reassign existing tokens to MoodleClaude web service"""
         print("🔄 Reassigning tokens to MoodleClaude web service...")
-        
-        reassign_script = '''<?php
+
+        reassign_script = """<?php
 // Reassign existing tokens to MoodleClaude web service
 define('CLI_SCRIPT', true);
 require_once('/bitnami/moodle/config.php');
@@ -489,129 +509,133 @@ try {
     echo "❌ Error: " . $e->getMessage() . "\\n";
     exit(1);
 }
-?>'''
-        
+?>"""
+
         # Write and run reassign script
         reassign_file = self.project_root / "temp_reassign_tokens.php"
-        with open(reassign_file, 'w') as f:
+        with open(reassign_file, "w") as f:
             f.write(reassign_script)
-        
+
         try:
             # Copy to container and run
             success1, _ = self.run_command(
                 "docker cp temp_reassign_tokens.php moodleclaude_app_fresh:/bitnami/moodle/",
-                "Copying token reassignment script to container"
+                "Copying token reassignment script to container",
             )
-            
+
             if success1:
                 success2, _ = self.run_command(
                     "docker exec moodleclaude_app_fresh php -f /bitnami/moodle/temp_reassign_tokens.php",
-                    "Running token reassignment script"
+                    "Running token reassignment script",
                 )
-                
+
                 return success2
-            
+
             return False
-            
+
         finally:
             # Clean up temporary file
             if reassign_file.exists():
                 reassign_file.unlink()
-    
+
     def setup_claude_desktop_config(self) -> bool:
         """Setup Claude Desktop configuration with correct Python path"""
         print("🖥️  Setting up Claude Desktop configuration...")
-        
+
         # Get correct Python path
         python_path = self.get_python_path()
-        
+
         # Get tokens from config
-        basic_token = self.config.get('MOODLE_BASIC_TOKEN', self.config.get('MOODLE_ADMIN_TOKEN', ''))
-        enhanced_token = self.config.get('MOODLE_PLUGIN_TOKEN', basic_token)
-        
+        basic_token = self.config.get(
+            "MOODLE_BASIC_TOKEN", self.config.get("MOODLE_ADMIN_TOKEN", "")
+        )
+        enhanced_token = self.config.get("MOODLE_PLUGIN_TOKEN", basic_token)
+
         # Create Claude Desktop config
         claude_config = {
             "mcpServers": {
                 "moodleclaude-stable": {
                     "command": python_path,
-                    "args": [
-                        str(self.project_root / "src/core/working_mcp_server.py")
-                    ],
+                    "args": [str(self.project_root / "src/core/working_mcp_server.py")],
                     "env": {
-                        "MOODLE_URL": self.config.get('MOODLE_URL', 'http://localhost:8080'),
+                        "MOODLE_URL": self.config.get(
+                            "MOODLE_URL", "http://localhost:8080"
+                        ),
                         "MOODLE_TOKEN_BASIC": basic_token,
                         "MOODLE_TOKEN_ENHANCED": enhanced_token,
-                        "MOODLE_USERNAME": self.config.get('MOODLE_ADMIN_USER', 'admin'),
+                        "MOODLE_USERNAME": self.config.get(
+                            "MOODLE_ADMIN_USER", "admin"
+                        ),
                         "SERVER_NAME": "stable-moodle-mcp",
-                        "LOG_LEVEL": "INFO"
+                        "LOG_LEVEL": "INFO",
                     },
                     "timeout": 30,
-                    "autoApprove": [
-                        "test_connection",
-                        "get_courses",
-                        "create_course"
-                    ],
+                    "autoApprove": ["test_connection", "get_courses", "create_course"],
                     "disabled": False,
                     "description": "Stable MoodleClaude MCP Server - dependency-free and working",
-                    "version": "1.0.0"
+                    "version": "1.0.0",
                 }
             },
             "globalSettings": {
                 "logging": {
                     "level": "INFO",
                     "enableFileLogging": True,
-                    "logDirectory": str(self.project_root / "logs")
+                    "logDirectory": str(self.project_root / "logs"),
                 }
-            }
+            },
         }
-        
+
         # Ensure Claude config directory exists
         CLAUDE_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Write Claude Desktop config
         try:
-            with open(CLAUDE_CONFIG_PATH, 'w') as f:
+            with open(CLAUDE_CONFIG_PATH, "w") as f:
                 json.dump(claude_config, f, indent=2)
-            
+
             self.log_step(f"Claude Desktop config written to {CLAUDE_CONFIG_PATH}")
             self.log_step(f"Using Python path: {python_path}")
             return True
-            
+
         except Exception as e:
             self.log_step(f"Failed to write Claude Desktop config: {str(e)}", False)
             return False
-    
+
     def validate_setup(self) -> bool:
         """Validate the complete setup"""
         print("🔍 Validating setup...")
-        
+
         validation_checks = []
-        
+
         # Check if containers are running
         success, output = self.run_command(
             "docker ps --filter 'name=moodleclaude_app_fresh' --format '{{.Names}}'",
-            "Checking Moodle container"
+            "Checking Moodle container",
         )
-        validation_checks.append(("Moodle container running", success and 'moodleclaude_app_fresh' in output))
-        
+        validation_checks.append(
+            ("Moodle container running", success and "moodleclaude_app_fresh" in output)
+        )
+
         # Check if Moodle is accessible
         success, _ = self.run_command(
             f"curl -s -o /dev/null -w '%{{http_code}}' {self.config.get('MOODLE_URL', 'http://localhost:8080')}",
-            "Checking Moodle accessibility"
+            "Checking Moodle accessibility",
         )
         validation_checks.append(("Moodle accessible", success))
-        
+
         # Check if Claude config exists
-        validation_checks.append(("Claude Desktop config exists", CLAUDE_CONFIG_PATH.exists()))
-        
+        validation_checks.append(
+            ("Claude Desktop config exists", CLAUDE_CONFIG_PATH.exists())
+        )
+
         # Check if MCP server file exists
         mcp_server_path = self.project_root / "src/core/working_mcp_server.py"
         validation_checks.append(("MCP server file exists", mcp_server_path.exists()))
-        
+
         # Check if Python path is correct
         python_path = self.get_python_path()
         validation_checks.append(("Python path valid", Path(python_path).exists()))
-        
+
         # Display validation results
         print("\n📋 Validation Results:")
         all_passed = True
@@ -620,88 +644,90 @@ try {
             print(f"  {emoji} {check_name}")
             if not passed:
                 all_passed = False
-        
+
         return all_passed
-    
+
     def generate_setup_report(self):
         """Generate a comprehensive setup report"""
         report = {
             "setup_timestamp": datetime.now().isoformat(),
             "project_root": str(self.project_root),
             "python_path": self.get_python_path(),
-            "moodle_url": self.config.get('MOODLE_URL', 'http://localhost:8080'),
+            "moodle_url": self.config.get("MOODLE_URL", "http://localhost:8080"),
             "claude_config_path": str(CLAUDE_CONFIG_PATH),
             "setup_log": self.setup_log,
-            "validation_passed": self.validate_setup()
+            "validation_passed": self.validate_setup(),
         }
-        
+
         # Save report
         report_file = self.project_root / "setup_report_v3_fixed.json"
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
-        
+
         print(f"\n📊 Setup report saved to: {report_file}")
         return report
-    
-    def run_complete_setup(self, quick_setup: bool = False, fix_permissions_only: bool = False) -> bool:
+
+    def run_complete_setup(
+        self, quick_setup: bool = False, fix_permissions_only: bool = False
+    ) -> bool:
         """Run the complete setup process"""
         print("🚀 Starting MoodleClaude v3.0 Complete Setup with Bug Fixes")
         print("=" * 80)
-        
+
         if fix_permissions_only:
             print("🔧 Running permissions fix only...")
             success = (
-                self.create_web_service_setup() and
-                self.fix_token_permissions() and
-                self.reassign_tokens_to_service()
+                self.create_web_service_setup()
+                and self.fix_token_permissions()
+                and self.reassign_tokens_to_service()
             )
-            
+
             if success:
                 print("✅ Permissions fix completed successfully!")
             else:
                 print("❌ Permissions fix failed!")
-            
+
             return success
-        
+
         success = True
-        
+
         # Step 1: Check prerequisites
         if not self.check_prerequisites():
             print("❌ Prerequisites check failed!")
             return False
-        
+
         # Step 2: Setup Docker environment (unless quick setup)
         if not quick_setup:
             if not self.setup_docker_environment():
                 print("❌ Docker environment setup failed!")
                 success = False
-        
+
         # Step 3: Setup web services and fix permissions
         if not self.create_web_service_setup():
             print("❌ Web service setup failed!")
             success = False
-        
+
         if not self.fix_token_permissions():
             print("❌ Token permissions fix failed!")
             success = False
-        
+
         if not self.reassign_tokens_to_service():
             print("❌ Token reassignment failed!")
             success = False
-        
+
         # Step 4: Setup Claude Desktop configuration
         if not self.setup_claude_desktop_config():
             print("❌ Claude Desktop setup failed!")
             success = False
-        
+
         # Step 5: Validate setup
         if not self.validate_setup():
             print("❌ Setup validation failed!")
             success = False
-        
+
         # Step 6: Generate report
         self.generate_setup_report()
-        
+
         if success:
             print("\n🎉 MoodleClaude v3.0 setup completed successfully!")
             print("=" * 60)
@@ -713,26 +739,33 @@ try {
         else:
             print("\n❌ Setup completed with some errors!")
             print("📋 Check the setup log for details")
-        
+
         return success
 
 
 def main():
     """Main setup function"""
-    parser = argparse.ArgumentParser(description="MoodleClaude v3.0 Complete Setup with Bug Fixes")
-    parser.add_argument("--quick-setup", action="store_true", 
-                       help="Skip Docker setup (assumes containers are already running)")
-    parser.add_argument("--fix-permissions-only", action="store_true",
-                       help="Run only the permissions fix (for existing installations)")
-    
+    parser = argparse.ArgumentParser(
+        description="MoodleClaude v3.0 Complete Setup with Bug Fixes"
+    )
+    parser.add_argument(
+        "--quick-setup",
+        action="store_true",
+        help="Skip Docker setup (assumes containers are already running)",
+    )
+    parser.add_argument(
+        "--fix-permissions-only",
+        action="store_true",
+        help="Run only the permissions fix (for existing installations)",
+    )
+
     args = parser.parse_args()
-    
+
     setup = MoodleClaudeSetupV3()
     success = setup.run_complete_setup(
-        quick_setup=args.quick_setup,
-        fix_permissions_only=args.fix_permissions_only
+        quick_setup=args.quick_setup, fix_permissions_only=args.fix_permissions_only
     )
-    
+
     sys.exit(0 if success else 1)
 
 

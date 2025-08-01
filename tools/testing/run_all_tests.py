@@ -169,9 +169,7 @@ class ComprehensiveTestRunner:
         if passed_suites == total_suites:
             print(f"\n🎉 All test suites passed! MoodleClaude is fully validated.")
         else:
-            print(
-                f"\n⚠️  Some test suites failed. Check detailed output for debugging."
-            )
+            print(f"\n⚠️  Some test suites failed. Check detailed output for debugging.")
 
     def print_detailed_output(self):
         """Print detailed output from all test suites"""

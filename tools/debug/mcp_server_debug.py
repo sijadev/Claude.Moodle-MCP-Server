@@ -11,35 +11,36 @@ from typing import Any, Dict, List
 
 import mcp.server.stdio
 import mcp.types as types
-from mcp.server import NotificationOptions, Server
-from mcp.server.models import InitializationOptions
-
-from config import Config
-from constants import Defaults, Messages, ToolDescriptions, ContentTypes
+from constants import ContentTypes, Defaults, Messages, ToolDescriptions
 from content_formatter import ContentFormatter
 from content_parser import ChatContentParser
-from models import ChatContent, CourseStructure
+from mcp.server import NotificationOptions, Server
+from mcp.server.models import InitializationOptions
 from moodle_client import MoodleClient
+
+from config import Config
+from models import ChatContent, CourseStructure
 
 # Enhanced logging setup
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('mcp_server_debug.log'),
-        logging.StreamHandler(sys.stderr)
-    ]
+        logging.FileHandler("mcp_server_debug.log"),
+        logging.StreamHandler(sys.stderr),
+    ],
 )
 logger = logging.getLogger(__name__)
 
+
 class DebugMoodleMCPServer:
     """Debug version of MCP Server with enhanced logging"""
-    
+
     def __init__(self):
         logger.info("=" * 60)
         logger.info("🔧 STARTING DEBUG MCP SERVER")
         logger.info("=" * 60)
-        
+
         self.server = Server(Defaults.SERVER_NAME)
         self.content_parser = ChatContentParser()
         self.moodle_client = None
@@ -95,55 +96,63 @@ class DebugMoodleMCPServer:
             return tools
 
         @self.server.call_tool()
-        async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextContent]:
+        async def handle_call_tool(
+            name: str, arguments: Dict[str, Any]
+        ) -> List[types.TextContent]:
             logger.info("=" * 60)
             logger.info(f"🛠️  TOOL CALL: {name}")
             logger.info(f"📥 Arguments: {list(arguments.keys())}")
             logger.info("=" * 60)
-            
+
             if name == "create_course_from_chat":
                 return await self._debug_create_course_from_chat(arguments)
             else:
                 logger.error(f"❌ Unknown tool: {name}")
                 return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
-    async def _debug_create_course_from_chat(self, arguments: Dict[str, Any]) -> List[types.TextContent]:
+    async def _debug_create_course_from_chat(
+        self, arguments: Dict[str, Any]
+    ) -> List[types.TextContent]:
         """Debug version of create course from chat"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         logger.info(f"🎓 COURSE CREATION START - {timestamp}")
-        
+
         chat_content = arguments.get("chat_content", "")
         course_name = arguments.get("course_name", "")
         course_description = arguments.get("course_description", "")
-        
+
         logger.info(f"📝 Chat content length: {len(chat_content)} characters")
         logger.info(f"🏷️  Course name: {course_name}")
         logger.info(f"📖 Course description: {course_description}")
-        
+
         if not self.moodle_client:
             logger.error("❌ No Moodle client available")
-            return [types.TextContent(
-                type="text",
-                text="❌ Error: Moodle client not initialized. Please check MOODLE_URL and MOODLE_TOKEN environment variables."
-            )]
+            return [
+                types.TextContent(
+                    type="text",
+                    text="❌ Error: Moodle client not initialized. Please check MOODLE_URL and MOODLE_TOKEN environment variables.",
+                )
+            ]
 
         try:
             # Step 1: Parse content
             logger.info("🔍 STEP 1: Parsing chat content...")
             parsed_content = self.content_parser.parse_chat(chat_content)
             logger.info(f"✅ Parsed {len(parsed_content.items)} items")
-            
+
             for i, item in enumerate(parsed_content.items):
                 logger.info(f"   Item {i+1}: {item.type} - {item.title}")
-                if hasattr(item, 'language'):
+                if hasattr(item, "language"):
                     logger.info(f"     Language: {item.language}")
                 logger.info(f"     Content length: {len(item.content)} chars")
 
             # Step 2: Create course structure
             logger.info("🏗️  STEP 2: Creating course structure...")
             course_structure = self._organize_content(parsed_content)
-            logger.info(f"✅ Course structure with {len(course_structure.sections)} sections")
+            logger.info(
+                f"✅ Course structure with {len(course_structure.sections)} sections"
+            )
 
             # Step 3: Create course in Moodle
             logger.info("🎓 STEP 3: Creating course in Moodle...")
@@ -157,10 +166,10 @@ class DebugMoodleMCPServer:
             # Step 4: Add content to course
             logger.info("📚 STEP 4: Adding content to course...")
             created_activities = []
-            
+
             for section_idx, section in enumerate(course_structure.sections):
                 logger.info(f"   Processing section {section_idx + 1}: {section.name}")
-                
+
                 try:
                     section_id = await self.moodle_client.create_section(
                         course_id=course_id,
@@ -174,17 +183,19 @@ class DebugMoodleMCPServer:
 
                 for item_idx, item in enumerate(section.items):
                     logger.info(f"     Processing item {item_idx + 1}: {item.title}")
-                    
+
                     try:
                         if item.type == "code":
                             # Create page activity for code
-                            formatted_content = self.content_formatter.format_code_for_moodle(
-                                code=item.content,
-                                language=getattr(item, 'language', 'text'),
-                                title=item.title,
-                                description=getattr(item, 'description', ''),
+                            formatted_content = (
+                                self.content_formatter.format_code_for_moodle(
+                                    code=item.content,
+                                    language=getattr(item, "language", "text"),
+                                    title=item.title,
+                                    description=getattr(item, "description", ""),
+                                )
                             )
-                            
+
                             activity_id = await self.moodle_client.create_page_activity(
                                 course_id=course_id,
                                 section_id=section_id,
@@ -193,15 +204,17 @@ class DebugMoodleMCPServer:
                             )
                             logger.info(f"     ✅ Code page created: {activity_id}")
                             created_activities.append(activity_id)
-                            
+
                         elif item.type == "topic":
                             # Create page activity for topic
-                            formatted_content = self.content_formatter.format_topic_for_moodle(
-                                content=item.content,
-                                title=item.title,
-                                description=getattr(item, 'description', ''),
+                            formatted_content = (
+                                self.content_formatter.format_topic_for_moodle(
+                                    content=item.content,
+                                    title=item.title,
+                                    description=getattr(item, "description", ""),
+                                )
                             )
-                            
+
                             activity_id = await self.moodle_client.create_page_activity(
                                 course_id=course_id,
                                 section_id=section_id,
@@ -210,13 +223,13 @@ class DebugMoodleMCPServer:
                             )
                             logger.info(f"     ✅ Topic page created: {activity_id}")
                             created_activities.append(activity_id)
-                            
+
                     except Exception as e:
                         logger.warning(f"     ⚠️  Activity creation failed: {e}")
 
             # Step 5: Generate response
             course_url = f"{self.moodle_client.base_url}/course/view.php?id={course_id}"
-            
+
             success_message = f"""
 🎉 Course Created Successfully!
 
@@ -241,48 +254,49 @@ class DebugMoodleMCPServer:
 
             logger.info("🎉 COURSE CREATION COMPLETED SUCCESSFULLY")
             logger.info("=" * 60)
-            
+
             return [types.TextContent(type="text", text=success_message)]
 
         except Exception as e:
             error_msg = f"❌ Course creation failed: {str(e)}"
             logger.error(error_msg)
             logger.error("=" * 60)
-            
+
             import traceback
+
             traceback.print_exc()
-            
+
             return [types.TextContent(type="text", text=error_msg)]
 
     def _organize_content(self, parsed_content: ChatContent) -> CourseStructure:
         """Organize parsed content into course structure"""
         from models import CourseStructure
-        
+
         if not parsed_content.items:
             # Create a default section with basic info
             section = CourseStructure.Section(
                 name="General Information",
                 description="Course information and resources",
-                items=[]
+                items=[],
             )
             return CourseStructure(sections=[section])
-        
+
         # Group items by topic or create sections based on content type
         sections = []
         current_section_items = []
         current_section_name = "Course Content"
-        
+
         for item in parsed_content.items:
             current_section_items.append(item)
-        
+
         if current_section_items:
             section = CourseStructure.Section(
                 name=current_section_name,
                 description="Course content and examples",
-                items=current_section_items
+                items=current_section_items,
             )
             sections.append(section)
-        
+
         return CourseStructure(sections=sections)
 
     async def run(self):
@@ -301,6 +315,7 @@ class DebugMoodleMCPServer:
                     ),
                 ),
             )
+
 
 if __name__ == "__main__":
     server = DebugMoodleMCPServer()

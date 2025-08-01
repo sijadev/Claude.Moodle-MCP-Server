@@ -506,7 +506,9 @@ class OptimizedMoodleSetup:
         print("\n🎯 NEXT STEPS:")
         print("1. 🔄 Restart Claude Desktop to load optimized configuration")
         print("2. 🧪 Test with: 'Create a Python programming course'")
-        print("3. 📊 Monitor performance: python tools/performance_monitor.py --metrics")
+        print(
+            "3. 📊 Monitor performance: python tools/performance_monitor.py --metrics"
+        )
         print("4. 🔍 Health check: python tools/performance_monitor.py --health-check")
 
         print("\n🌐 ACCESS POINTS:")

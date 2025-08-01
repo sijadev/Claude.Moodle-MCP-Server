@@ -281,10 +281,10 @@ class ContentPreprocessor:
             "original_size_bytes": original_size,
             "sanitized_size_bytes": sanitized_size,
             "size_reduction_percent": (
-                (original_size - sanitized_size) / original_size * 100
-            )
-            if original_size > 0
-            else 0,
+                ((original_size - sanitized_size) / original_size * 100)
+                if original_size > 0
+                else 0
+            ),
             "sections_removed": len(original_data) - len(sanitized_data),
             "estimated_success_probability": self._estimate_success_probability(
                 sanitized_size

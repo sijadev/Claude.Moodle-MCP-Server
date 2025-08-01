@@ -4,13 +4,14 @@ Enhanced demo with manual content creation to show Moodle transfer capabilities
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Add parent directory to path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from content_formatter import ContentFormatter
+
 from models import ContentItem, CourseStructure
 
 
@@ -116,21 +117,29 @@ async def simulate_moodle_transfer(course_structure: CourseStructure, course_nam
                     title=item.title,
                     description=item.description or "",
                 )
-                print(f"      Content preview: {len(formatted_code)} characters of HTML")
+                print(
+                    f"      Content preview: {len(formatted_code)} characters of HTML"
+                )
 
                 total_activities += 2  # Page + File
 
             elif item.type == "topic":
-                print(f"\n   📝 Topic Activity {section_num}.{item_num}: '{item.title}'")
+                print(
+                    f"\n   📝 Topic Activity {section_num}.{item_num}: '{item.title}'"
+                )
                 print(f"      Content length: {len(item.content)} characters")
                 print(f"      Will create:")
                 print(f"        - 📄 Formatted page with rich content")
 
                 # Show formatted preview
                 formatted_topic = formatter.format_topic_for_moodle(
-                    content=item.content, title=item.title, description=item.description or ""
+                    content=item.content,
+                    title=item.title,
+                    description=item.description or "",
                 )
-                print(f"      Content preview: {len(formatted_topic)} characters of HTML")
+                print(
+                    f"      Content preview: {len(formatted_topic)} characters of HTML"
+                )
 
                 total_activities += 1  # Page only
 
@@ -142,10 +151,16 @@ async def simulate_moodle_transfer(course_structure: CourseStructure, course_nam
     print(f"✅ {total_activities} total activities created")
 
     code_count = sum(
-        1 for section in course_structure.sections for item in section.items if item.type == "code"
+        1
+        for section in course_structure.sections
+        for item in section.items
+        if item.type == "code"
     )
     topic_count = sum(
-        1 for section in course_structure.sections for item in section.items if item.type == "topic"
+        1
+        for section in course_structure.sections
+        for item in section.items
+        if item.type == "topic"
     )
 
     print(f"   - {code_count} code examples (with downloadable files)")
@@ -153,7 +168,9 @@ async def simulate_moodle_transfer(course_structure: CourseStructure, course_nam
     print(f"   - All content formatted with HTML and syntax highlighting")
     print(f"   - Mobile-friendly responsive design")
 
-    print(f"\n📍 Course URL would be: https://your-moodle-site.com/course/view.php?id=<course_id>")
+    print(
+        f"\n📍 Course URL would be: https://your-moodle-site.com/course/view.php?id=<course_id>"
+    )
 
 
 async def main():

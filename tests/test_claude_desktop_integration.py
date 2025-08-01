@@ -30,7 +30,9 @@ async def test_claude_desktop_integration():
     config = Config()
 
     if not config.moodle_url or not config.moodle_token:
-        print("❌ Error: MOODLE_URL and MOODLE_TOKEN environment variables are required")
+        print(
+            "❌ Error: MOODLE_URL and MOODLE_TOKEN environment variables are required"
+        )
         return
 
     print(f"🌐 Moodle URL: {config.moodle_url}")

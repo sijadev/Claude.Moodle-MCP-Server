@@ -345,9 +345,9 @@ class EnhancedMoodleAPI:
             "name": name,
             "intro": description,
             "visible": 1,
-            "files": upload_result
-            if isinstance(upload_result, list)
-            else [upload_result],
+            "files": (
+                upload_result if isinstance(upload_result, list) else [upload_result]
+            ),
         }
 
         return self._make_request("core_course_create_module", module_params)

@@ -68,7 +68,9 @@ async def test_realistic_moodle():
                     updated_sections = await client.get_course_sections(course_id)
                     for section in updated_sections:
                         if section.get("section", 0) == 1:
-                            print(f"✅ Section 1 name: {section.get('name', 'Unnamed')}")
+                            print(
+                                f"✅ Section 1 name: {section.get('name', 'Unnamed')}"
+                            )
                             break
 
             # Test 5: Simulate content creation (logging only)

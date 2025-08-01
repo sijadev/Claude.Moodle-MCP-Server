@@ -440,7 +440,9 @@ class EnhancedMoodleClient:
 
         if not await self._check_plugin_availability():
             # Fallback to old behavior
-            logger.warning(f"❌ Plugin not available - cannot create real page activity")
+            logger.warning(
+                f"❌ Plugin not available - cannot create real page activity"
+            )
             return {
                 "success": False,
                 "method": "plugin_required",
@@ -578,7 +580,9 @@ class EnhancedMoodleClient:
         )
 
         if not await self._check_plugin_availability():
-            logger.warning(f"❌ Plugin not available - cannot create real file resource")
+            logger.warning(
+                f"❌ Plugin not available - cannot create real file resource"
+            )
             return {
                 "success": False,
                 "method": "plugin_required",
@@ -746,15 +750,15 @@ class EnhancedMoodleClient:
                             activity_result["activityid"] = result.get("activity_id", 0)
 
                         except Exception as e:
-                            activity_result[
-                                "message"
-                            ] = f"Activity creation failed: {str(e)}"
+                            activity_result["message"] = (
+                                f"Activity creation failed: {str(e)}"
+                            )
 
                         section_result["activities"].append(activity_result)
                 else:
-                    section_result[
-                        "message"
-                    ] = "Section update failed (plugin required)"
+                    section_result["message"] = (
+                        "Section update failed (plugin required)"
+                    )
 
             except Exception as e:
                 section_result["message"] = f"Section creation failed: {str(e)}"

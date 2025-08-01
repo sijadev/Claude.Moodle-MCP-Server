@@ -6,52 +6,55 @@ Moodle Course Creation Enabler
 Aktiviert Kurs-Erstellungsberechtigungen in Moodle direkt über die Datenbank.
 """
 
-import os
-import sys
-from pathlib import Path
 import logging
-from datetime import datetime
+import os
 import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
 
 # Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s: %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class MoodleCourseCreationEnabler:
     """Tool zur Aktivierung von Kurs-Erstellungsberechtigungen."""
-    
+
     def __init__(self):
         self.project_root = Path(__file__).parent.parent
         self.config_file = self.project_root / "config/moodle_tokens.env"
         self.load_config()
-        
+
     def load_config(self):
         """Lädt die Konfiguration."""
         self.config = {}
-        
+
         if self.config_file.exists():
-            with open(self.config_file, 'r') as f:
+            with open(self.config_file, "r") as f:
                 for line in f:
-                    if '=' in line and not line.strip().startswith('#'):
-                        key, value = line.strip().split('=', 1)
-                        self.config[key] = value.strip('"\'')
-        
-        self.moodle_url = self.config.get('MOODLE_URL', 'http://localhost:8080')
+                    if "=" in line and not line.strip().startswith("#"):
+                        key, value = line.strip().split("=", 1)
+                        self.config[key] = value.strip("\"'")
+
+        self.moodle_url = self.config.get("MOODLE_URL", "http://localhost:8080")
         logger.info(f"✅ Configuration loaded for: {self.moodle_url}")
-    
+
     def fix_via_moodle_cli(self):
         """Versucht die Berechtigungen über Moodle CLI zu korrigieren."""
         logger.info("🔧 Attempting to fix permissions via Moodle CLI...")
-        
+
         # Common Moodle installation paths
         possible_moodle_paths = [
             "/Applications/MAMP/htdocs/moodle",
             "/var/www/html/moodle",
             "/usr/local/var/www/moodle",
             "/opt/homebrew/var/www/moodle",
-            Path.home() / "Sites/moodle"
+            Path.home() / "Sites/moodle",
         ]
-        
+
         moodle_path = None
         for path in possible_moodle_paths:
             path = Path(path)
@@ -59,48 +62,58 @@ class MoodleCourseCreationEnabler:
                 moodle_path = path
                 logger.info(f"📁 Found Moodle installation: {moodle_path}")
                 break
-        
+
         if not moodle_path:
             logger.warning("⚠️  Could not find Moodle installation directory")
             return False
-        
+
         cli_path = moodle_path / "admin/cli"
-        
+
         if not cli_path.exists():
             logger.warning("⚠️  Moodle CLI directory not found")
             return False
-        
+
         try:
             # Enable web services
             logger.info("🌐 Enabling web services...")
-            subprocess.run([
-                'php', str(cli_path / 'cfg.php'),
-                '--name=enablewebservices',
-                '--set=1'
-            ], check=True, capture_output=True)
-            
+            subprocess.run(
+                [
+                    "php",
+                    str(cli_path / "cfg.php"),
+                    "--name=enablewebservices",
+                    "--set=1",
+                ],
+                check=True,
+                capture_output=True,
+            )
+
             # Enable REST protocol
             logger.info("🔌 Enabling REST protocol...")
-            subprocess.run([
-                'php', str(cli_path / 'cfg.php'),
-                '--name=webserviceprotocols',
-                '--set=rest'
-            ], check=True, capture_output=True)
-            
+            subprocess.run(
+                [
+                    "php",
+                    str(cli_path / "cfg.php"),
+                    "--name=webserviceprotocols",
+                    "--set=rest",
+                ],
+                check=True,
+                capture_output=True,
+            )
+
             logger.info("✅ Moodle web service settings updated")
             return True
-            
+
         except subprocess.CalledProcessError as e:
             logger.error(f"❌ CLI command failed: {e}")
             return False
         except Exception as e:
             logger.error(f"❌ Error running CLI commands: {e}")
             return False
-    
+
     def create_web_service_setup_script(self):
         """Erstellt ein PHP-Script zur Web Service-Konfiguration."""
         logger.info("📝 Creating web service setup script...")
-        
+
         php_script = """<?php
 // MoodleClaude Web Service Setup Script
 define('CLI_SCRIPT', true);
@@ -298,108 +311,119 @@ if ($manager_role) {
 echo "\\n🎯 Setup complete! Web services should now work properly.\\n";
 echo "🔄 Please restart your web server and test the course creation functionality.\\n";
 ?>"""
-        
+
         # Find Moodle installation
         possible_paths = [
             "/Applications/MAMP/htdocs/moodle",
             "/var/www/html/moodle",
             "/usr/local/var/www/moodle",
-            "/opt/homebrew/var/www/moodle"
+            "/opt/homebrew/var/www/moodle",
         ]
-        
+
         moodle_path = None
         for path in possible_paths:
             path = Path(path)
             if path.exists() and (path / "config.php").exists():
                 moodle_path = path
                 break
-        
+
         if not moodle_path:
             logger.warning("⚠️  Could not find Moodle installation")
             # Save script to project directory instead
             script_path = self.project_root / "setup_webservices.php"
-            with open(script_path, 'w') as f:
+            with open(script_path, "w") as f:
                 f.write(php_script)
             logger.info(f"📝 Web service setup script saved to: {script_path}")
-            logger.info("📋 To run: Copy this file to your Moodle root directory and run: php setup_webservices.php")
+            logger.info(
+                "📋 To run: Copy this file to your Moodle root directory and run: php setup_webservices.php"
+            )
             return script_path
-        
+
         # Save script to Moodle directory
         script_path = moodle_path / "setup_webservices.php"
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(php_script)
-        
+
         logger.info(f"📝 Web service setup script created: {script_path}")
-        
+
         # Try to run the script
         try:
             logger.info("🚀 Running web service setup script...")
-            result = subprocess.run([
-                'php', str(script_path)
-            ], capture_output=True, text=True, cwd=str(moodle_path))
-            
+            result = subprocess.run(
+                ["php", str(script_path)],
+                capture_output=True,
+                text=True,
+                cwd=str(moodle_path),
+            )
+
             if result.returncode == 0:
                 logger.info("✅ Setup script executed successfully!")
                 logger.info("📋 Output:")
-                for line in result.stdout.split('\n'):
+                for line in result.stdout.split("\n"):
                     if line.strip():
                         logger.info(f"  {line}")
-                
+
                 # Clean up script
                 script_path.unlink()
                 return True
             else:
                 logger.error(f"❌ Setup script failed: {result.stderr}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ Error running setup script: {e}")
             return False
-    
+
     def update_tokens_file(self):
         """Aktualisiert die Token-Datei mit neuen Tokens."""
         logger.info("🔄 Updating tokens file...")
-        
+
         # This would typically involve extracting the new tokens from Moodle
         # For now, we'll trigger a regeneration
         try:
-            subprocess.run([
-                'python', str(self.project_root / 'setup_moodle.py'), '--regenerate-tokens'
-            ], check=True, capture_output=True)
-            
+            subprocess.run(
+                [
+                    "python",
+                    str(self.project_root / "setup_moodle.py"),
+                    "--regenerate-tokens",
+                ],
+                check=True,
+                capture_output=True,
+            )
+
             logger.info("✅ Tokens regenerated successfully")
             return True
-            
+
         except subprocess.CalledProcessError:
             logger.warning("⚠️  Could not regenerate tokens automatically")
             return False
         except Exception as e:
             logger.error(f"❌ Error regenerating tokens: {e}")
             return False
-    
+
     def run_fix(self):
         """Führt die komplette Reparatur durch."""
         logger.info("🚀 Starting Moodle course creation fix...")
         logger.info("=" * 60)
-        
+
         success = False
-        
+
         # Try PHP script method
         if self.create_web_service_setup_script():
             success = True
             logger.info("✅ Web service setup completed via PHP script")
-        
+
         # Try CLI method as backup
         if not success:
             logger.info("🔄 Trying CLI method...")
             if self.fix_via_moodle_cli():
                 success = True
                 logger.info("✅ Web service setup completed via CLI")
-        
+
         if success:
             # Update tokens
             self.update_tokens_file()
-            
+
             logger.info("\n" + "=" * 60)
             logger.info("🎯 FIX COMPLETE")
             logger.info("=" * 60)
@@ -414,19 +438,21 @@ echo "🔄 Please restart your web server and test the course creation functiona
             logger.info("  3. Enable web services")
             logger.info("  4. Add course creation functions to your web service")
             logger.info("  5. Assign appropriate roles to your web service users")
-        
+
         return success
+
 
 def main():
     """Main function."""
     print("🔧 MoodleClaude Course Creation Enabler")
     print("=" * 60)
     print("🚀 Fixing Moodle course creation permissions...")
-    
+
     enabler = MoodleCourseCreationEnabler()
     success = enabler.run_fix()
-    
+
     return success
+
 
 if __name__ == "__main__":
     success = main()

@@ -113,10 +113,15 @@ class MoodleSetupVerifier:
                 print(f"   ✅ {description}")
 
             except MoodleAPIError as e:
-                if "Can't find data record in database table external_functions" in str(e):
+                if (
+                    "Can't find data record in database table external_functions"
+                    in str(e)
+                ):
                     self.results["section_functions"][func] = False
                     print(f"   ❌ {description} - Function not enabled in web service")
-                elif "Invalid parameter" in str(e) or "Missing required parameter" in str(e):
+                elif "Invalid parameter" in str(
+                    e
+                ) or "Missing required parameter" in str(e):
                     self.results["section_functions"][func] = True
                     print(f"   ✅ {description} - Available (parameter error expected)")
                 else:
@@ -143,10 +148,15 @@ class MoodleSetupVerifier:
                 print(f"   ✅ {description}")
 
             except MoodleAPIError as e:
-                if "Can't find data record in database table external_functions" in str(e):
+                if (
+                    "Can't find data record in database table external_functions"
+                    in str(e)
+                ):
                     self.results["activity_functions"][func] = False
                     print(f"   ❌ {description} - Function not enabled in web service")
-                elif "Invalid parameter" in str(e) or "Missing required parameter" in str(e):
+                elif "Invalid parameter" in str(
+                    e
+                ) or "Missing required parameter" in str(e):
                     self.results["activity_functions"][func] = True
                     print(f"   ✅ {description} - Available (parameter error expected)")
                 else:

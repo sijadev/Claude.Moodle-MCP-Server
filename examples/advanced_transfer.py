@@ -7,6 +7,7 @@ Enhanced with EnhancedMoodleAPI capabilities for better section management
 import asyncio
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -15,8 +16,8 @@ load_dotenv()
 # Add parent directory to path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from moodle_client import MoodleAPIError, MoodleClient
 from enhanced_moodle_claude import EnhancedMoodleAPI, SectionConfig
+from moodle_client import MoodleAPIError, MoodleClient
 
 
 async def create_course_with_sections():
@@ -25,7 +26,9 @@ async def create_course_with_sections():
     moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
 
     course_name = "Python Kurs - Mit Sektionen"
-    course_description = "Ein Python-Kurs mit verschiedenen Sektionen für strukturierten Aufbau."
+    course_description = (
+        "Ein Python-Kurs mit verschiedenen Sektionen für strukturierten Aufbau."
+    )
 
     try:
         async with MoodleClient(moodle_url, moodle_token) as client:
@@ -44,7 +47,10 @@ async def create_course_with_sections():
                     "name": "1. Python Grundlagen",
                     "description": "Einführung in Python-Syntax und Grundkonzepte",
                 },
-                {"name": "2. Datentypen", "description": "Strings, Listen, Dictionaries und mehr"},
+                {
+                    "name": "2. Datentypen",
+                    "description": "Strings, Listen, Dictionaries und mehr",
+                },
                 {
                     "name": "3. Kontrollstrukturen",
                     "description": "If-Statements, Schleifen und Funktionen",
@@ -78,12 +84,16 @@ async def create_course_with_sections():
                     )
 
                     # Try to add some content to each section
-                    await add_content_to_section(client, course_id, section_id, section_info, i)
+                    await add_content_to_section(
+                        client, course_id, section_id, section_info, i
+                    )
 
                 except Exception as e:
                     print(f"⚠️  Section creation method failed: {e}")
                     # Try alternative method
-                    await try_alternative_section_creation(client, course_id, section_info, i)
+                    await try_alternative_section_creation(
+                        client, course_id, section_info, i
+                    )
 
             # Final summary
             print(f"\n" + "=" * 60)
@@ -106,7 +116,9 @@ async def create_course_with_sections():
         return None
 
 
-async def add_content_to_section(client, course_id, section_id, section_info, section_index):
+async def add_content_to_section(
+    client, course_id, section_id, section_info, section_index
+):
     """Add content to a specific section"""
     print(f"   📝 Adding content to section {section_id}...")
 
@@ -217,7 +229,9 @@ print(f"Ergebnis: {result}")</code></pre>
         print(f"   ⚠️  Could not add content to section: {e}")
 
 
-async def try_alternative_section_creation(client, course_id, section_info, section_index):
+async def try_alternative_section_creation(
+    client, course_id, section_info, section_index
+):
     """Try alternative methods to create section-like content"""
     print(f"   🔄 Trying alternative approach for: '{section_info['name']}'")
 
@@ -273,17 +287,17 @@ async def main():
 
 async def create_course_with_enhanced_api():
     """Create a course using the Enhanced Moodle API with advanced section features"""
-    
+
     moodle_url = os.getenv("MOODLE_URL", "http://localhost:8080")
     moodle_token = os.getenv("MOODLE_TOKEN", "b2021a7a41309b8c58ad026a751d0cd0")
-    
+
     print(f"\n🔥 ENHANCED API DEMO - Advanced Section Management")
     print(f"=" * 70)
-    
+
     try:
         # Initialize Enhanced API
         api = EnhancedMoodleAPI(moodle_url, moodle_token)
-        
+
         # Create course using enhanced API
         course_name = "Advanced Python Course - Enhanced Sections"
         course_description = """
@@ -296,11 +310,12 @@ async def create_course_with_enhanced_api():
             <li>🎯 Structured content delivery</li>
         </ul>
         """
-        
+
         # Create course first using proper parameter format
         import time
+
         shortname = f"python_enhanced_{int(time.time())}"
-        
+
         params = {
             "courses[0][fullname]": course_name,
             "courses[0][shortname]": shortname,
@@ -311,71 +326,78 @@ async def create_course_with_enhanced_api():
             "courses[0][visible]": 1,  # Visible
             "courses[0][numsections]": 5,  # Create 5 sections upfront
         }
-        
+
         course_response = api._make_request("core_course_create_courses", params)
         course_id = course_response[0]["id"]
-        
+
         print(f"✅ Course created with Enhanced API: {course_id}")
-        
+
         # Define advanced sections with different configurations
         enhanced_sections = [
             SectionConfig(
                 name="🎯 Course Introduction",
                 summary="<p><strong>Welcome!</strong> Start your Python journey here.</p>",
-                visible=True
+                visible=True,
             ),
             SectionConfig(
-                name="📚 Python Fundamentals", 
+                name="📚 Python Fundamentals",
                 summary="<p>Core concepts: variables, data types, operators</p>",
-                visible=True
+                visible=True,
             ),
             SectionConfig(
                 name="🔧 Control Structures",
                 summary="<p>Loops, conditions, and program flow</p>",
-                visible=True
+                visible=True,
             ),
             SectionConfig(
-                name="📊 Data Structures", 
+                name="📊 Data Structures",
                 summary="<p>Lists, dictionaries, sets, and tuples</p>",
-                visible=True
+                visible=True,
             ),
             SectionConfig(
                 name="⚙️ Functions & Modules",
                 summary="<p>Code organization and reusability</p>",
-                visible=True
-            )
+                visible=True,
+            ),
         ]
-        
+
         # Create sections using Enhanced API
         created_sections = []
         for i, section_config in enumerate(enhanced_sections, 1):
             print(f"📝 Creating enhanced section {i}: {section_config.name}")
-            
+
             try:
-                section_result = await api.create_course_section(course_id, section_config)
-                created_sections.append({
-                    "id": section_result.get("id"),
-                    "name": section_config.name,
-                    "visible": section_config.visible
-                })
+                section_result = await api.create_course_section(
+                    course_id, section_config
+                )
+                created_sections.append(
+                    {
+                        "id": section_result.get("id"),
+                        "name": section_config.name,
+                        "visible": section_config.visible,
+                    }
+                )
                 print(f"   ✅ Section created: ID {section_result.get('id')}")
-                
+
             except Exception as e:
                 print(f"   ❌ Failed to create section: {e}")
-        
+
         # Demonstrate section update
         if created_sections:
             print(f"\n🔧 Demonstrating section update...")
             try:
                 section_to_update = created_sections[0]
-                await api.update_section(section_to_update['id'], {
-                    "name": f"✨ {section_to_update['name']} (Enhanced!)",
-                    "summary": "<p><strong>Updated using Enhanced API!</strong></p>"
-                })
+                await api.update_section(
+                    section_to_update["id"],
+                    {
+                        "name": f"✨ {section_to_update['name']} (Enhanced!)",
+                        "summary": "<p><strong>Updated using Enhanced API!</strong></p>",
+                    },
+                )
                 print(f"   ✅ Section updated successfully")
             except Exception as e:
                 print(f"   ❌ Section update failed: {e}")
-        
+
         # Final summary
         print(f"\n" + "=" * 70)
         print(f"🎉 ENHANCED API DEMO COMPLETED!")
@@ -384,12 +406,13 @@ async def create_course_with_enhanced_api():
         print(f"🆔 Course ID: {course_id}")
         print(f"📊 Sections created: {len(created_sections)}")
         print(f"🌐 Course URL: {moodle_url}/course/view.php?id={course_id}")
-        
+
         return course_id, created_sections
-        
+
     except Exception as e:
         print(f"❌ Enhanced API demo failed: {e}")
         import traceback
+
         traceback.print_exc()
         return None, []
 
@@ -399,14 +422,14 @@ if __name__ == "__main__":
     print("Choose your demo:")
     print("1. Traditional approach (original)")
     print("2. Enhanced API approach (new)")
-    
+
     try:
         choice = input("Enter choice (1-2) or press Enter for Enhanced API: ").strip()
-        
+
         if choice == "1":
             asyncio.run(main())
         else:  # Default to Enhanced API
             asyncio.run(create_course_with_enhanced_api())
-            
+
     except KeyboardInterrupt:
         print("\n👋 Demo cancelled by user")

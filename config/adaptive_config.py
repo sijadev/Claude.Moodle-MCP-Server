@@ -524,9 +524,11 @@ class AdaptiveConfig:
             },
             "adaptation_stats": {
                 "total_adaptations": len(self.adaptation_history),
-                "last_adaptation": self.adaptation_history[-1]["timestamp"]
-                if self.adaptation_history
-                else None,
+                "last_adaptation": (
+                    self.adaptation_history[-1]["timestamp"]
+                    if self.adaptation_history
+                    else None
+                ),
                 "config_path": self.config_path,
                 "last_save_time": self.last_save_time,
             },

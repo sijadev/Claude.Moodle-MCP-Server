@@ -756,9 +756,9 @@ class IntelligentSessionManager:
                 return {
                     "overall": dict(overall_metrics) if overall_metrics else {},
                     "strategy_effectiveness": [dict(row) for row in strategy_metrics],
-                    "recent_processing": dict(processing_metrics)
-                    if processing_metrics
-                    else {},
+                    "recent_processing": (
+                        dict(processing_metrics) if processing_metrics else {}
+                    ),
                     "active_sessions": len(self.content_processor.active_sessions),
                     "processor_metrics": self.content_processor.get_processing_metrics(),
                 }

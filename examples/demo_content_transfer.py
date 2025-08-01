@@ -4,14 +4,15 @@ Demo script to show how content would be transferred to Moodle
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Add parent directory to path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from content_formatter import ContentFormatter
 from content_parser import ChatContentParser
+
 from models import CourseStructure
 
 
@@ -88,7 +89,9 @@ async def main():
     print("=" * 60)
     print(f"\nParsed Content Summary:")
     print(f"- Total items found: {len(parsed_content.items)}")
-    print(f"- Code examples: {len([item for item in parsed_content.items if item.type == 'code'])}")
+    print(
+        f"- Code examples: {len([item for item in parsed_content.items if item.type == 'code'])}"
+    )
     print(
         f"- Topic descriptions: {len([item for item in parsed_content.items if item.type == 'topic'])}"
     )
@@ -122,7 +125,9 @@ async def main():
 
                 # Show formatted content preview
                 formatted = formatter.format_topic_for_moodle(
-                    content=item.content, title=item.title, description=item.description or ""
+                    content=item.content,
+                    title=item.title,
+                    description=item.description or "",
                 )
                 print(f"        Preview (first 100 chars): {formatted[:100]}...")
 
@@ -145,7 +150,9 @@ async def main():
     print(f"   - Downloadable code files")
     print(f"   - Syntax highlighted code displays")
 
-    print("\nHinweis: Um tatsächlich nach Moodle zu übertragen, setze diese Umgebungsvariablen:")
+    print(
+        "\nHinweis: Um tatsächlich nach Moodle zu übertragen, setze diese Umgebungsvariablen:"
+    )
     print("export MOODLE_URL='https://your-moodle-site.com'")
     print("export MOODLE_TOKEN='your-web-service-token'")
 

@@ -28,7 +28,9 @@ async def test_connection():
             if courses:
                 print("Existing courses:")
                 for course in courses[:3]:  # Show first 3 courses
-                    print(f"  - ID: {course.get('id')}, Name: {course.get('fullname', 'Unknown')}")
+                    print(
+                        f"  - ID: {course.get('id')}, Name: {course.get('fullname', 'Unknown')}"
+                    )
 
             return True
 

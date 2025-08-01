@@ -268,9 +268,11 @@ class ServiceContainer(IServiceContainer):
         for interface_type, descriptor in self._services.items():
             result[interface_type.__name__] = {
                 "interface": interface_type.__name__,
-                "implementation": descriptor.implementation.__name__
-                if hasattr(descriptor.implementation, "__name__")
-                else str(descriptor.implementation),
+                "implementation": (
+                    descriptor.implementation.__name__
+                    if hasattr(descriptor.implementation, "__name__")
+                    else str(descriptor.implementation)
+                ),
                 "lifetime": descriptor.lifetime,
                 "has_instance": descriptor.instance is not None,
             }
