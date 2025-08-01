@@ -225,7 +225,8 @@ jobs:
 
       - name: Build test environment
         run: |
-          docker-compose -f operations/docker/docker-compose.test.yml build
+          # Use docker compose (new syntax) instead of docker-compose (legacy)
+          docker compose -f deployment/docker/docker-compose.test.yml build
 
       - name: Run integration tests
         run: |

@@ -47,8 +47,9 @@ class DockerTestSuiteRunnerFixed:
 
         # Docker configuration
         self.compose_file = (
-            self.project_root / "operations" / "docker" / "docker-compose.test.yml"
+            self.project_root / "deployment" / "docker" / "docker-compose.test.yml"
         )
+        self.compose_cmd = "docker-compose"  # Default, will be updated in check_prerequisites
         self.test_network = "moodle_test_network"
         self.test_containers = [
             "moodle_postgres_test",
@@ -163,9 +164,29 @@ class DockerTestSuiteRunnerFixed:
 
         checks = [
             ("docker --version", "Docker installation"),
-            ("docker-compose --version", "Docker Compose installation"),
             (f"{self.get_python_path()} --version", "Python installation"),
         ]
+        
+        # Check Docker Compose (try both new and legacy syntax)
+        docker_compose_found = False
+        for compose_cmd in ["docker compose version", "docker-compose --version"]:
+            try:
+                result = self.run_command(compose_cmd, "Checking Docker Compose")
+                if result.returncode == 0:
+                    docker_compose_found = True
+                    # Store the working command for later use
+                    if "docker compose" in compose_cmd:
+                        self.compose_cmd = "docker compose"
+                    else:
+                        self.compose_cmd = "docker-compose"
+                    break
+            except:
+                continue
+                
+        if not docker_compose_found:
+            checks.append(("false", "Docker Compose installation"))  # This will fail
+        else:
+            logger.info(f"✅ Using Docker Compose command: {self.compose_cmd}")
 
         all_good = True
         for cmd, desc in checks:
@@ -235,7 +256,7 @@ class DockerTestSuiteRunnerFixed:
         # Start containers
         try:
             result = self.run_command(
-                f"docker-compose -f {self.compose_file} up -d",
+                f"{self.compose_cmd} -f {self.compose_file} up -d",
                 "Starting test containers",
                 timeout=600,
             )
@@ -257,7 +278,7 @@ class DockerTestSuiteRunnerFixed:
             while waited < max_wait:
                 # Check if Moodle container is healthy
                 health_result = self.run_command(
-                    f"docker-compose -f {self.compose_file} ps moodle_test",
+                    f"{self.compose_cmd} -f {self.compose_file} ps moodle_test",
                     "Checking container health",
                 )
 
@@ -749,7 +770,7 @@ try {
         try:
             # Stop and remove containers
             self.run_command(
-                f"docker-compose -f {self.compose_file} down -v --remove-orphans",
+                f"{self.compose_cmd} -f {self.compose_file} down -v --remove-orphans",
                 "Stopping and removing test containers",
             )
 
