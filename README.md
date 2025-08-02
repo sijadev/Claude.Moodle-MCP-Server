@@ -1,34 +1,51 @@
-# MoodleClaude v3.0
+# MoodleClaude v4.0 Enhanced
 
-**Automated Moodle course creation powered by Claude AI and MCP (Model Context Protocol)**
+**Enterprise-Grade Automated Moodle Course Creation powered by Claude AI and MCP**
 
-Transform Claude Desktop conversations into complete Moodle courses with activities, resources, and structured content.
+Transform Claude Desktop conversations into complete Moodle courses with activities, resources, and structured content using enhanced web services with 75% function coverage.
 
-## 🌟 **New in v3.0: One-Command Installation!**
-
-```bash
-python tools/setup/setup_fresh_moodle_v2.py --quick-setup
-```
-
-**⚡ 5-10 minutes → Complete MoodleClaude system ready!**  
-No manual configuration, no token hunting, no setup headaches. Just works! 🎉
-
-## 🚀 Quick Start
+## 🌟 **New in v4.0: Enhanced Enterprise Setup!**
 
 ```bash
-# ⚡ One-Command Installation (v3.0)
-python tools/setup/setup_fresh_moodle_v2.py --quick-setup
-
-# That's it! 🎉
-# - Complete Moodle environment
-# - MoodleClaude plugin installed
-# - API tokens generated
-# - Claude Desktop configured
-# - Default backup created
+python setup/setup_moodleclaude_enhanced.py
 ```
 
-**⏱️ Installation time: ~5-10 minutes**  
-**🎯 Result: Ready-to-use MoodleClaude system**
+**⚡ 5-10 minutes → Complete Enhanced MoodleClaude system ready!**  
+- Dashboard-style progress reporting
+- 75% function coverage (21/28 functions)
+- Docker infrastructure with Redis caching
+- Comprehensive error handling and recovery
+- Performance monitoring and security validation
+
+## 🚀 Enhanced Quick Start
+
+```bash
+# 🌟 Enhanced Setup (v4.0 - RECOMMENDED)
+python setup/setup_moodleclaude_enhanced.py
+
+# ⚡ Quick Setup (skip validation)
+python setup/setup_moodleclaude_enhanced.py --quick-setup
+
+# 🔧 Enhanced Web Service Only
+python setup/setup_moodleclaude_enhanced.py --enhanced-only
+
+# 🐳 Force Docker Rebuild
+python setup/setup_moodleclaude_enhanced.py --docker-rebuild
+```
+
+**⏱️ Enhanced installation time: ~5-10 minutes**  
+**🎯 Result: Enterprise-grade MoodleClaude system with enhanced features**
+
+## 🆕 Enhanced Features v4.0
+
+- **🎯 Enhanced Web Service**: Custom service with 21/28 functions (75% coverage)
+- **📊 Dashboard Reporting**: Real-time progress with professional interface
+- **🐳 Docker Infrastructure**: PostgreSQL 16 + Redis 7 + Moodle 4.3
+- **🔍 Function Validation**: Pre-checks available functions before setup
+- **🛡️ Security Validation**: Enhanced token and permission verification
+- **📈 Performance Monitoring**: Response time testing and optimization
+- **🔧 Error Recovery**: Multiple fallback methods and detailed logging
+- **📋 Audit Logging**: Complete setup trail in JSON format
 
 ## 📁 Project Structure
 

@@ -78,8 +78,36 @@ echo ""
 echo -e "${BLUE}🔧 Starting web service creation...${NC}"
 echo ""
 
-# Method 1: Direct Python execution (preferred)
-echo "📋 Method 1: Direct setup via Python"
+# Method 1: Enhanced setup (preferred)
+echo "📋 Method 1: Enhanced setup with dashboard reporting"
+if python3 "$SCRIPT_DIR/enhanced_webservice_setup.py"; then
+    echo ""
+    echo -e "${GREEN}🎉 SUCCESS! Enhanced custom web service created successfully!${NC}"
+    echo ""
+    echo -e "${YELLOW}📊 Enhanced Features Activated:${NC}"
+    echo "   • Dashboard-style progress reporting"
+    echo "   • Function availability validation"
+    echo "   • Performance testing and monitoring"
+    echo "   • Comprehensive error logging"
+    echo "   • Security validation"
+    echo ""
+    echo -e "${YELLOW}📝 Next steps:${NC}"
+    echo "   1. Review the setup dashboard above"
+    echo "   2. Check setup logs in tools/setup/setup_log.json"
+    echo "   3. Restart your MCP server if it's running"
+    echo "   4. Test with Claude Desktop"
+    echo "   5. Use the 'diagnose_webservices' tool to verify"
+    echo ""
+    echo -e "${GREEN}✨ All MoodleClaude functions should now work without external_functions errors!${NC}"
+    exit 0
+fi
+
+echo ""
+echo -e "${YELLOW}⚠️  Enhanced method failed, trying standard approach...${NC}"
+echo ""
+
+# Method 2: Standard Python execution (fallback)
+echo "📋 Method 2: Standard setup via Python"
 if python3 "$SCRIPT_DIR/setup_custom_webservice.py"; then
     echo ""
     echo -e "${GREEN}🎉 SUCCESS! Custom web service created successfully!${NC}"
@@ -97,9 +125,9 @@ echo ""
 echo -e "${YELLOW}⚠️  Python method failed, trying alternative approaches...${NC}"
 echo ""
 
-# Method 2: Direct PHP execution (if available)
+# Method 3: Direct PHP execution (if available)
 if [[ "$PHP_AVAILABLE" == "true" ]]; then
-    echo "📋 Method 2: Direct PHP execution"
+    echo "📋 Method 3: Direct PHP execution"
     
     # Check if we're in a Moodle environment or need to use Docker
     PHP_SCRIPT="$SCRIPT_DIR/create_moodleclaude_webservice.php"
@@ -130,8 +158,8 @@ echo ""
 echo -e "${YELLOW}⚠️  Direct execution failed, trying Docker approach...${NC}"
 echo ""
 
-# Method 3: Docker execution (fallback)
-echo "📋 Method 3: Docker-based execution"
+# Method 4: Docker execution (fallback)
+echo "📋 Method 4: Docker-based execution"
 
 # Check if Docker is available
 if ! command -v docker &> /dev/null; then

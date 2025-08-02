@@ -24,7 +24,21 @@ Anstatt den unvollständigen Mobile-Service zu verwenden, erstellen wir einen **
 
 ## 🚀 Automatische Installation
 
-### Methode 1: Ein-Klick-Setup (Empfohlen)
+### Methode 1: Enhanced Setup mit Dashboard (Empfohlen)
+
+```bash
+python3 tools/setup/enhanced_webservice_setup.py
+```
+
+**Neue Features:**
+- 📊 Dashboard-Style Progress Reporting
+- 🔍 Function Availability Pre-Check  
+- 🛡️ Enhanced Security Validation
+- 📈 Performance Testing & Monitoring
+- 📝 Comprehensive Error Logging
+- 💡 Smart Troubleshooting Tips
+
+### Methode 2: Ein-Klick-Setup (Standard)
 
 ```bash
 ./tools/setup/create_custom_webservice.sh
@@ -39,13 +53,13 @@ Dieses Skript:
 - Aktualisiert .env Datei
 - Testet die Konfiguration
 
-### Methode 2: Python-Setup
+### Methode 3: Python-Setup
 
 ```bash
 python3 tools/setup/setup_custom_webservice.py
 ```
 
-### Methode 3: Direkte PHP-Ausführung
+### Methode 4: Direkte PHP-Ausführung
 
 ```bash
 php tools/setup/create_moodleclaude_webservice.php

@@ -103,8 +103,8 @@ WS_USER_PASSWORD_HASH='$2y$10$7o/YQk9XQVQ3oK5N3zHqDOr3s6K4F8j5L2/sB9qD8mA1xC3vE0
 
 docker exec moodleclaude_postgres_fresh psql -U moodle -d moodle_fresh -c "
 INSERT INTO mdl_user (auth, confirmed, username, password, firstname, lastname, email, city, country, lang, timezone, timecreated, timemodified)
-VALUES ('manual', 1, 'wsuser', '$WS_USER_PASSWORD_HASH', 'WebService', 'User', 'wsuser@example.com', 'Local', 'US', 'en', '99', EXTRACT(EPOCH FROM NOW()), EXTRACT(EPOCH FROM NOW()))
-ON CONFLICT (username) DO NOTHING;
+VALUES ('manual', 1, 'wsuser', '$WS_USER_PASSWORD_HASH', 'WebService', 'User', 'wsuser@example.com', 'Local', 'US', 'en', '99', EXTRACT(EPOCH FROM NOW()), 
+EXTRACT(EPOCH FROM NOW())) ON CONFLICT (username) DO NOTHING;
 "
 
 # Create web service role with all necessary capabilities

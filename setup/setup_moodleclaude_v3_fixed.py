@@ -2,15 +2,21 @@
 """
 MoodleClaude v3.0 Complete Setup with Bug Fixes
 ==============================================
-Comprehensive setup script that includes all discovered fixes and optimizations.
+DEPRECATED: Please use the new Enhanced Setup v4.0 instead!
 
-Includes fixes for:
-- MCP Server 'Server disconnected' error (spawn python ENOENT)
-- Access control exception for course creation
-- Token permissions and web service configuration
-- Claude Desktop integration
+The Enhanced Setup provides:
+- Dashboard-style progress reporting
+- 75% function coverage with enhanced web service
+- Docker-based infrastructure with Redis caching
+- Comprehensive error handling and recovery
+- Performance monitoring and security validation
 
-Usage:
+New Usage:
+    python setup_moodleclaude_enhanced.py
+    python setup_moodleclaude_enhanced.py --quick-setup
+    python setup_moodleclaude_enhanced.py --enhanced-only
+
+Legacy Usage (NOT RECOMMENDED):
     python setup_moodleclaude_v3_fixed.py
     python setup_moodleclaude_v3_fixed.py --quick-setup
     python setup_moodleclaude_v3_fixed.py --fix-permissions-only
@@ -42,8 +48,39 @@ class MoodleClaudeSetupV3:
         self.setup_log = []
         self.config = {}
 
+        # Show deprecation warning
+        self._show_deprecation_warning()
+
         # Load existing config
         self.load_config()
+
+    def _show_deprecation_warning(self):
+        """Show deprecation warning and recommend Enhanced Setup"""
+        print("⚠️" * 20)
+        print("           DEPRECATED SETUP SCRIPT")
+        print("⚠️" * 20)
+        print()
+        print("🚀 PLEASE USE THE NEW ENHANCED SETUP v4.0 INSTEAD:")
+        print("   python setup_moodleclaude_enhanced.py")
+        print()
+        print("🌟 Enhanced features include:")
+        print("   • Dashboard-style progress reporting")
+        print("   • 75% function coverage (21/28 functions)")
+        print("   • Docker infrastructure with Redis")
+        print("   • Comprehensive error handling")
+        print("   • Performance monitoring")
+        print("   • Security validation")
+        print()
+        print("❓ Continue with legacy setup? (y/N): ", end="")
+        
+        try:
+            choice = input().lower()
+            if choice not in ['y', 'yes']:
+                print("✅ Please run: python setup_moodleclaude_enhanced.py")
+                exit(0)
+        except KeyboardInterrupt:
+            print("\n✅ Please run: python setup_moodleclaude_enhanced.py")
+            exit(0)
 
     def log_step(self, message: str, success: bool = True):
         """Log setup steps"""

@@ -1,0 +1,15 @@
+{
+    "service_name": "MoodleClaude AI Enhanced Web Service",
+    "service_id": 3,
+    "service_shortname": "moodleclaude_service",
+    "token": "4c46782416a37649edb4d6c037d926bf",
+    "user": "moodleclaude_enhanced",
+    "user_id": 3,
+    "functions_added": 30,
+    "functions_total": 30,
+    "functions_coverage": 100,
+    "capabilities_enhanced": 14,
+    "webservice_url": "http:\/\/127.0.0.1:8080\/webservice\/rest\/server.php",
+    "setup_type": "enhanced_cli",
+    "created": "2025-08-02 11:34:24"
+}
