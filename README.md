@@ -1,4 +1,4 @@
-# MoodleClaude v3.0
+# MCP Moodle Server für ClaudeDesktop v3.0
 
 **Automated Moodle course creation powered by Claude AI and MCP (Model Context Protocol)**
 
