@@ -65,8 +65,8 @@ See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete organization d
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd MoodleClaude
+   git clone https://github.com/sijadev/MCP-MoodleServer-ClaudeDesktop.git
+   cd MCP-MoodleServer-ClaudeDesktop
    ```
 
 2. **Run the automated setup**
