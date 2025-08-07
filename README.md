@@ -10,7 +10,7 @@ Transform Claude Desktop conversations into complete Moodle courses with activit
 python tools/setup/setup_fresh_moodle_v2.py --quick-setup
 ```
 
-**⚡ 5-10 minutes → Complete MoodleClaude system ready!**  
+**⚡ 5-10 minutes → Complete Claude.Moodle-MCP-Server system ready!**  
 No manual configuration, no token hunting, no setup headaches. Just works! 🎉
 
 ## 🚀 Quick Start
@@ -65,8 +65,8 @@ See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete organization d
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/sijadev/MCP-MoodleServer-ClaudeDesktop.git
-   cd MCP-MoodleServer-ClaudeDesktop
+   git clone https://github.com/sijadev/Claude.Moodle-MCP-Server.git
+   cd Claude.Moodle-MCP-Server
    ```
 
 2. **Run the automated setup**
