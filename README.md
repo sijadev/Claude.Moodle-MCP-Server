@@ -1,4 +1,4 @@
-# MCP Moodle Server für ClaudeDesktop v3.0
+# Claude.Moodle-MCP-Server v3.0
 
 **Automated Moodle course creation powered by Claude AI and MCP (Model Context Protocol)**
 
@@ -78,7 +78,7 @@ See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for complete organization d
    - Essential for MCP server integration
    - Go to Settings → Restart Application
 
-**That's it! 🎉 Your MoodleClaude system is ready to use.**
+**That's it! 🎉 Your Claude.Moodle system is ready to use.**
 
 ### **What the Setup Does Automatically**
 ✅ Creates fresh Docker containers (PostgreSQL + Moodle)  
@@ -230,7 +230,7 @@ sequenceDiagram
 
 ## 🏗️ Architecture Overview
 
-MoodleClaude uses a layered architecture with intelligent session management and adaptive content processing:
+Claude.Moodle uses a layered architecture with intelligent session management and adaptive content processing:
 
 ```mermaid
 classDiagram
